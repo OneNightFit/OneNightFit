@@ -17,7 +17,7 @@ Anggota Kelompok:
 |---|---|---|---|
 | Authentication and User Dashboard |Mengelola akun dan informasi pribadi pengguna dalam website. Fitur meliputi Register, Login, Logout, View Profile, Edit Profile,  Activity History, dan Delete Account.| **Create:** Membuat akun/register.<br>**Read:** Melihat profil dan riwayat aktivitas.<br>**Update:** Mengedit profil dan password.<br>**Delete:** Menghapus akun.| Kayla Alifah Khairunnisa |
 | Product Catalog | Mengelola daftar pakaian yang tersedia untuk disewa oleh pembeli.| **Create:** Menambahkan *item* baru ke katalog.<br>**Read:** Menelusuri daftar baju dengan filter pencarian.<br>**Update:** Mengubah deskripsi atau harga sewa *item*.<br>**Delete:** Menghapus *item* dari katalog.| Khadijah Asy Syakira |
-| Product Cart | ... | ... | Zahra Nayla Azfa |
+| Product Cart | Mengelola keranjang penyimpanan produk yang akan disewa oleh pengguna sebelum melakukan pemesanan. | **Create:** Menambahkan produk ke keranjang, membuat pesanan sewa (*booking*).<br>**Read:** Menampilkan daftar produk dalam keranjang.<br>**Update:** Mengubah lama hari peminjaman produk.<br>**Delete:** Menghapus produk dari keranjang. | Zahra Nayla Azfa |
 | Inspo Board | Wadah bagi pengguna untuk membagikan foto gaya busana mereka, termasuk outfit yang menggunakan baju sewaan ONF. Fitur meliputi OOTD Board, Upload, Comment, Like, Bookmark, Search, dan Create Board. | **Create:** Membuat unggahan foto *outfit* baru.<br>**Read:** Menampilkan lini masa (*feed*) kiriman komunitas.<br>**Update:** Mengedit takarir (*caption*) unggahan.<br>**Delete:** Menghapus kiriman milik sendiri. | Fahira Ryhanabila |
 
 ## API
