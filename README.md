@@ -1,7 +1,7 @@
 # OneNightFit
 
 ## Deskripsi Aplikasi
-Kebiasaan membeli pakaian secara impulsif demi mengikuti tren atau sekadar ingin tampil beda kerap berujung pada penumpukan limbah tekstil. Menjawab permasalahan ini, One Night Fit (ONF) menyediakan platform penyewaan pakaian yang praktis dan terjangkau. Tidak hanya menekan biaya pengeluaran pengguna dan mengurangi dampak buruk lingkungan, ONF juga memperpanjang siklus hidup sebuah pakaian. 
+Kebiasaan membeli pakaian secara impulsif demi mengikuti tren atau sekadar ingin tampil beda kerap berujung pada penumpukan limbah tekstil. Menjawab permasalahan ini, OneNightFit (ONF) menyediakan platform penyewaan pakaian yang praktis dan terjangkau. Tidak hanya menekan biaya pengeluaran pengguna dan mengurangi dampak buruk lingkungan, ONF juga memperpanjang siklus hidup sebuah pakaian. 
 Disamping itu, ONF juga menyediakan *Outfit Inspo Community*, tempat bersosialisasi dan bertukar ide secara interaktif. Melalui perpaduan antara *sustainable fashion* dan dukungan komunitas, ONF mengajak masyarakat untuk tampil modis secara lebih bijak dan berkelanjutan.
 
 ## PBP E - Kelompok 7
