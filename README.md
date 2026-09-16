@@ -12,9 +12,9 @@ Anggota Kelompok:
 ## Daftar Modul
 | Nama Modul | Deskripsi Modul | CRUD | Anggota Kelompok |
 |---|---|---|---|
-|Autentikasi dan User Dashboard|...|...| Kayla Alifah Khairunnisa |
-|Katalog Sewa|...|...| Khadijah Asy Syakira |
-|Keranjang Produk|...|...| Zahra Nayla Azfa |
+|Authentication and User Dashboard|...|...| Kayla Alifah Khairunnisa |
+|Product Catalog|...|...| Khadijah Asy Syakira |
+|Product Cart|...|...| Zahra Nayla Azfa |
 |Inspo Board|...|...| Fahira Ryhanabila |
 
 ## API
