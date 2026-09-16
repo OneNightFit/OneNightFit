@@ -16,7 +16,7 @@ Anggota Kelompok:
 | Nama Modul | Deskripsi Modul | CRUD | Anggota Kelompok |
 |---|---|---|---|
 | Authentication and User Dashboard | ... | ... | Kayla Alifah Khairunnisa |
-| Product Catalog | ... | ... | Khadijah Asy Syakira |
+| Product Catalog | Mengelola daftar pakaian yang tersedia untuk disewa oleh pembeli.| **Create:** Menambahkan *item* baru ke katalog.<br>**Read:** Menelusuri daftar baju dengan filter pencarian.<br>**Update:** Mengubah deskripsi atau harga sewa *item*.<br>**Delete:** Menghapus *item* dari katalog.| Khadijah Asy Syakira |
 | Product Cart | ... | ... | Zahra Nayla Azfa |
 | Inspo Board | Wadah bagi pengguna untuk membagikan foto gaya busana mereka, termasuk outfit yang menggunakan baju sewaan ONF. Fitur meliputi OOTD Board, Upload, Comment, Like, Bookmark, Search, dan Create Board. | **Create:** Membuat unggahan foto *outfit* baru.<br>**Read:** Menampilkan lini masa (*feed*) kiriman komunitas.<br>**Update:** Mengedit takarir (*caption*) unggahan.<br>**Delete:** Menghapus kiriman milik sendiri. | Fahira Ryhanabila |
 
