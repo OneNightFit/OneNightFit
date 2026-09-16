@@ -2,11 +2,12 @@
 
 ## Deskripsi Aplikasi
 
-## Anggota Kelompok
-- Fahira Ryhanabila 
+## PBP E - Kelompok 7
+Anggota Kelompok:
+- Fahira Ryhanabila (2506623660)
 - Kayla Alifah Khairunnisa (2506611931)
 - Khadijah Asy Syakira (2506610595)
-- Zahra Nayla Azfa
+- Zahra Nayla Azfa (2506534163)
 
 ## Daftar Modul
 | Nama Modul | Deskripsi Modul | CRUD | Anggota Kelompok |
