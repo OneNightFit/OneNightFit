@@ -152,3 +152,36 @@ h6 {
     font-size: 8px;
     line-height: 150%;
 }
+
+/* BUTTONS =================================================================================== */
+.button {
+    display: inline-flex;
+    padding: 0.5rem 1rem;
+    justify-content: center;
+    align-items: center;
+    gap: 0.625rem;
+    border: 0.5rem;
+}
+.button-primary {
+    background-color: var(--gradient_primary);
+    color: var(--neutral_0);
+}
+.button-primary:hover {
+    background-color: var(--button_primary__hovered);
+}
+.button-secondary {
+    background-color: var(--secondary_200);
+    color: var(--secondary_800);
+}
+.button-secondary:hover {
+    background-color: var(--button_secondary__hovered);
+}
+.button-tertiary {
+    background-color: transparent;
+    border: 2px solid var(--primary_400);
+    color: var(--primary_100);
+}
+.button-tertiary:hover {
+    border: 2px solid var(--primary_200);
+    color: var(--primary_500);
+}
