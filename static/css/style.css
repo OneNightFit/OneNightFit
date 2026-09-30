@@ -185,3 +185,13 @@ h6 {
     border: 2px solid var(--primary_200);
     color: var(--primary_500);
 }
+.button-text {
+    font-weight: 900;
+    background-color: transparent;
+    color: var(--neutral_0);
+}
+.button-text:hover {
+    font-weight: 900;
+    background-color: transparent;
+    color: var(--neutral_100);
+}
