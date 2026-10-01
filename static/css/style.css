@@ -191,7 +191,7 @@ h6 {
 }
 
 .mobile-only {
-    display: hidden !important;
+    display: none !important;
 }
 
 /* NAVIGATION BAR =================================================================================== */
