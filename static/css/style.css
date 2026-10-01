@@ -194,6 +194,8 @@ h6 {
     display: hidden !important;
 }
 
+/* NAVIGATION BAR =================================================================================== */
+
 .site-header {
     display: flex;
     width: 100%;
@@ -468,13 +470,18 @@ body {
         height: 24px;
     }
 
+    /* NAVBAR */
     .site-header {
         height: 5rem;
         padding: 0 1.25rem;
     }
 
     .desktop-only {
-        display: hidden !important;
+        display: none !important;
+    }
+
+    .site-header nav {
+        gap: 1rem;
     }
 
     .hamburg_menu {
