@@ -18,7 +18,7 @@
 
 <body>
     <header class="site-header">
-        <a href="#" class="brand"><img src="static/img/logo.img" alt="OneNightFit Logo"></a>
+        <a href="#" class="brand"><img src="{% static 'img/logo.png' %}" alt="OneNightFit Logo"></a>
         <nav>
             <a href="#" class="body_1 desktop-only">Products</a>
             <a href="#" class="body_1 desktop-only">Inspo</a>
@@ -26,7 +26,7 @@
                 <span class="button button_text">{{ user.username }}</span>
                 <a href="#">Logout</a>
             {% else %}
-                <a href="#" class="body_1 button button_primary">Login/Sign Up</a>
+                <a href="#" class="button button-primary">Login/Sign Up</a>
             {% endif %}
             <div class="hamburg_menu mobile-only"> <a href="#" class="icon nav-hamburg-menu"></a></div>
         </nav>
