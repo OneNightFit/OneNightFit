@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-*s6@#$z+zk+td!zhbsbpk49wm*j89km8(3z!o+&z$fyz&jo-%j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "kayla-alifah-one-night-fit.pws.cs.ui.ac.id"]
 
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
@@ -71,8 +71,14 @@ TEMPLATES = [
     },
 ]
 
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+WHITENOISE_USE_FINDERS = True
+
 WSGI_APPLICATION = 'OneNightFit.wsgi.application'
 
+CSRF_TRUSTED_ORIGINS = ["https://kayla-alifah-one-night-fit.pws.cs.ui.ac.id"]
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -136,6 +142,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
