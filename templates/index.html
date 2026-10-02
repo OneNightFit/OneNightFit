@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Home{% endblock title %}
+{% block content %}
+    <main>
+        <section class="hero">
+           <img class="hero-bg" src="{% static 'img/hero-bg.png' %}" alt="" fetchpriority="high">
+            <div class="hero-overlay" aria-hidden="true"></div>
+ 
+            <h1 class="hero-title" data-text="OneNightFit">
+                <span class="hero-fill">OneNightFit</span>
+            </h1>
+ 
+            <div class="hero-content">
+                <div class="hero-tagline">
+                    <p>Last-minute dress code?</p>
+                    
+                    <p>Tired of the clothes in your closet?</p>
+                    <p>Need to wear formal attire for a presentation?</p><br>
+                    <p>Whatever your fashion dilemma, OneNightFit has the solution!</p>
+                </div>
+            </div>
+ 
+            <a class="hero-scroll" href="#about">
+                Scroll to Explore <span class="hero-scroll-arrow" aria-hidden="true">↓</span>
+            </a>
+        </section>
+
+        <section class="whatsin" id="about">
+            <div class="whatsin-inner">
+
+            <div class="whatsin-intro">
+                <img class="whatsin-logo" src="{% static 'img/favicon.png' %}" alt="OneNightFit">
+                <div class="whatsin-intro-text">
+                    <h2 class="whatsin-title">What's in OneNightFit?</h2>
+                    <p class="body-1">
+                    OneNightFit is a platform that combines fashion rental and a vibrant community,
+                    making it easier for you to look good, spend less, and make a positive impact.
+                    </p>
+                </div>
+            </div>
+
+            <div class="whatsin-cards">
+                <article class="whatsin-card">
+                    <img class="whatsin-card-img" src="{% static 'img/whatsin-rent.png' %}" alt="">
+                    <div class="whatsin-card-body">
+                        <span class="whatsin-card-label body-5">OUTFIT RENTAL</span>
+                        <h3 class="whatsin-card-title">Rent Your Look</h3>
+                        <p class="body-3">
+                            Need an outfit for a special occasion? Rent it instead of buying it.
+                            Get high-quality looks for a fraction of the cost.
+                        </p>
+                        <a href="#" class="whatsin-card-link body-3">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle></svg>
+                            Explore Product
+                        </a>
+                    </div>
+                </article>
+
+                <article class="whatsin-card">
+                    <img class="whatsin-card-img" src="{% static 'img/whatsin-inspo.png' %}" alt="">
+                    <div class="whatsin-card-body">
+                        <span class="whatsin-card-label body-5">OUTFIT INSPO COMMUNITY</span>
+                        <h3 class="whatsin-card-title">Get Inspired</h3>
+                        <p class="body-3">
+                            Discover new styles, share your own looks, and connect with a community
+                            that loves fashion as much as you do.
+                        </p>
+                        <a href="#" class="whatsin-card-link body-3">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle></svg>
+                            Explore Inspo
+                        </a>
+                    </div>
+                </article>
+            </div>
+
+            <div class="whatsin-cta">
+                <h2 class="whatsin-cta-title">
+                    Wear <span class="whatsin-accent">More,</span> Waste <span class="whatsin-accent">Less.</span>
+                </h2>
+                <p class="body-2">
+                    By giving clothes more than one life, OneNightFit helps you enjoy fashion without
+                    unnecessary consumption. Better for your style, better for the planet.
+                </p>
+                <a href="#" class="button button-primary">Explore Now</a>
+            </div>
+
+        </div>
+        </section>
+    </main>
+
+{% endblock content %}
