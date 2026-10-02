@@ -72,8 +72,14 @@ TEMPLATES = [
     },
 ]
 
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+WHITENOISE_USE_FINDERS = True
+
 WSGI_APPLICATION = 'OneNightFit.wsgi.application'
 
+CSRF_TRUSTED_ORIGINS = ["https://kayla-alifah-one-night-fit.pws.cs.ui.ac.id"]
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
