@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{% static 'css/inspo.css' %}">
 {% endblock meta %}
 
-{% block title %}{{ post.title }}{% endblock title %}
+{% block title %}{{ post.title|default:post.caption|truncatechars:40 }}{% endblock title %}
 
 {% block content %}
 <div class="inspo-page">
@@ -26,7 +26,9 @@
     <section class="detail-card">
       <div class="detail-media">
         <a href="{% url 'inspo:feeds' %}" class="detail-back" aria-label="Kembali">&lsaquo;</a>
-        <img src="{% static post.image %}" alt="{{ post.title }}">
+        {% if post.image %}
+          <img src="{{ post.image.url }}" alt="{{ post.title|default:post.caption }}">
+        {% endif %}
       </div>
 
       <div class="detail-panel">
@@ -56,7 +58,7 @@
           <button type="button" class="button button-primary detail-save" id="save-btn" aria-pressed="false">Save</button>
         </div>
 
-        <p class="detail-author"><span class="comment-avatar">{{ author|slice:":1" }}</span> {{ author }}</p>
+        <p class="detail-author"><span class="comment-avatar">{{ author|slice:":1"|upper }}</span> {{ author }}</p>
 
         <!-- Komentar (awalnya tersembunyi) -->
         <button type="button" class="comments-toggle" aria-expanded="false" aria-controls="comments-wrap">
@@ -70,7 +72,7 @@
               <li class="comment" data-likes="{{ c.likes }}">
                 <span class="comment-avatar">{{ c.user|slice:":1" }}</span>
                 <div class="comment-body">
-                  <p class="comment-meta"><strong>{{ c.user }}</strong> <span>{{ c.posted_at|timesince }} yang lalu</span></p>
+                 <p class="comment-meta"><strong>{{ c.user }}</strong> <span>{{ c.posted_at|timesince }} ago</span></p>
                   <p class="comment-text">{{ c.text }}</p>
                   <div class="comment-actions">
                     <button type="button" class="comment-like" aria-pressed="false">Suka</button>
@@ -82,7 +84,7 @@
                       <li class="comment" data-likes="{{ r.likes }}">
                         <span class="comment-avatar">{{ r.user|slice:":1" }}</span>
                         <div class="comment-body">
-                          <p class="comment-meta"><strong>{{ r.user }}</strong> <span>{{ r.posted_at|timesince }} yang lalu</span></p>
+                          <p class="comment-meta"><strong>{{ r.user }}</strong> <span>{{ r.posted_at|timesince }} ago</span></p>
                           <p class="comment-text">{{ r.text }}</p>
                           <div class="comment-actions">
                             <button type="button" class="comment-like" aria-pressed="false">Suka</button>
@@ -120,15 +122,23 @@
         {% for p in more_posts %}
           <article class="inspo-card">
             <div class="inspo-card-img">
-              <a href="{% url 'inspo:detail' p.id %}"><img src="{% static p.image %}" alt="{{ p.title }}"></a>
+              <a href="{% url 'inspo:detail' p.id %}">
+                {% if p.image %}
+                  <img src="{{ p.image.url }}" alt="{{ p.title|default:p.caption }}">
+                {% endif %}
+              </a>
             </div>
             <div class="inspo-card-info">
               <div>
-                <p class="body-4 inspo-card-title">{{ p.title }}</p>
-                <p class="body-6 inspo-card-caption">{{ p.caption }}</p>
+                <p class="body-4 inspo-card-title">{{ p.title|default:p.caption|truncatechars:40 }}</p>
+                {% if p.title %}
+                  <p class="body-6 inspo-card-caption">{{ p.caption|truncatechars:60 }}</p>
+                {% endif %}
               </div>
             </div>
           </article>
+        {% empty %}
+          <p class="body-2">Belum ada postingan lain.</p>
         {% endfor %}
       </div>
     </section>
@@ -212,7 +222,7 @@
     const meta = document.createElement('p');
     meta.className = 'comment-meta';
     const name = document.createElement('strong'); name.textContent = 'John D.';
-    const time = document.createElement('span'); time.textContent = ' Baru saja';
+    const time = document.createElement('span'); time.textContent = ' Just now';
     meta.append(name, time);
 
     const p = document.createElement('p');

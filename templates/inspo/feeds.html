@@ -11,26 +11,26 @@
 <div class="inspo-page">
   <div class="inspo-container">
 
-  <header class="feed-header">
-    <div class="feed-header-text">
-      <p class="body-1">Good Morning</p>
-      <h1 class="feed-heading">Your Style, Yours</h1>
-    </div>
+    <header class="feed-header">
+      <div class="feed-header-text">
+        <p class="body-1">Good Morning</p>
+        <h1 class="feed-heading">Your Style, Yours</h1>
+      </div>
 
-    <div class="feed-header-actions">
-      <form class="feed-search" role="search" method="get" action="{% url 'inspo:feeds' %}">
-        <input type="hidden" name="kategori" value="{{ active_category }}">
-        <input type="search" name="q" value="{{ query }}" placeholder="Search styles, brands...." aria-label="Search">
-        <button type="submit" aria-label="Cari">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        </button>
-      </form>
+      <div class="feed-header-actions">
+        <form class="feed-search" role="search" method="get" action="{% url 'inspo:feeds' %}">
+          <input type="hidden" name="kategori" value="{{ active_category }}">
+          <input type="search" name="q" value="{{ query }}" placeholder="Search styles, brands...." aria-label="Search">
+          <button type="submit" aria-label="Cari">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          </button>
+        </form>
 
-      <a href="#" class="feed-upload" aria-label="Upload postingan" title="Upload postingan">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-      </a>
-    </div>
-</header>
+        <a href="#" class="feed-upload" aria-label="Upload postingan" title="Upload postingan">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        </a>
+      </div>
+    </header>
 
     <section class="feed-banner">
       <div class="feed-banner-text">
@@ -71,26 +71,34 @@
           <article class="inspo-card">
             <div class="inspo-card-img">
               <a href="{% url 'inspo:detail' post.id %}">
-                <img src="{% static post.image %}" alt="{{ post.title }}">
+                {% if post.image %}
+                  <img src="{{ post.image.url }}" alt="{{ post.title|default:post.caption }}">
+                {% endif %}
               </a>
             </div>
-           <div class="inspo-card-info">
-          <div>
-            <p class="body-4 inspo-card-title">{{ post.title }}</p>
-            <p class="body-6 inspo-card-caption">{{ post.caption }}</p>
-          </div>
+            <div class="inspo-card-info">
+              <div>
+                <p class="body-4 inspo-card-title">{{ post.title|default:post.caption|truncatechars:40 }}</p>
+                {% if post.title %}
+                  <p class="body-6 inspo-card-caption">{{ post.caption|truncatechars:60 }}</p>
+                {% endif %}
+              </div>
 
-          <div class="card-menu-wrap">
-            <button type="button" class="inspo-card-menu" aria-label="Menu" aria-expanded="false">&hellip;</button>
-            <div class="card-menu" hidden>
-              <button type="button" class="card-menu-item" data-action="like">Like</button>
-              <button type="button" class="card-menu-item" data-action="save">Bookmark</button>
-              <button type="button" class="card-menu-item" data-action="share">Share</button>
-              <a class="card-menu-item" href="{% static post.image %}" download>Download image</a>
-    </div>
-  </div>
-</div>
+              <div class="card-menu-wrap">
+                <button type="button" class="inspo-card-menu" aria-label="Menu" aria-expanded="false">&hellip;</button>
+                <div class="card-menu" hidden>
+                  <button type="button" class="card-menu-item" data-action="like">Like</button>
+                  <button type="button" class="card-menu-item" data-action="save">Bookmark</button>
+                  <button type="button" class="card-menu-item" data-action="share">Share</button>
+                  {% if post.image %}
+                    <a class="card-menu-item" href="{{ post.image.url }}" download>Download image</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
           </article>
+        {% empty %}
+          <p class="body-2">Belum ada postingan{% if query %} untuk "{{ query }}"{% endif %}.</p>
         {% endfor %}
       </div>
     </section>
@@ -115,7 +123,7 @@
     trigger.addEventListener('click', e => {
       e.stopPropagation();
       const wasHidden = menu.hidden;
-      closeAll();                       // tutup menu lain
+      closeAll(); // tutup menu lain
       menu.hidden = !wasHidden;
       trigger.setAttribute('aria-expanded', String(wasHidden));
     });
@@ -142,9 +150,8 @@
     });
   });
 
-  // klik di luar menu / tekan Esc = tutup
+  // klik di luar menu atau tekan Esc = tutup
   document.addEventListener('click', closeAll);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
 </script>
-
 {% endblock content %}
