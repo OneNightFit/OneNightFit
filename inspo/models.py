@@ -19,12 +19,18 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name="inspo_posts",
     )
+    title = models.CharField(max_length=100, blank=True)
     image = models.ImageField(upload_to="inspo/posts/")
     caption = models.CharField(max_length=300, blank=True)
-    tags = models.ManyToManyField(Tag, blank=True, related_name="posts")
+    tag = models.ForeignKey(
+    Tag,
+    null=True,
+    blank=True,
+    on_delete=models.SET_NULL,
+    related_name="posts",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     # TODO: tag produk ONF (ForeignKey/ManyToMany ke model produk)
     # setelah model Product dari modul Product Catalog tersedia.
 
