@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+{% endblock meta %}
+
+{% block title %}Inspo{% endblock title %}
+
+{% block content %}
+<div class="inspo-page">
+  <div class="inspo-container">
+
+  <header class="feed-header">
+    <div class="feed-header-text">
+      <p class="body-1">Good Morning</p>
+      <h1 class="feed-heading">Your Style, Yours</h1>
+    </div>
+
+    <div class="feed-header-actions">
+      <form class="feed-search" role="search" method="get" action="{% url 'inspo:feeds' %}">
+        <input type="hidden" name="kategori" value="{{ active_category }}">
+        <input type="search" name="q" value="{{ query }}" placeholder="Search styles, brands...." aria-label="Search">
+        <button type="submit" aria-label="Cari">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        </button>
+      </form>
+
+      <a href="#" class="feed-upload" aria-label="Upload postingan" title="Upload postingan">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      </a>
+    </div>
+</header>
+
+    <section class="feed-banner">
+      <div class="feed-banner-text">
+        <p class="subheading-6 feed-banner-label">NEW ARRIVAL</p>
+        <h3 class="feed-banner-title">Graphite Tren Coast</h3>
+        <p class="body-2">Tampil standout semalam tanpa perlu beli. Sewa outfit pilihan ONF untuk pesta, acara spesial, atau sekadar hangout. Semua sudah dicuci bersih, siap pakai, dan tinggal dikembalikan besok.</p>
+        <a href="#" class="button button-primary">Sewa sekarang</a>
+      </div>
+      <div class="feed-banner-img">
+        <img src="{% static 'img/banner-ONF.jpg' %}" alt="Graphite Tren Coast">
+      </div>
+    </section>
+
+    <section class="feed-categories">
+      <div class="feed-categories-head">
+        <h2 class="inspo-title">Categories</h2>
+        <div class="feed-tag-row">
+          <a href="#" class="feed-tag">Women</a>
+          <a href="#" class="feed-tag">Man</a>
+          <a href="#" class="feed-tag">Kid</a>
+        </div>
+      </div>
+      <div class="feed-pill-row">
+        {% for c in categories %}
+          <a href="?kategori={{ c|urlencode }}" class="feed-pill body-2{% if c == active_category %} feed-pill-active{% endif %}">{{ c }}</a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="feed-posts">
+      <div class="feed-posts-head">
+        <h2 class="inspo-title">Featured <span class="inspo-accent">Product</span></h2>
+        <a href="#" class="subheading-6">See all</a>
+      </div>
+
+      <div class="feed-grid">
+        {% for post in posts %}
+          <article class="inspo-card">
+            <div class="inspo-card-img">
+              <a href="{% url 'inspo:detail' post.id %}">
+                <img src="{% static post.image %}" alt="{{ post.title }}">
+              </a>
+            </div>
+           <div class="inspo-card-info">
+          <div>
+            <p class="body-4 inspo-card-title">{{ post.title }}</p>
+            <p class="body-6 inspo-card-caption">{{ post.caption }}</p>
+          </div>
+
+          <div class="card-menu-wrap">
+            <button type="button" class="inspo-card-menu" aria-label="Menu" aria-expanded="false">&hellip;</button>
+            <div class="card-menu" hidden>
+              <button type="button" class="card-menu-item" data-action="like">Like</button>
+              <button type="button" class="card-menu-item" data-action="save">Bookmark</button>
+              <button type="button" class="card-menu-item" data-action="share">Share</button>
+              <a class="card-menu-item" href="{% static post.image %}" download>Download image</a>
+    </div>
+  </div>
+</div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const menus = document.querySelectorAll('.card-menu-wrap');
+
+  function closeAll() {
+    menus.forEach(w => {
+      w.querySelector('.card-menu').hidden = true;
+      w.querySelector('.inspo-card-menu').setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  menus.forEach(wrap => {
+    const trigger = wrap.querySelector('.inspo-card-menu');
+    const menu = wrap.querySelector('.card-menu');
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const wasHidden = menu.hidden;
+      closeAll();                       // tutup menu lain
+      menu.hidden = !wasHidden;
+      trigger.setAttribute('aria-expanded', String(wasHidden));
+    });
+
+    menu.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+
+      if (action === 'like' || action === 'save') {
+        btn.classList.toggle('is-active');
+      }
+      if (action === 'share') {
+        const url = window.location.href;
+        if (navigator.share) {
+          navigator.share({ title: document.title, url });
+        } else {
+          navigator.clipboard.writeText(url);
+          btn.textContent = 'Link disalin!';
+          setTimeout(() => (btn.textContent = 'Share'), 1500);
+        }
+      }
+      if (action !== 'share') closeAll();
+    });
+  });
+
+  // klik di luar menu / tekan Esc = tutup
+  document.addEventListener('click', closeAll);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+</script>
+
+{% endblock content %}
