@@ -1,52 +1,88 @@
 from datetime import timedelta
 
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, render
+import requests
+from django.http import Http404
+from django.shortcuts import render
 from django.utils import timezone
 
-from inspo.models import Post
+API_URL = "https://fakestoreapi.com"
 
-CATEGORIES = ["Terbaru", "Terpopuler", "Pesta", "Casual", "Y2K", "Disewakan oleh ONF"]
+# Label pill di feed -> kategori dari API (None = semua)
+CATEGORY_MAP = {
+    "Terbaru": None,
+    "Terpopuler": None,  # diurutkan berdasarkan rating.count
+    "Women": "women's clothing",
+    "Man": "men's clothing",
+    "Jewelery": "jewelery",
+    "Electronics": "electronics",
+}
+
+
+def fetch_json(path):
+    """Ambil data dari API. Kembalikan None kalau gagal."""
+    try:
+        res = requests.get(f"{API_URL}{path}", timeout=5)
+        res.raise_for_status()
+        return res.json()
+    except (requests.RequestException, ValueError):
+        return None
+
+
+def normalize(p):
+    """Samakan bentuk data API dengan yang dipakai template."""
+    rating = p.get("rating") or {}
+    return {
+        "id": p["id"],
+        "title": p["title"],
+        "caption": p["description"],
+        "image": p["image"],          # sudah berupa URL penuh
+        "price": p["price"],
+        "category": p["category"],
+        "rating_count": rating.get("count", 0),
+    }
 
 
 def feeds(request):
-    categories = CATEGORIES
+    categories = list(CATEGORY_MAP.keys())
 
     active_category = request.GET.get("kategori", categories[0])
-    if active_category not in categories:
+    if active_category not in CATEGORY_MAP:
         active_category = categories[0]
 
-    posts = Post.objects.select_related("author", "tag")
+    data = fetch_json("/products")
+    api_error = data is None
+    posts = [normalize(p) for p in (data or [])]
 
-    # "Terbaru" dan "Terpopuler" adalah urutan, kategori lain adalah tag.
+    api_category = CATEGORY_MAP[active_category]
+    if api_category:
+        posts = [p for p in posts if p["category"] == api_category]
     if active_category == "Terpopuler":
-        # TODO: ganti dengan jumlah like kalau model Like sudah ada.
-        posts = posts.annotate(num_saved=Count("bookmarks")).order_by("-num_saved", "-created_at")
-    elif active_category != "Terbaru":
-        # TODO: "Disewakan oleh ONF" idealnya memakai relasi ke produk ONF.
-        # Sementara dicocokkan dengan nama tag.
-        posts = posts.filter(tag__name__iexact=active_category)
+        posts.sort(key=lambda p: p["rating_count"], reverse=True)
 
     query = request.GET.get("q", "").strip()
     if query:
-        posts = posts.filter(
-            Q(title__icontains=query)
-            | Q(caption__icontains=query)
-            | Q(tag__name__icontains=query)
-        )
+        q = query.lower()
+        posts = [p for p in posts if q in p["title"].lower() or q in p["caption"].lower()]
 
     return render(request, "inspo/feeds.html", {
         "categories": categories,
         "active_category": active_category,
         "posts": posts,
         "query": query,
+        "api_error": api_error,
     })
 
 
 def detail(request, post_id):
-    post = get_object_or_404(Post.objects.select_related("author", "tag"), pk=post_id)
+    data = fetch_json(f"/products/{post_id}")
+    if not data:
+        raise Http404("Produk tidak ditemukan")
+    post = normalize(data)
 
-    # TODO: ganti komentar dan jumlah like dengan model Comment dan Like.
+    all_data = fetch_json("/products") or []
+    more_posts = [normalize(p) for p in all_data if p["id"] != post["id"]][:6]
+
+    # TODO: komentar masih dummy karena API tidak menyediakan komentar.
     now = timezone.now()
     comments = [
         {
@@ -67,13 +103,11 @@ def detail(request, post_id):
         },
     ]
 
-    more_posts = Post.objects.select_related("author", "tag").exclude(pk=post.pk)[:6]
-
     return render(request, "inspo/detail.html", {
         "post": post,
-        "author": post.author.get_full_name() or post.author.get_username(),
-        "description": post.caption,
-        "likes": 37,
+        "author": "ONF",
+        "description": post["caption"],
+        "likes": post["rating_count"],
         "comments": comments,
         "comment_count": len(comments) + sum(len(c["replies"]) for c in comments),
         "more_posts": more_posts,
