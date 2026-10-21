@@ -14,23 +14,36 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
+    # Produk dari API tidak punya penulis, jadi boleh kosong
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="inspo_posts",
     )
     title = models.CharField(max_length=100, blank=True)
-    image = models.ImageField(upload_to="inspo/posts/")
-    caption = models.CharField(max_length=300, blank=True)
+    caption = models.CharField(max_length=1000, blank=True)
+
+    # Foto: unggahan user (image) atau URL dari API (image_url)
+    image = models.ImageField(upload_to="inspo/posts/", blank=True)
+    image_url = models.URLField(blank=True)
+
+    # Data dari Fake Store API
+    external_id = models.PositiveIntegerField(null=True, blank=True, unique=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+
     tag = models.ForeignKey(
-    Tag,
-    null=True,
-    blank=True,
-    on_delete=models.SET_NULL,
-    related_name="posts",
+        Tag,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="posts",
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     # TODO: tag produk ONF (ForeignKey/ManyToMany ke model produk)
     # setelah model Product dari modul Product Catalog tersedia.
 
@@ -38,7 +51,12 @@ class Post(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Post {self.pk} oleh {self.author}"
+        return self.title or f"Post {self.pk}"
+
+    @property
+    def image_src(self):
+        """Foto unggahan user kalau ada, kalau tidak pakai URL dari API."""
+        return self.image.url if self.image else self.image_url
 
 
 class Bookmark(models.Model):
