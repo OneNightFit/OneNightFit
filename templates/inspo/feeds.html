@@ -47,11 +47,6 @@
     <section class="feed-categories">
       <div class="feed-categories-head">
         <h2 class="inspo-title">Categories</h2>
-        <div class="feed-tag-row">
-          <a href="#" class="feed-tag">Women</a>
-          <a href="#" class="feed-tag">Man</a>
-          <a href="#" class="feed-tag">Kid</a>
-        </div>
       </div>
       <div class="feed-pill-row">
         {% for c in categories %}
@@ -66,13 +61,16 @@
         <a href="#" class="subheading-6">See all</a>
       </div>
 
+    {% if api_error %}
+      <p class="body-2">Data produk sedang tidak bisa dimuat. Coba refresh sebentar lagi.</p>
+    {% endif %}
       <div class="feed-grid">
         {% for post in posts %}
           <article class="inspo-card">
             <div class="inspo-card-img">
               <a href="{% url 'inspo:detail' post.id %}">
                 {% if post.image %}
-                  <img src="{{ post.image.url }}" alt="{{ post.title|default:post.caption }}">
+                  <img src="{{ post.image }}" alt="{{ post.title }}">
                 {% endif %}
               </a>
             </div>
@@ -91,7 +89,7 @@
                   <button type="button" class="card-menu-item" data-action="save">Bookmark</button>
                   <button type="button" class="card-menu-item" data-action="share">Share</button>
                   {% if post.image %}
-                    <a class="card-menu-item" href="{{ post.image.url }}" download>Download image</a>
+                    <a class="card-menu-item" href="{{ post.image }}" download>Download image</a>
                   {% endif %}
                 </div>
               </div>

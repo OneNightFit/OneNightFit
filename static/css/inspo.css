@@ -196,15 +196,7 @@
     flex-wrap: wrap;
     gap: 1rem;
 }
-.feed-tag-row { display: flex; gap: 0.75rem; }
-.feed-tag {
-    padding: 0.25rem 1.25rem;
-    border-radius: 999px;
-    background: var(--secondary_100);
-    color: var(--secondary_900);
-    font-size: 12px;
-    font-weight: 600;
-}
+
 .feed-pill-row {
     display: flex;
     gap: 0.75rem;
@@ -444,6 +436,9 @@
     color: var(--secondary_50);
     cursor: pointer;
 }
+
+.inspo-card-img { background: #fff; }
+.inspo-card-img img { object-fit: contain; }
 
 /* RESPONSIVE ======================================================================== */
 

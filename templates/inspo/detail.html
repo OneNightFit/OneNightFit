@@ -27,7 +27,7 @@
       <div class="detail-media">
         <a href="{% url 'inspo:feeds' %}" class="detail-back" aria-label="Kembali">&lsaquo;</a>
         {% if post.image %}
-          <img src="{{ post.image.url }}" alt="{{ post.title|default:post.caption }}">
+          <img src="{{ post.image }}" alt="{{ post.title }}">
         {% endif %}
       </div>
 
@@ -124,7 +124,7 @@
             <div class="inspo-card-img">
               <a href="{% url 'inspo:detail' p.id %}">
                 {% if p.image %}
-                  <img src="{{ p.image.url }}" alt="{{ p.title|default:p.caption }}">
+                  <img src="{{ p.image }}" alt="{{ p.title }}">
                 {% endif %}
               </a>
             </div>
