@@ -1,0 +1,253 @@
+/* ==========================================================================
+   CATALOG PAGE LAYOUT
+   ========================================================================== */
+.contents {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    padding: 3rem 5rem;
+    background-color: var(--secondary_950);
+    color: var(--neutral_100);
+    min-height: 100vh;
+}
+
+@media (max-width: 992px) {
+    .contents {
+        grid-template-columns: 1fr;
+        padding: 2rem 1.5rem;
+    }
+}
+
+/* Sidebar / Filters Placeholder */
+.filters {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ==========================================================================
+   PRODUCT CARDS GRID
+   ========================================================================== */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.card {
+    background-color: var(--primary_900);
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+}
+
+.card .image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-image: repeating-conic-gradient(var(--neutral_150) 0% 25%, var(--neutral_0) 0% 50%);
+    background-size: 20px 20px;
+    position: relative;
+}
+
+.product-card-contents {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex-grow: 1;
+}
+
+/* ==========================================================================
+   CARD TYPOGRAPHY & DETAILS
+   ========================================================================== */
+.product-category-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Manrope', sans-serif;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--neutral_0);
+    margin-bottom: 0.5rem;
+}
+
+.product-price {
+    font-size: 18px;
+}
+
+.product-description {
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--neutral_150);
+    margin-bottom: 1rem;
+}
+
+.rating {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    color: var(--neutral_0);
+    font-weight: 700;
+}
+
+.product-actions {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.product-actions .button {
+    font-size: 16px;
+    padding: 0.5rem 1.25rem;
+    text-decoration: none;
+}
+
+/* ==========================================================================
+   WISHLIST STAR / HEART BUTTON
+   ========================================================================== */
+.star-form {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+}
+
+.button-star {
+    background-color: var(--primary_150);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--primary_900);
+    transition: transform 0.2s ease;
+    font-size: 1.25rem;
+}
+
+.button-star:hover {
+    transform: scale(1.05);
+}
+
+/* Hide text content on the wishlist button to keep it as an icon */
+.button-star text, 
+.button-star .star-count {
+    display: none;
+}
+
+/* ==========================================================================
+   MODALS (Create, Update, Delete)
+   ========================================================================== */
+.product-form-modal,
+.product-delete-modal {
+    padding: 2.5rem;
+    border: 1px solid var(--primary_700);
+    border-radius: 12px;
+    background-color: var(--primary_900);
+    color: var(--neutral_0);
+    max-width: 500px;
+    width: 90%;
+    margin: auto; /* Native popover centering */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.product-form-modal::backdrop,
+.product-delete-modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.product-form-modal__content,
+.product-delete-modal__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+}
+
+.product-form-modal__close,
+.product-delete-modal__close {
+    position: absolute;
+    top: -1.5rem;
+    right: -1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--neutral_300);
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.product-form-modal__close:hover,
+.product-delete-modal__close:hover {
+    color: var(--danger);
+}
+
+/* Modal Typography */
+.product-form-modal h2,
+.product-delete-modal h2 {
+    font-size: 2.5rem;
+    color: var(--primary_0);
+    margin-bottom: 0.5rem;
+}
+
+/* Form Styles Inside Modals */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--neutral_100);
+}
+
+.form-group input, 
+.form-group textarea, 
+.form-group select {
+    padding: 0.875rem;
+    border-radius: 6px;
+    border: 1px solid var(--primary_600);
+    background-color: var(--primary_950);
+    color: var(--neutral_0);
+    font-family: 'Manrope', sans-serif;
+    font-size: 16px;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus, 
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary_300);
+    box-shadow: 0 0 0 2px rgba(197, 103, 207, 0.2);
+}
+
+.form-error {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 0.25rem;
+}
+
+.product-form-modal__actions,
+.product-delete-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}

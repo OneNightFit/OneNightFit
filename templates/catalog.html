@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+{% endblock meta %}
+
+{% block title %}Katalog Produk{% endblock title %}
+
+{% block content %}
+<div class="header">
+</div>
+<div class="selected-filters">
+</div>
+<div class="contents">
+    <div class="filters">
+    </div>
+    <div class="cards">
+        <div class="card">
+            <a href="{ % url 'catalog:toggle_add_to_wishlist' % }">Edit Item</a>
+            <div class="image">
+
+            </div>
+            <div class="product-card-contents">
+                <div class="product-details">
+                    <div class="product-category-price">
+                        <p class="product-category"></p>
+                        <p class="product-price"></p>
+                    </div>
+                    <div class="details-contents">
+                        <p class="product-name"></p>
+                        <p class="product-description"></p>
+                        <div class="rating">
+                            <span class="rate-count">${product.rating}</span>
+                            <span class="rate-count">${product.rated_by}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-actions">
+                    {% if not user.profile.is_seller %}
+                        <a href="{ % url 'catalog:add_to_cart' % }" class="button button-primary">Add to cart</a>
+                    {% if user.profile.is_seller %}
+                        <a href="{ % url 'catalog:edit_product' % }">Edit Item</a>
+                        <a href="{ % url 'catalog:delete_product' % }">Delete Item</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
