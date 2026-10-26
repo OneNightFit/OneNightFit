@@ -10,14 +10,34 @@
 {% block content %}
 <div class="header">
 </div>
-<div class="selected-filters">
-</div>
 <div class="contents">
     <div class="filters">
+        <div class="filter-card filter-category">
+            <div class="filter-header">
+                <p class="filter-title">GARMENT CATEGORY</p>
+                <span class="filter-toggle" aria-hidden="true">&minus;</span>
+            </div>
+            
+            <div class="filter-categories">
+                {% for code, name, count in categories %}
+                    <div class="filter-category-item">
+                        <div class="filter-checkbox-group">
+                            <input type="checkbox" id="cat-{{ code }}" name="category" value="{{ code }}" class="filter-checkbox">
+                            <label for="cat-{{ code }}" class="category-name">
+                                {{ name }}
+                            </label>
+                        </div>
+                        <span class="category-count">{{ count }}</span>
+                    </div>
+                {% empty %}
+                    <p class="empty-categories">No categories found.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
     <div class="cards">
         <div class="card">
-            <a href="{ % url 'catalog:toggle_add_to_wishlist' % }">Edit Item</a>
+            <!-- <a href="{ % url 'catalog:toggle_add_to_wishlist' % }">Edit Item</a> -->
             <div class="image">
 
             </div>
@@ -31,14 +51,15 @@
                         <p class="product-name"></p>
                         <p class="product-description"></p>
                         <div class="rating">
-                            <span class="rate-count">${product.rating}</span>
-                            <span class="rate-count">${product.rated_by}</span>
+                            <span class="rate-count">{{ product.rating }}</span>
+                            <span class="rate-count">{{ product.rated_by }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="product-actions">
                     {% if not user.profile.is_seller %}
                         <a href="{ % url 'catalog:add_to_cart' % }" class="button button-primary">Add to cart</a>
+                    {% endif %}
                     {% if user.profile.is_seller %}
                         <a href="{ % url 'catalog:edit_product' % }">Edit Item</a>
                         <a href="{ % url 'catalog:delete_product' % }">Delete Item</a>

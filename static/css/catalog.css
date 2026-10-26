@@ -25,6 +25,84 @@
     gap: 1.5rem;
 }
 
+.filter-card {
+    background: var(--primary_100);
+    display: flex;
+    padding: 1rem 1rem 1.5rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    align-self: stretch;
+}
+
+/* Filter Header */
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    color: #1a001a;
+}
+
+.filter-toggle {
+    font-weight: 600;
+    font-size: 20px;
+    color: #1a001a;
+    cursor: pointer;
+}
+
+/* Category List & Items */
+.filter-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.filter-category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.filter-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-checkbox {
+    accent-color: #6a0dad;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.category-name {
+    margin: 0;
+    font-size: 15px;
+    color: #331a33;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.category-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a0080;
+}
+
+.empty-categories {
+    font-size: 14px;
+    color: #331a33;
+}
+
 /* ==========================================================================
    PRODUCT CARDS GRID
    ========================================================================== */
