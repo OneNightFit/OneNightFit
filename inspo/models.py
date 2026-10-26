@@ -40,6 +40,10 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         related_name="posts",
     )
+    
+    hashtags = models.ManyToManyField(Tag, blank=True, related_name="hashtag_posts")
+    # Kategori (bisa lebih dari satu), dipakai untuk sorting di tab feed.
+    categories = models.ManyToManyField(Tag, blank=True, related_name="category_posts")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
