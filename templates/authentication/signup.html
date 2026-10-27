@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sign Up | OneNightFit{% endblock %}
+
+{% block content %}
+{% include "authentication/_assets.html" %}
+<div class="onf-auth">
+  {% include "authentication/_messages.html" %}
+  <div class="a-split">
+    <aside class="a-split-side">
+      <img class="a-logo a-logo-mobile" src="{% static 'img/logo.png' %}" alt="OneNightFit">
+      <p class="a-tagline">
+        Last-minute dress code?<br>
+        Need to wear formal attire for a presentation?<br>
+        Tired of the clothes in your closet?<br><br>
+        Whatever your fashion dilemma,<br>
+        OneNightFit has the solution!
+      </p>
+    </aside>
+
+    <section class="a-split-main">
+      <div class="a-card">
+        <h1 class="a-title a-title-grad">Sign Up</h1>
+        <form method="post" novalidate id="signup-form">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="a-alert">{{ form.non_field_errors|join:" " }}</div>
+          {% endif %}
+
+          {# Pilihan role: Buyer / Seller #}
+          <div class="a-roles" role="radiogroup" aria-label="Account type">
+            <div class="a-role">
+              <input type="radio" name="role" id="role-buyer" value="buyer" {% if form.role.value != "seller" %}checked{% endif %}>
+              <label for="role-buyer"><strong>Buyer</strong><span>Browse and rent outfit</span></label>
+            </div>
+            <div class="a-role">
+              <input type="radio" name="role" id="role-seller" value="seller" {% if form.role.value == "seller" %}checked{% endif %}>
+              <label for="role-seller"><strong>Seller</strong><span>List your collection</span></label>
+            </div>
+          </div>
+
+          {% include "authentication/_field.html" with field=form.full_name %}
+          <div id="shop-name-field" {% if form.role.value != "seller" %}hidden{% endif %}>
+            {% include "authentication/_field.html" with field=form.shop_name %}
+          </div>
+          {% include "authentication/_field.html" with field=form.email %}
+          {% include "authentication/_field.html" with field=form.password %}
+          <button type="submit" class="a-btn a-btn-block">Sign up</button>
+        </form>
+        <p class="a-switch">Already have an account? <a href="{% url 'authentication:login' %}">Log in</a></p>
+      </div>
+    </section>
+  </div>
+</div>
+<script src="{% static 'js/authentication.js' %}" defer></script>
+{% endblock %}
