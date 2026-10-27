@@ -36,7 +36,7 @@ def daily_rent(usd_price):
     return min(MAX_DAILY_RENT, max(MIN_DAILY_RENT, rent))
 
 def to_product(post):
-    # Menggunakan ID produk agar data dummy tetap konsisten
+    """Menggunakan ID produk agar data dummy tetap konsisten"""
     rng = random.Random(post.external_id)
     store = rng.choice(list(STORES))
 
@@ -55,31 +55,31 @@ def to_product(post):
     }
 
 def api_posts():
-    # Import di dalam fungsi modul aman diimpor tanpa Django
-    from inspo.models import Post
+    
+    from inspo.models import Post # Import di dalam fungsi modul aman diimpor tanpa Django
     return Post.objects.filter(external_id__isnull=False, price__isnull=False)
 
 def has_products():
     return api_posts().exists()
 
 def get_product(product_id):
-    # Mengambil satu produk berdasarkan ID
+    """Mengambil satu produk berdasarkan ID"""
     post = api_posts().filter(pk=product_id).first()
     return to_product(post) if post else None
 
 def get_products(ids):
-    # Mengambil beberapa produk sekaligus berdasarkan ID
+    """Mengambil beberapa produk sekaligus berdasarkan ID"""
     ids = list(ids)
     if not ids:
         return {}
     return {p.pk: to_product(p)for p in api_posts().filter(pk__in=ids)}
 
 def default_cart_products(limit=4):
-    # Mengambil beberapa produk awal agar keranjang tidak kosong; memastikan feature bekerja
+    """Mengambil beberapa produk awal agar keranjang tidak kosong; memastikan feature bekerja"""
     return [to_product(p) for p in api_posts().order_by("external_id")[:limit]]
 
 def recommended_products(exclude_ids=(), limit=5):
-    # Mengambil produk rekomendasi yang belum ada di keranjang
+    """Mengambil produk rekomendasi yang belum ada di keranjang"""
     exclude_ids = list(exclude_ids)
     picked = list(api_posts().exclude(pk__in=exclude_ids).order_by("?")[:limit])
 
