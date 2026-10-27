@@ -1,4 +1,5 @@
-"""Mengatur isi  (Cart). Data produk diambil dari catalog.
+"""
+Mengatur isi  (Cart). Data produk diambil dari catalog.
 
 Keranjang hanya menyimpan ID produk, lama sewa, dan status pilihan.
 Nama, harga, dan ketersediaan produk selalu diambil ulang dari catalog
