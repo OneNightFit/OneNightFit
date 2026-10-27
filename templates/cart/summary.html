@@ -1,0 +1,10 @@
+<aside class="cart-panel cart-summary" aria-labelledby="cart-summary-title">
+    <h2 class="cart-summary__title body-1" id="cart-summary-title">Checkout Summary</h2>
+    <p class="cart-summary__row body-1">
+        <span>Total (<span id="cart-count">{{ cart.selected_count }}</span> produk)</span>
+        <strong id="cart-total">{{ cart.total_display }}</strong>
+    </p>
+    <a id="cart-checkout" class="cart-checkout-btn body-1{% if not cart.can_checkout %} is-disabled{% endif %}"
+        href="{% url 'cart:checkout' %}"{% if not cart.can_checkout %} aria-disabled="true" tabindex="-1"{% endif %}>Checkout</a>
+    <p class="cart-summary__hint body-4" id="cart-hint"{% if cart.can_checkout %} hidden{% endif %}>Select at least one product to checkout.</p>
+</aside>
