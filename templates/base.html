@@ -20,7 +20,7 @@
     <header class="site-header">
     <a href="{% url 'landing_page' %}" class="brand"><img src="{% static 'img/logo.png' %}" alt="OneNightFit Logo"></a>
     <nav>
-        <a href="#" class="body_1 desktop-only">Products</a>
+        <a href="{% url 'catalog:catalog_list' %}" class="body_1 desktop-only">Products</a>
         <a href="{% url 'inspo:feeds' %}" class="body_1 desktop-only">Inspo</a>
         {% if user.is_authenticated %}
             <span class="button button_text">{{ user.username }}</span>
