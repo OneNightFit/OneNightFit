@@ -16,15 +16,21 @@ def is_seller(user):
 
 def catalog_list(request):
     """Displays all products in the catalog."""
+    selected_categories = request.GET.getlist('category')
     products = Product.objects.all()
+
     categories_data = [
         (code, name, products.filter(category=code).count())
         for code, name in Product.PRODUCT_CATEGORY
     ]
+    if selected_categories:
+        products = products.filter(category__in=selected_categories)
+
     context = {
         'products': products,
         'categories': categories_data,
         'category_choices': Product.PRODUCT_CATEGORY, # Untuk dropdown di modal update
+        'selected_categories': selected_categories,
         'form': ProductForm(), # Form kosong untuk modal create product
     }
     return render(request, 'catalog/catalog.html', context)

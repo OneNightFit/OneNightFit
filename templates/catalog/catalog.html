@@ -12,28 +12,44 @@
 </div>
 <div class="contents">
     <div class="filters">
-        <div class="filter-card filter-category">
-            <div class="filter-header">
-                <p class="filter-title">GARMENT CATEGORY</p>
-                <span class="filter-toggle" aria-hidden="true">&minus;</span>
-            </div>
-            
-            <div class="filter-categories">
-                {% for code, name, count in categories %}
-                    <div class="filter-category-item">
-                        <div class="filter-checkbox-group">
-                            <input type="checkbox" id="cat-{{ code }}" name="category" value="{{ code }}" class="filter-checkbox">
-                            <label for="cat-{{ code }}" class="category-name">
-                                {{ name }}
-                            </label>
+        <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
+            <div class="filter-card">
+                <div class="filter-header">
+                    <p class="filter-title">GARMENT CATEGORY</p>
+                    <span class="filter-toggle" aria-hidden="true">&minus;</span>
+                </div>
+                
+                <div class="filter-categories">
+                    {% for code, name, count in categories %}
+                        <div class="filter-category-item">
+                            <div class="filter-checkbox-group">
+                                <input type="checkbox" 
+                                    id="cat-{{ code }}" 
+                                    name="category" 
+                                    value="{{ code }}" 
+                                    class="filter-checkbox"
+                                    {% if code in selected_categories %}checked{% endif %}
+                                    onchange="document.getElementById('filter-form').submit();">
+                                <label for="cat-{{ code }}" class="category-name">
+                                    {{ name }}
+                                </label>
+                            </div>
+                            <span class="category-count">{{ count }}</span>
                         </div>
-                        <span class="category-count">{{ count }}</span>
-                    </div>
-                {% empty %}
-                    <p class="empty-categories">No categories found.</p>
-                {% endfor %}
+                    {% empty %}
+                        <p class="empty-categories">No categories found.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Clear Filters Button -->
+                {% if selected_categories %}
+                <div class="filter-actions">
+                    <a href="{% url 'catalog:catalog_list' %}" class="clear-filter-btn">Clear Filters</a>
+                </div>
+                {% endif %}
+                
             </div>
-        </div>
+        </form>
     </div>
 
     {% if user.is_authenticated and user.profile.is_seller %}
