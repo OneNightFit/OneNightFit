@@ -25,9 +25,14 @@
       </form>
     </div>
 
-    {# MESSAGES #}
+    {% if messages %}
+    <ul class="cart-messages body-2" role="alert">
+      {% for m in messages %}<li class="cart-messages__item cart-messages__item--{{ m.tags }}">{{ m }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <p class="cart-messages__item body-2" id="cart-error" role="alert" hidden></p>
 
-    <div class="cart-layout" id="cart-root">
+    <div class="cart-layout" id="cart-root" data-min-days="{{ min_days }}" data-max-days="{{ max_days }}">
       <div class="cart-list">
         {# PRODUCTS #}
       </div>
