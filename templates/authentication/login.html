@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Log in | OneNightFit{% endblock %}
+
+{% block content %}
+{% include "authentication/_assets.html" %}
+<div class="onf-auth">
+  {% include "authentication/_messages.html" %}
+  <div class="a-split">
+    <aside class="a-split-side">
+      <img class="a-logo" src="{% static 'img/logo.png' %}" alt="OneNightFit">
+      <p class="a-tagline">
+        Last-minute dress code?<br>
+        Need to wear formal attire for a presentation?<br>
+        Tired of the clothes in your closet?<br><br>
+        Whatever your fashion dilemma,<br>
+        OneNightFit has the solution!
+      </p>
+    </aside>
+
+    <section class="a-split-main">
+      <div class="a-card">
+        <h1 class="a-title a-title-grad">Log in</h1>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% if form.non_field_errors %}
+            <div class="a-alert">{{ form.non_field_errors|join:" " }}</div>
+          {% endif %}
+          {% include "authentication/_field.html" with field=form.username %}
+          {% include "authentication/_field.html" with field=form.password %}
+          <button type="submit" class="a-btn a-btn-block">Log in</button>
+        </form>
+        <p class="a-switch">Don't have an account? <a href="{% url 'authentication:signup' %}">Sign up</a></p>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -25,6 +25,7 @@ urlpatterns = [
     path('', landing_page, name='landing_page'),
     path('inspo/', include('inspo.urls')),
     path('cart/', include('cart.urls')),
+    path('', include('authentication.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -25,9 +25,12 @@
         <a href="{% url 'cart:cart' %}" class="body_1{% if request.resolver_match.app_name == 'cart' %} nav-active{% endif %}">Cart</a>
         {% if user.is_authenticated %}
             <span class="button button_text">{{ user.username }}</span>
-            <a href="#">Logout</a>
+            <form method="POST" action="{% url 'authentication:logout' %}">
+                {% csrf_token %}
+                <button class= "button button-primary" type="submit">Logout</button>
+            </form>
         {% else %}
-            <a href="#" class="button button-primary">Login/Sign Up</a>
+            <a href="{% url 'authentication:login' %}" class="button button-primary">Login/Sign Up</a>
         {% endif %}
         <a href="#" class="icon nav-hamburg-menu mobile-only"><img src="{% static 'img/nav_menu.svg' %}" alt="menu"></a>
     </nav>
@@ -43,10 +46,8 @@
                 <a href="{% url 'landing_page' %}" class="brand">
                     <img src="{% static 'img/logo.png' %}" alt="OneNightFit Logo" class="brand-logo">
                 </a>
-                <a href="{% url 'inspo:feeds' %}" class="body_1">Inspo</a>
                 <p class="footer-copy">&copy; OneNightFit 2026. All rights reserved.</p>
             </div>
-    ...
         <div class="footer-social">
             <a href="#" class="social-icon" aria-label="WhatsApp">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"></circle></svg>
