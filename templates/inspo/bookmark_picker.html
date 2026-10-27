@@ -1,0 +1,19 @@
+<dialog class="bmp" id="bm-picker" aria-labelledby="bmp-title"
+        data-categories-url="{% url 'inspo:bookmark_categories' %}">
+  <div class="bmp-box">
+    {% csrf_token %}
+    <div class="bmp-head">
+      <h2 class="bmp-title" id="bmp-title">Simpan ke kategori</h2>
+      <button type="button" class="bmp-close" aria-label="Tutup">&times;</button>
+    </div>
+
+    <div class="bmp-list"></div>
+
+    <p class="bmp-label">Atau buat kategori baru</p>
+    <form class="bmp-new" autocomplete="off">
+      <input type="text" maxlength="30" placeholder="mis. Outfit Kondangan" aria-label="Nama kategori baru">
+      <button type="submit">Buat &amp; simpan</button>
+    </form>
+    <p class="bmp-error" role="alert"></p>
+  </div>
+</dialog>
