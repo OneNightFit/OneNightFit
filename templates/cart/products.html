@@ -1,0 +1,83 @@
+{% if cart.item_count == 0 %}
+<section class="cart-panel cart-empty">
+    <h4 class="cart-empty__title">Your cart is empty</h4>
+    {% if catalog_empty %}
+    <p class="body-2">Belum ada data produk. Jalankan <code>python manage.py import_products</code> lebih dulu.</p>
+    {% else %}
+    <p class="body-2">Find an outfit you love and rent it for a night (or two).</p>
+    {% endif %}
+    <div class="cart-empty__actions">
+        <a class="button button-primary" href="{% url 'inspo:feeds' %}">Browse Inspo</a> <!--ganti ke catalog jika sudah diimplementasikan-->
+    </div>
+</section>
+{% endif %}
+
+{% for store in cart.stores %}
+<section class="cart-panel cart-store" data-store="{{ store.slug }}">
+    <div class="cart-store__head">
+        <label class="cart-check">
+            <input class="cart-check__input cart-store-check" type="checkbox"
+                {% if store.all_selected %}checked{% endif %} 
+                data-indeterminate="{{ store.some_selected|yesno:'1,0' }}"
+            >
+            <span class="cart-check__box" aria-hidden="true"></span>
+            <span class="cart-store__name body-1">{{ store.name }}</span>
+        </label>
+    </div>
+
+    <ul class="cart-items">
+        {% for item in store.items %}
+        <li class="cart-item{% if not item.available %} is-unavailable{% endif %}" data-id="{{ item.id }}">
+            <div class="cart-item__select">
+                <label class="cart-check">
+                    <input class="cart-check__input cart-item-check" type="checkbox"
+                            {% if item.selected %}checked{% endif %}
+                            {% if not item.available %} disabled{% endif %}
+                    >
+                    <span class="cart-check__box" aria-hidden="true"></span>
+                    <span class="cart-sr-only">Select {{ item.name }}</span>
+                </label>
+            </div>
+
+            <div class="cart-item__img">
+                {% if item.image %}
+                    <img src="{{ item.image }}" alt="{{ item.name }}" loading="lazy" onerror="this.remove()">
+                {% endif %}
+            </div>
+
+            <div class="cart-item__info">
+                <h6 class="cart-item__name">{{ item.name }}</h6>
+                <p class="cart-item__price body-1">{{ item.price_display }} /Day</p>
+                <p class="cart-item__sub body-4">Subtotal: <span class="cart-item-subtotal">{{ item.subtotal_display }}</span></p>
+                <p class="cart-item__size-label body-4">Size</p>
+                <span class="cart-size body-4">{{ item.size }}</span>
+                {% if not item.available %}
+                    <p class="cart-item__unavail body-4">Currently unavailable</p>
+                {% endif %}
+            </div>
+
+            <div class="cart-item__actions">
+                <button class="cart-remove body-1" type="button" aria-label="Remove {{ item.name }} from cart">Remove</button>
+
+                <div class="cart-stepper-form">
+                    <span class="cart-stepper__label body-2" id="days-label-{{ item.id }}">Add Day</span>
+                    <div class="cart-stepper" role="group" aria-labelledby="days-label-{{ item.id }}">
+                        <button class="cart-stepper__btn cart-minus" type="button" aria-label="Decrease rental days"
+                                {% if item.days <= min_days %}disabled{% endif %}>
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                        <output class="cart-stepper__value body-1"><span class="cart-days">{{ item.days }}</span> Hari</output>
+                        <button class="cart-stepper__btn cart-plus" type="button" aria-label="Increase rental days"
+                                {% if item.days >= max_days %}disabled{% endif %}>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endfor %}
