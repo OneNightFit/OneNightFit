@@ -26,6 +26,10 @@ def cart_login_required(view):
         return view(request, *args, **kwargs)
     return wrapper
 
+def recommendations(state):
+    recs = catalog.recommended_products(exclude_ids=[it["id"] for it in state["items"]], limit=5)
+    return [{**p, "price_display": services.format_rupiah(p["price"])} for p in recs]
+
 # =======================================================
 # CART PAGE
 # =======================================================
@@ -39,6 +43,7 @@ def cart_page(request):
         "catalog_empty": not catalog.has_products(),
         "min_days": services.MIN_DAYS,
         "max_days": services.MAX_DAYS,
+        "recommendations": recommendations(state),
     })
 
 # =======================================================
