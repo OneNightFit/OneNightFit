@@ -1,0 +1,13 @@
+{% extends "authentication/profile_base.html" %}
+{% block title %}Rentals | OneNightFit{% endblock %}
+
+{% block profile_content %}
+<h2 class="a-h2">Rentals</h2>
+{% if rentals %}
+  <ul class="a-list">
+    {% for rental in rentals %}<li>{{ rental }}</li>{% endfor %}
+  </ul>
+{% else %}
+  <div class="a-empty">No rentals yet.</div>
+{% endif %}
+{% endblock %}

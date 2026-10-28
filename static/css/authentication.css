@@ -1,18 +1,16 @@
-/* ONF - Authentication & User Dashboard
-   Semua selector di-scope ke .onf-auth agar tidak bentrok dengan CSS modul lain.
-   Ganti token warna di :root bagian .onf-auth kalau tema base.html berbeda. */
 .onf-auth {
-  --a-bg: #170803;          /* coklat gelap (latar halaman) */
-  --a-purple: #330037;      /* ungu (navbar, footer, card) */
-  --a-line: #c77dd6;        /* garis & border lilac */
-  --a-text: #ffffff;
-  --a-cream: #fbeede;
-  --a-muted: #cdb8d1;
-  --a-orange: #f09f3a;
-  --a-pink: #b84fb8;
-  --a-gradient: linear-gradient(120deg, #f09f3a 0%, #c9648c 55%, #b84fb8 100%);
-  --a-danger: #ff8a80;
-  --a-serif: "Instrument Serif", "Playfair Display", Georgia, serif;
+  --a-bg: var(--secondary_950, #190900);       
+  --a-purple: var(--primary_800, #350039);      
+  --a-line: var(--primary_150, #d682dd);        
+  --a-text: var(--neutral_0, #ffffff);
+  --a-cream: var(--secondary_50, #ffefe5);
+  --a-muted: var(--neutral_200, #cccccc);
+  --a-orange: #fcb005;
+  --a-pink: var(--primary_300, #b34bbc);
+  --a-gradient: var(--gradient_primary, linear-gradient(107deg, #fcb005 -27.34%, #b34bbc 96.87%));
+  --a-danger: #ff8a80;                         
+  --a-danger-solid: var(--danger, #b73a3a);     
+  --a-serif: "Instrument Serif", Georgia, serif;
   --a-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   background: var(--a-bg);
@@ -42,7 +40,7 @@
 .onf-auth .a-btn-block { width: 100%; }
 .onf-auth .a-btn-sm { padding: .5rem 1.1rem; border-radius: 8px; font-size: .85rem; }
 .onf-auth .a-btn-ghost { background: transparent; border: 1.5px solid var(--a-line); }
-.onf-auth .a-btn-danger { background: #b3261e; }
+.onf-auth .a-btn-danger { background: var(--a-danger-solid); }
 
 /* ---------- Forms ---------- */
 .onf-auth .a-field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.1rem; min-width: 0; }
@@ -51,16 +49,17 @@
 .onf-auth .a-field input[type="email"],
 .onf-auth .a-field input[type="password"],
 .onf-auth .a-field input[type="number"],
-.onf-auth .a-field select {
+.onf-auth .a-field select,
+.onf-auth .a-field textarea {
   width: 100%; height: 3.1rem; padding: 0 1rem;
   font: 500 1rem var(--a-sans); color: #fff;
   background: var(--a-bg); border: 1px solid var(--a-line); border-radius: 14px;
 }
 .onf-auth .a-field select option { color: #000; }
-.onf-auth .a-field input:focus, .onf-auth .a-field select:focus {
+.onf-auth .a-field input:focus, .onf-auth .a-field select:focus, .onf-auth .a-field textarea:focus {
   outline: none; border-color: var(--a-orange); box-shadow: 0 0 0 3px rgba(240,159,58,.25);
 }
-.onf-auth .a-field.has-error input, .onf-auth .a-field.has-error select { border-color: var(--a-danger); }
+.onf-auth .a-field.has-error input, .onf-auth .a-field.has-error select, .onf-auth .a-field.has-error textarea { border-color: var(--a-danger); }
 .onf-auth .a-error { color: var(--a-danger); font-size: .85rem; font-weight: 500; }
 .onf-auth .a-alert {
   padding: .8rem 1rem; margin-bottom: 1.1rem; border-radius: 12px;
@@ -170,7 +169,7 @@
 /* Empty state, list, activity */
 .onf-auth .a-empty {
   display: grid; place-items: center; min-height: 14rem; padding: 2rem; text-align: center;
-  border: 1.5px dashed #b84fb8; border-radius: 22px; font-size: .95rem;
+  border: 1.5px dashed var(--a-pink); border-radius: 22px; font-size: .95rem;
 }
 .onf-auth .a-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
 .onf-auth .a-timeline { list-style: none; margin: 0; padding: 0; background: var(--a-purple); border-radius: 18px; padding: .5rem 1.5rem; }
@@ -188,6 +187,7 @@
 .onf-auth .a-form .a-field input[type="number"],
 .onf-auth .a-form .a-field input[type="password"],
 .onf-auth .a-form .a-field select { background: var(--a-purple); height: 3rem; border-radius: 12px; }
+.onf-auth .a-field textarea { padding: .8rem 1rem; resize: vertical; font-family: var(--a-sans); font-size: 1rem; color: #fff; background: var(--a-purple); border: 1px solid var(--a-line); border-radius: 12px; }
 .onf-auth .a-grid { display: grid; gap: 1.5rem; }
 .onf-auth .a-grid-2 { grid-template-columns: 1fr 1fr; }
 .onf-auth .a-grid-4 { grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 1.25rem; }
@@ -280,3 +280,17 @@
   .onf-auth .a-chart { gap: .4rem; }
   .onf-auth .a-bar-value { display: none; }
 }
+
+/* ---------- Wishlist (tab Activity) ---------- */
+.onf-auth .a-wish { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 1.25rem; }
+.onf-auth .a-wish-card { background: var(--a-purple); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.onf-auth .a-wish-card > a { text-decoration: none; display: block; flex: 1; }
+.onf-auth .a-wish-img { display: block; aspect-ratio: 1 / 1; background: #fff; }
+.onf-auth .a-wish-img img { width: 100%; height: 100%; object-fit: contain; padding: .75rem; display: block; }
+.onf-auth .a-wish-title { display: block; padding: .75rem 1rem .25rem; font-weight: 600; font-size: .9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.onf-auth .a-wish-card form { padding: 0 1rem .9rem; }
+.onf-auth .a-wish-remove { background: none; border: 0; padding: 0; color: var(--a-muted); font: 600 .85rem var(--a-sans); text-decoration: underline; cursor: pointer; }
+.onf-auth .a-wish-remove:hover { color: #fff; }
+
+.onf-auth .a-hint { margin-top: 1rem; font-size: .9rem; }
+.onf-auth .a-hint a { text-decoration: underline; }

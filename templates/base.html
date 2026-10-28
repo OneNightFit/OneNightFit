@@ -24,7 +24,7 @@
         <a href="{% url 'inspo:feeds' %}" class="body_1 desktop-only">Inspo</a>
         <a href="{% url 'cart:cart' %}" class="body_1{% if request.resolver_match.app_name == 'cart' %} nav-active{% endif %}">Cart</a>
         {% if user.is_authenticated %}
-            <span class="button button_text">{{ user.username }}</span>
+            <a href="{% url 'authentication:profile' %}" class="button button_text">{{ user.first_name }}</a>
             <form method="POST" action="{% url 'authentication:logout' %}">
                 {% csrf_token %}
                 <button class= "button button-primary" type="submit">Logout</button>
