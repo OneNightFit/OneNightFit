@@ -1,0 +1,44 @@
+<div id="add-product-modal"
+     class="product-form-modal"
+     popover="auto"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="add-product-modal-title">
+    <button type="button"
+            class="product-form-modal__backdrop"
+            popovertarget="add-product-modal"
+            popovertargetaction="hide"
+            aria-label="Tutup form tambah product"></button>
+
+    <div class="product-form-modal__content">
+        <button type="button"
+                class="product-form-modal__close"
+                popovertarget="add-product-modal"
+                popovertargetaction="hide"
+                aria-label="Tutup form tambah product">×</button>
+
+        <h2 id="add-product-modal-title">Tambah product Baru</h2>
+        <form id="product-form"
+              method="post"
+              action="{% url 'catalog:create_product' %}"
+              class="product-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <div class="product-form-modal__actions">
+                <button type="button"
+                        class="button button-secondary"
+                        popovertarget="add-product-modal"
+                        popovertargetaction="hide">Batal</button>
+                <button type="submit" class="button">Tambah Produk</button>
+            </div>
+        </form>
+    </div>
+</div>
