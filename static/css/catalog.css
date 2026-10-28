@@ -193,14 +193,14 @@
 /* ==========================================================================
    WISHLIST STAR / HEART BUTTON
    ========================================================================== */
-.star-form {
+.wishlist-form {
     position: absolute;
     top: 1rem;
     right: 1rem;
     z-index: 10;
 }
 
-.button-star {
+.button-wishlist {
     background-color: var(--primary_150);
     border: none;
     border-radius: 50%;
@@ -215,13 +215,13 @@
     font-size: 1.25rem;
 }
 
-.button-star:hover {
+.button-wishlist:hover {
     transform: scale(1.05);
 }
 
 /* Hide text content on the wishlist button to keep it as an icon */
-.button-star text, 
-.button-star .star-count {
+.button-wishlist text, 
+.button-wishlist .star-count {
     display: none;
 }
 
