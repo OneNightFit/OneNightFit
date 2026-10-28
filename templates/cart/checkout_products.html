@@ -1,0 +1,42 @@
+{% load cart_extras %}
+{% for store in summary.stores %}
+<section class="cart-panel checkout-store">
+    <h2 class="checkout-store__name body-1">{{ store.name }}</h2>
+    <div class="checkout-store__body">
+        <ul class="checkout-items">
+            {% for item in store.items %}
+            <li class="checkout-item">
+                <div class="cart-item__img">{% if item.image %}<img src="{{ item.image }}" alt="{{ item.name }}" loading="lazy" onerror="this.remove()">{% endif %}</div>
+                <div class="cart-item__info">
+                    <h6 class="cart-item__name">{{ item.name }}</h6>
+                    <p class="checkout-item__days body-4">{{ item.days }} Day</p>
+                    <p class="cart-item__price body-1">{{ item.subtotal_display }}</p>
+                    <p class="cart-item__size-label body-4">Size</p>
+                    <span class="cart-size body-4">{{ item.size }}</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <fieldset class="checkout-shipping">
+            <legend class="checkout-shipping__legend body-2">SHIPPING OPTION</legend>
+            <label class="checkout-option">
+                <input class="checkout-option__input" type="radio" name="shipping_{{ store.slug }}" value="pickup"
+                    {% if shipping|get_item:store.slug == 'pickup' %}checked{% endif %}>
+                <span class="checkout-option__box">
+                    <span class="checkout-option__title body-2">Pick up in person</span>
+                    <span class="checkout-option__desc body-3">Pick up directly at the pickup location</span>
+                </span>
+            </label>
+            <label class="checkout-option">
+                <input class="checkout-option__input" type="radio" name="shipping_{{ store.slug }}" value="delivery"
+                    {% if shipping|get_item:store.slug == 'delivery' %}checked{% endif %}>
+                <span class="checkout-option__box">
+                    <span class="checkout-option__title body-2">Delivery</span>
+                    <span class="checkout-option__desc body-3">Shipping is arranged by the buyer. We recommend using an online driver app such as Gojek or Grab.</span>
+                </span>
+            </label>
+        </fieldset>
+    </div>
+</section>
+{% endfor %}
