@@ -53,25 +53,22 @@ def product_detail(request, id):
 def create_product(request):
     if not is_seller(request.user):
         return redirect('catalog:catalog_list')
-        
-    form = ProductForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        # Tahan commit penyimpanan form untuk memasukkan data seller
+
+    form = ProductForm(request.POST)
+    if form.is_valid():
         product = form.save(commit=False)
         product.seller = request.user
         product.save()
-        
         messages.success(request, "Produk baru berhasil ditambahkan!")
-        return redirect("catalog:catalog_list")
-        
-    context = {"form": form}
-    return render(request, "catalog_form_create.html", context)
+    else:
+        messages.error(request, "Gagal menambahkan produk, periksa kembali isian form.")
+    return redirect("catalog:catalog_list")
 
 
 @require_POST
 @login_required(login_url='/login/')
-def edit_product(request, product_id):
-    catalog = get_object_or_404(Product, pk=product_id)
+def edit_product(request, id):
+    catalog = get_object_or_404(Product, pk=id)
     
     if not is_seller(request.user) or catalog.seller != request.user:
         raise PermissionDenied
@@ -83,7 +80,7 @@ def edit_product(request, product_id):
         return redirect("catalog:catalog_list")
         
     context = {"form": form, "catalog": catalog}
-    return render(request, "catalog_form_update.html", context)
+    return render(request, "components/catalog_form_update.html", context)
 
 
 @require_POST
