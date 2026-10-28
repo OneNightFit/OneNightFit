@@ -96,7 +96,11 @@ def add_item(state, product_id, days=1, selected=True):
         existing["days"] = days
         existing["selected"] = bool(selected)
     else:
-        state["items"].append({"id": pid, "days": days, "selected": bool(selected)})
+        state["items"].append({
+            "id": pid, 
+            "days": days, 
+            "selected": bool(selected)
+        })
     return state
 
 def remove_item(state, product_id):
@@ -153,13 +157,24 @@ def build_cart(state):
             total += subtotal
             selected_count += 1
         group = stores.setdefault(p["store"], {
-            "slug": p["store"], "name": p["store_name"], "items": []})
+            "slug": p["store"], 
+            "name": p["store_name"], 
+            "items": []
+        })
         group["items"].append({
-            "id": p["id"], "name": p["name"], "image": p["image"], "size": p["size"],
-            "available": p["available"], "selected": selected, "days": days,
-            "price": p["price"], "price_display": format_rupiah(p["price"]),
-            "subtotal": subtotal, "subtotal_display": format_rupiah(subtotal),
-            "store_slug": p["store"], "store_name": p["store_name"],
+            "id": p["id"], 
+            "name": p["name"], 
+            "image": p["image"], 
+            "size": p["size"],
+            "available": p["available"], 
+            "selected": selected, 
+            "days": days,
+            "price": p["price"], 
+            "price_display": format_rupiah(p["price"]),
+            "subtotal": subtotal, 
+            "subtotal_display": format_rupiah(subtotal),
+            "store_slug": p["store"], 
+            "store_name": p["store_name"],
         })
     store_list = list(stores.values())
     for g in store_list:
@@ -184,8 +199,13 @@ def checkout_summary(state):
         items = [i for i in g["items"] if i["selected"]]
         if items:
             stores.append({"slug": g["slug"], "name": g["name"], "items": items})
-    return {"stores": stores, "total": cart["total"], "total_display": cart["total_display"],
-            "selected_count": cart["selected_count"], "is_empty": cart["selected_count"] == 0}
+    return {
+        "stores": stores, 
+        "total": cart["total"], 
+        "total_display": cart["total_display"],
+        "selected_count": cart["selected_count"], 
+        "is_empty": cart["selected_count"] == 0
+    }
 
 # =======================================================
 # CHECKOUT
