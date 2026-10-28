@@ -6,6 +6,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+from inspo.models import Like
 
 from .decorators import buyer_required, seller_required
 from .forms import DeleteAccountForm, EditProfileForm, LoginForm, SignUpForm
@@ -63,18 +64,19 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    # Seller mendapat ringkasan laporan toko di bagian atas profil
     report = get_seller_report(request.user) if request.user.profile.is_seller else None
     return render(request, "authentication/profile.html", {"report": report})
 
-
 @buyer_required
 def activity_view(request):
+    liked_items = Like.objects.filter(user=request.user).select_related(
+        "post", "post__author", "post__tag"
+    )
     return render(
         request,
         "authentication/activity.html",
+        {"liked_items": liked_items},
     )
-
 
 @buyer_required
 def rentals_view(request):
