@@ -45,4 +45,7 @@ urlpatterns = [
     
     # Toggle wishlist status
     path('wishlist/toggle/<uuid:id>/', views.toggle_wishlist, name='toggle_wishlist'),
+    
+    # Add to cart
+    path('cart/add/<uuid:id>/', views.add_to_cart, name='add_to_cart'),
 ]

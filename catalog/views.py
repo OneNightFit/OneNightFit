@@ -109,5 +109,30 @@ def toggle_wishlist(request, id):
 
 @login_required(login_url='/login/')
 def add_to_cart(request, id):
-    # TODO: Implementasi logika Cart
+    # 1. Dapatkan objek produk, kembalikan 404 jika tidak ditemukan
+    product = get_object_or_404(Product, id=id)
+    
+    # 2. Ambil dictionary keranjang dari session, atau buat baru jika belum ada
+    cart = request.session.get('cart', {})
+    
+    # 3. Ubah UUID menjadi string
+    product_id = str(product.id)
+    
+    # 4. Implementasi logika penambahan barang (tambah kuantitas jika sudah ada)
+    if product_id in cart:
+        cart[product_id]['quantity'] += 1
+    else:
+        cart[product_id] = {
+            'name': product.name,
+            'price': str(product.price),
+            'quantity': 1
+        }
+        
+    # 5. Simpan kembali data keranjang yang sudah diperbarui ke session
+    request.session['cart'] = cart
+    
+    # 6. Berikan notifikasi sukses kepada user
+    messages.success(request, f'"{product.name}" berhasil ditambahkan ke keranjang!')
+    
+    # 7. Redirect kembali ke halaman katalog
     return redirect('catalog:catalog_list')
