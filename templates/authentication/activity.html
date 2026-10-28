@@ -1,5 +1,10 @@
 {% extends "authentication/profile_base.html" %}
+{% load static %}
 {% block title %}Activity | OneNightFit{% endblock %}
+
+{% block meta %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+{% endblock meta %}
 
 {% block profile_content %}
 <h2 class="a-h2">My <span class="a-grad">Wishlist</span></h2>
@@ -22,4 +27,10 @@
 {% else %}
   <div class="a-empty">Your wishlist is empty. Tap the heart on a product to save it here.</div>
 {% endif %}
+
+<section class="likes-embed">
+  <h2 class="a-h2">My <span class="a-grad">Likes</span></h2>
+  <p class="a-muted"><span id="lk-count">{{ liked_items|length }}</span> Inspo yang kamu sukai</p>
+  {% include 'inspo/_likes_grid.html' %}
+</section>
 {% endblock %}

@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
-from inspo.models import Bookmark, BookmarkCategory, Post, Tag
+from inspo.models import Bookmark, BookmarkCategory, Like, Post, Tag
 
 API_URL = "https://fakestoreapi.com"
 
@@ -116,6 +116,38 @@ def _clean_hashtags(raw):
             result.append(name)
     return result[:5]
 
+def _db_post_for(kind, ref):
+    """Cari baris Post. Produk API dibuatkan barisnya kalau belum ada."""
+    if kind == "user":
+        return get_object_or_404(Post, pk=ref, author__isnull=False)
+
+    post = Post.objects.filter(external_id=ref).first()
+    if post:
+        return post
+    data = fetch_json(f"/products/{ref}")
+    if not data:
+        raise Http404("Produk tidak ditemukan")
+    tag = None
+    if data.get("category"):
+        tag, _ = Tag.objects.get_or_create(name=data["category"][:30])
+    return Post.objects.create(
+        external_id=data["id"],
+        title=data["title"][:100],
+        caption=data["description"][:1000],
+        image_url=data["image"],
+        price=data["price"],
+        tag=tag,
+    )
+
+
+def _mark_liked(user, posts):
+    """Tambahkan p['liked'] pada tiap kartu (dict hasil normalize)."""
+    api_ids, user_ids = set(), set()
+    if user.is_authenticated:
+        for pk, ext in Like.objects.filter(user=user).values_list("post_id", "post__external_id"):
+            (api_ids if ext else user_ids).add(ext or pk)
+    for p in posts:
+        p["liked"] = p["id"] in (user_ids if p["is_user_post"] else api_ids)
 
 # --------------------------------------------------------------------------
 # Feed & detail
@@ -152,6 +184,8 @@ def feeds(request):
     if query:
         q = query.lower()
         posts = [p for p in posts if q in p["title"].lower() or q in p["caption"].lower()]
+    
+    _mark_liked(request.user, posts)
 
     return render(request, "inspo/feeds.html", {
         "categories": categories,
@@ -174,19 +208,26 @@ def detail(request, post_id):
     post = normalize(data)
     comments = dummy_comments()
 
-    # Produk API baru ada di tabel Post setelah import_products dijalankan
+    # Produk API baru ada di tabel Post setelah import_products / pernah di-like
     db_post = Post.objects.filter(external_id=post["id"]).first()
     is_saved = bool(
         request.user.is_authenticated
         and db_post
         and Bookmark.objects.filter(user=request.user, post=db_post).exists()
     )
+    is_liked = bool(
+        request.user.is_authenticated
+        and db_post
+        and Like.objects.filter(user=request.user, post=db_post).exists()
+    )
+    like_total = post["rating_count"] + (db_post.likes.count() if db_post else 0)
 
     return render(request, "inspo/detail.html", {
         "post": post,
         "author": "ONF",
         "description": post["caption"],
-        "likes": post["rating_count"],
+        "likes": like_total,
+        "is_liked": is_liked,
         "comments": comments,
         "comment_count": len(comments) + sum(len(c["replies"]) for c in comments),
         "more_posts": _more_posts(exclude_api_id=post["id"]),
@@ -205,12 +246,17 @@ def user_detail(request, pk):
         request.user.is_authenticated
         and Bookmark.objects.filter(user=request.user, post=obj).exists()
     )
+    is_liked = bool(
+        request.user.is_authenticated
+        and Like.objects.filter(user=request.user, post=obj).exists()
+    )
 
     return render(request, "inspo/detail.html", {
         "post": post,
         "author": obj.author.get_username(),
         "description": obj.caption,
-        "likes": 0,
+        "likes": obj.likes.count(),
+        "is_liked": is_liked,
         "comments": comments,
         "comment_count": len(comments) + sum(len(c["replies"]) for c in comments),
         "more_posts": _more_posts(),
@@ -218,7 +264,6 @@ def user_detail(request, pk):
         "is_saved": is_saved,
         "bookmark_post_id": obj.pk,
     })
-
 
 # --------------------------------------------------------------------------
 # Upload & Edit
@@ -416,3 +461,29 @@ def bookmark_toggle(request, post_id):
         return JsonResponse({"saved": True, "category": category.name if category else None})
 
     return JsonResponse({"error": "invalid action"}, status=400)
+
+# --------------------------------------------------------------------------
+# Like
+# --------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def like_toggle(request):
+    kind = request.POST.get("kind")
+    ref = request.POST.get("ref", "")
+    if kind not in ("api", "user") or not ref.isdigit():
+        return JsonResponse({"error": "invalid"}, status=400)
+
+    post = _db_post_for(kind, int(ref))
+    like, created = Like.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        like.delete()
+    return JsonResponse({"liked": created, "count": post.likes.count()})
+
+
+@login_required
+def likes(request):
+    items = Like.objects.filter(user=request.user).select_related(
+        "post", "post__author", "post__tag"
+    )
+    return render(request, "inspo/likes.html", {"liked_items": items})

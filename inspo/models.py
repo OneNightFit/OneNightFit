@@ -70,6 +70,25 @@ class Post(models.Model):
             return reverse("inspo:detail", args=[self.external_id])
         return reverse("inspo:user_detail", args=[self.pk])   # postingan user
 
+class Like(models.Model):
+    """Postingan atau produk yang disukai user. Tampil di bagian Likes pada profil."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="inspo_likes",
+    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "post"], name="unique_like_per_user_post"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} menyukai post {self.post_id}"
+
 class BookmarkCategory(models.Model):
     """Kategori bookmark buatan user, dibuat saat menyimpan postingan."""
     user = models.ForeignKey(

@@ -37,7 +37,11 @@
         <!-- Aksi: like, komentar, share, titik tiga, save -->
         <div class="detail-actions">
           <div class="detail-icons">
-            <button type="button" class="icon-btn" id="post-like" aria-pressed="false">
+            <button type="button" class="icon-btn{% if is_liked %} is-active{% endif %}" id="post-like"
+                aria-pressed="{% if is_liked %}true{% else %}false{% endif %}"
+                data-url="{% url 'inspo:like_toggle' %}"
+                data-kind="{% if post.is_user_post %}user{% else %}api{% endif %}"
+                data-ref="{{ post.id }}">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
               <span id="post-like-count">{{ likes }}</span>
             </button>
@@ -182,13 +186,27 @@
     wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 
-  /* ---- like postingan ---- */
+    /* ---- like postingan (tersimpan di server, tampil di profil) ---- */
   const likeBtn = $('#post-like'), likeCount = $('#post-like-count');
-  likeBtn.addEventListener('click', () => {
-    const on = likeBtn.getAttribute('aria-pressed') !== 'true';
+  function applyLike(on) {
     likeBtn.setAttribute('aria-pressed', String(on));
     likeBtn.classList.toggle('is-active', on);
     likeCount.textContent = parseInt(likeCount.textContent, 10) + (on ? 1 : -1);
+  }
+  likeBtn.addEventListener('click', async () => {
+    const on = likeBtn.getAttribute('aria-pressed') !== 'true';
+    applyLike(on);                                    // langsung berubah (optimistic)
+    try {
+      const res = await fetch(likeBtn.dataset.url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').value },
+        body: new URLSearchParams({ kind: likeBtn.dataset.kind, ref: likeBtn.dataset.ref }),
+      });
+      if (res.redirected) { location.href = res.url; return; }   // belum login
+      if (!res.ok) throw new Error('failed');
+    } catch (_) {
+      applyLike(!on);                                 // gagal: kembalikan
+    }
   });
 
   /* ---- menu titik tiga ---- */

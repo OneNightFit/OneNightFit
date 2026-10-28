@@ -9,6 +9,7 @@
 
 {% block content %}
 <div class="inspo-page">
+  <div id="like-config" data-url="{% url 'inspo:like_toggle' %}" hidden>{% csrf_token %}</div>
   <div class="inspo-container">
 
     <header class="feed-header">
@@ -71,7 +72,7 @@
 
       <div class="feed-grid">
         {% for post in posts %}
-          <article class="inspo-card">
+          <article class="inspo-card" data-kind="{% if post.is_user_post %}user{% else %}api{% endif %}" data-ref="{{ post.id }}">
             <div class="inspo-card-img">
               <a href="{{ post.url }}">
                 {% if post.image %}
@@ -90,7 +91,7 @@
               <div class="card-menu-wrap">
                 <button type="button" class="inspo-card-menu" aria-label="Menu" aria-expanded="false">&hellip;</button>
                 <div class="card-menu" hidden>
-                  <button type="button" class="card-menu-item" data-action="like">Like</button>
+                  <button type="button" class="card-menu-item{% if post.liked %} is-active{% endif %}" data-action="like">Like</button>
                   <button type="button" class="card-menu-item" data-action="save">Bookmark</button>
                   <button type="button" class="card-menu-item" data-action="share">Share</button>
                   {% if post.image %}
@@ -111,6 +112,8 @@
 
 <script>
   const menus = document.querySelectorAll('.card-menu-wrap');
+  const likeCfg = document.getElementById('like-config');
+  const csrf = likeCfg.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function closeAll() {
     menus.forEach(w => {
@@ -136,9 +139,23 @@
       if (!btn) return;
       const action = btn.dataset.action;
 
-      if (action === 'like' || action === 'save') {
+      if (action === 'like') {
+        const card = btn.closest('.inspo-card');
+        const on = !btn.classList.contains('is-active');
+        btn.classList.toggle('is-active', on);          // langsung berubah (optimistic)
+        fetch(likeCfg.dataset.url, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf },
+          body: new URLSearchParams({ kind: card.dataset.kind, ref: card.dataset.ref }),
+        }).then(res => {
+          if (res.redirected) { location.href = res.url; return; }   // belum login
+          if (!res.ok) throw new Error('failed');
+        }).catch(() => btn.classList.toggle('is-active', !on));       // gagal: kembalikan
+      }
+      if (action === 'save') {
         btn.classList.toggle('is-active');
       }
+
       if (action === 'share') {
         const url = window.location.href;
         if (navigator.share) {
