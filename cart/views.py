@@ -123,4 +123,18 @@ def cart_reset(request):
 # =======================================================
 @cart_login_required
 def checkout_page(request):
-    return render(request, "cart/checkout.html")
+    state = storage.load_state(request)
+    summary = services.checkout_summary(state)
+    return render(request, "cart/checkout.html", {
+        "summary": summary,
+        "user_info": {
+            "name": (request.user.get_full_name() or request.user.get_username())
+                    if request.user.is_authenticated else "John Doe",
+            "phone": "+62 812-3443-7700",   # DUMMY (Ganti ketika profil sudah diimplementasi)
+            "address": ("Jl. Prof. Dr. Sudjono D. Pusponegoro, Kampus UI, Pondok Cina, "
+                        "Kecamatan Beji, Kota Depok, Jawa Barat, 16424"),
+        },
+        "errors": [],
+        "shipping": {g["slug"]: "" for g in summary["stores"]},
+        "payment": "",
+    })

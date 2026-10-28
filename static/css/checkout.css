@@ -1,0 +1,32 @@
+/* Checkout shares the same styling as cart, 
+   inheriting colors and fonts from style.css and cart.css.*/
+
+/* ================= BASE ================= */
+.checkout-top { 
+    display: flex; 
+    align-items: baseline; 
+    justify-content: space-between; 
+    gap: 1rem; 
+    flex-wrap: wrap; 
+    padding: 1.75rem 0 1.25rem; 
+}
+.checkout-back { 
+    color: var(--primary_150); 
+    font-weight: 700; 
+    padding: 0.5rem 0; 
+}
+.checkout-back:hover { 
+    color: var(--neutral_0); 
+    text-decoration: underline !important; 
+}
+
+.checkout-section-title, .checkout-store__name {
+    padding-bottom: 0.5rem; 
+    margin-bottom: 0.7rem;
+    border-bottom: 1px solid var(--secondary_200);
+}
+.checkout-section-title { font-weight: 700; }
+.checkout-store__name { font-weight: 500; }
+.checkout-address { padding: 0.8rem 0.8rem 1rem; }
+.checkout-address__who { margin-bottom: 0.5rem; }
+.checkout-address__line { overflow-wrap: anywhere; }
