@@ -599,6 +599,13 @@
 }
 .bm-toast button[hidden] { display: none; }
 
+.likes-embed { margin-top: 2.5rem; color: var(--secondary_50); }
+.likes-embed a { text-decoration: none; }
+.likes-embed .bm-grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));   /* menyesuaikan lebar kolom profil */
+    margin-top: 1.25rem;
+}
+
 
 /* PILIHAN KATEGORI BOOKMARK (pop up simpan ke kategori) ============================== */
 
