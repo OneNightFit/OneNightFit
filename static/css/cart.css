@@ -215,7 +215,7 @@
     list-style: none; 
     display: flex; 
     flex-direction: column; 
-    gap: 0.5rem; 
+    gap: 1.75rem; 
     padding-top: 0.9rem; 
 }
 .cart-item {
@@ -288,8 +288,8 @@
     color: var(--neutral_0); 
     border: 0; 
     border-radius: 0.4rem;
-    padding: 0.4rem 1.1rem; 
-    min-height: 2.5rem; 
+    padding: 0.25rem 0.85rem; 
+    min-height: 2rem; 
     cursor: pointer;
 }
 .cart-remove:hover { background: var(--button_danger__hovered); }
@@ -307,13 +307,13 @@
     background: var(--secondary_200); 
     color: var(--secondary_800); 
     border-radius: 0.5rem;
-    padding: 0.2rem 0.35rem; 
-    min-width: 9.25rem; 
-    height: 2.65rem;
+    padding: 0.15rem 0.25rem; 
+    min-width: 7.5rem; 
+    height: 2.1rem;
 }
 .cart-stepper__btn {
-    width: 2.25rem; 
-    height: 2.25rem; 
+    width: 1.7rem; 
+    height: 1.7rem; 
     border: 0; 
     background: transparent; 
     color: inherit;
@@ -323,8 +323,8 @@
     cursor: pointer;
 }
 .cart-stepper__btn svg { 
-    width: 1.3rem; 
-    height: 1.3rem; 
+    width: 1.05rem; 
+    height: 1.05rem; 
 }
 .cart-stepper__btn:hover:not(:disabled) { background: rgba(0, 0, 0, 0.1); }
 .cart-stepper__btn:disabled { 
@@ -387,13 +387,13 @@
     h6.cart-item__name { font-size: 1.4rem; }
     .cart-item__size-label { margin-top: 0.4rem; }
     .cart-remove { 
-        min-height: 2.75rem; 
-        padding: 0.4rem 1rem; 
+        min-height: 2.25rem; 
+        padding: 0.25rem 0.9rem; 
     }
-    .cart-stepper { height: 2.75rem; }
+    .cart-stepper { height: 2.25rem; }
     .cart-stepper__btn { 
-        width: 2.5rem; 
-        height: 2.25rem; 
+        width: 1.9rem; 
+        height: 1.9rem; 
     }
     .cart-check { 
         min-width: 2.75rem; 
@@ -540,7 +540,7 @@
 }
 .cart-reco__card {
     border: 1px solid var(--neutral_0); 
-    padding: 0.4rem; 
+    padding: 0.4rem 0.4rem 0.9rem; 
     display: flex; 
     flex-direction: column; 
     gap: 0.15rem; 
@@ -567,6 +567,8 @@
 .cart-reco__price {
     color: var(--cart-price); 
     font-weight: 700;
+    margin-top: auto;
+    padding-top: 0.5rem;
 }
 .cart-reco__meta {
     display: flex; 

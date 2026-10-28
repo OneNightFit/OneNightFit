@@ -61,19 +61,19 @@
                 <form class="cart-form" method="post" action="{% url 'cart:remove' %}">
                     {% csrf_token %}
                     <input type="hidden" name="product_id" value="{{ item.id }}">
-                    <button class="cart-remove body-1" type="submit" aria-label="Remove {{ item.name }} from cart">Remove</button>
+                    <button class="cart-remove body-3" type="submit" aria-label="Remove {{ item.name }} from cart">Remove</button>
                 </form>
 
                 <form class="cart-form cart-stepper-form" method="post" action="{% url 'cart:duration' %}">
                     {% csrf_token %}
                     <input type="hidden" name="product_id" value="{{ item.id }}">
-                    <span class="cart-stepper__label body-2" id="days-label-{{ item.id }}">Rental Duration</span>
+                    <span class="cart-stepper__label body-3" id="days-label-{{ item.id }}">Rental Duration</span>
                     <div class="cart-stepper" role="group" aria-labelledby="days-label-{{ item.id }}">
                         <button class="cart-stepper__btn cart-minus" type="submit" name="delta" value="-1"
                                 aria-label="Decrease rental days" {% if item.days <= min_days %}disabled{% endif %}>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                         </button>
-                        <output class="cart-stepper__value body-1" aria-live="polite"><span class="cart-days">{{ item.days }}</span> Day(s)</output>
+                        <output class="cart-stepper__value body-2" aria-live="polite"><span class="cart-days">{{ item.days }}</span> Day(s)</output>
                         <button class="cart-stepper__btn cart-plus" type="submit" name="delta" value="1"
                                 aria-label="Increase rental days" {% if item.days >= max_days %}disabled{% endif %}>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>

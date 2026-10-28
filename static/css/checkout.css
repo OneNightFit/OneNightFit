@@ -55,6 +55,13 @@
 .checkout-item .cart-item__price {
     margin-top: 0;
 }
+.checkout-item .cart-item__img {
+    width: 100%;
+    aspect-ratio: 133 / 142;
+}
+.checkout-item .cart-item__info {
+    grid-area: auto;
+}
 
 /* radio card */
 .checkout-shipping,
