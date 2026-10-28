@@ -25,20 +25,20 @@ def parse_product_id(raw):
     try:
         pid = int(str(raw).strip())
     except (TypeError, ValueError):
-        raise CartError("Produk tidak valid.")
+        raise CartError("Invalid product.")
     if pid < 1:
-        raise CartError("Produk tidak valid.")
+        raise CartError("Invalid product.")
     return pid
 
 def parse_days(raw):
     try:
         days = int(str(raw).strip())
     except (TypeError, ValueError):
-        raise CartError("Durasi sewa harus berupa angka.")
+        raise CartError("Rental duration must be a number.")
     if days < MIN_DAYS:
-        raise CartError(f"Durasi sewa minimal {MIN_DAYS} hari.")
+        raise CartError(f"Minimum rental duration is {MIN_DAYS} day(s).")
     if days > MAX_DAYS:
-        raise CartError(f"Durasi sewa maksimal {MAX_DAYS} hari.")
+        raise CartError(f"Maximum rental duration is {MAX_DAYS} day(s).")
     return days
 
 def parse_bool(raw):
@@ -47,7 +47,7 @@ def parse_bool(raw):
         return True
     if value in ("0", "false", "off", "no", ""):
         return False
-    raise CartError("Nilai pilihan tidak valid.")
+    raise CartError("Invalid selection value.")
 
 # =======================================================
 # STATE
@@ -80,7 +80,7 @@ def _find(state, pid):
 def _require_in_cart(state, pid):
     item = _find(state, pid)
     if item is None:
-        raise CartError("Produk tidak ada di keranjang.")
+        raise CartError("Product is not in your cart.")
     return item
 
 def add_item(state, product_id, days=1, selected=True):
@@ -88,9 +88,9 @@ def add_item(state, product_id, days=1, selected=True):
     days = parse_days(days)
     product = catalog.get_product(pid)
     if product is None:
-        raise CartError("Produk tidak ditemukan.")
+        raise CartError("Product not found.")
     if not product["available"]:
-        raise CartError("Produk ini sedang tidak tersedia.")
+        raise CartError("This product is currently unavailable.")
     existing = _find(state, pid)
     if existing:                     
         existing["days"] = days
@@ -128,7 +128,7 @@ def set_store_selected(state, store_slug, selected):
     targets = [it for it in state["items"]
                if products.get(it["id"]) and products[it["id"]]["store"] == store_slug]
     if not targets:
-        raise CartError("Toko tidak ditemukan di keranjang.")
+        raise CartError("Store not found in your cart.")
     for it in targets:
         it["selected"] = selected and products[it["id"]]["available"]
     return state
@@ -196,13 +196,13 @@ PAYMENT_METHODS = ("qris", "tunai")
 def validate_checkout(summary, shipping_by_store, payment):
     """Mengecek apakah semua pilihan checkout sudah diisi."""
     if summary["is_empty"]:
-        return ["Belum ada produk yang dipilih untuk checkout."]
+        return ["Please select at least one product to check out."]
     errors = []
     for g in summary["stores"]:
         if shipping_by_store.get(g["slug"]) not in SHIPPING_OPTIONS:
-            errors.append(f"Pilih opsi pengiriman untuk toko {g['name']}.")
+            errors.append(f"Please select a shipping option for {g['name']}.")
     if payment not in PAYMENT_METHODS:
-        errors.append("Pilih metode pembayaran.")
+        errors.append("Please select a payment methods.")
     return errors
 
 def complete_checkout(state, summary):

@@ -2,9 +2,9 @@
 <section class="cart-panel cart-empty">
     <h4 class="cart-empty__title">Your cart is empty</h4>
     {% if catalog_empty %}
-    <p class="body-2">Belum ada data produk. Jalankan <code>python manage.py import_products</code> lebih dulu.</p>
+    <p class="body-2">No product data available. Run <code>python manage.py import_products</code> first.</p>
     {% else %}
-    <p class="body-2">Find an outfit you love and rent it for a night (or two).</p>
+    <p class="body-2">Find an outfit you love and rent it for a night.</p>
     {% endif %}
     <div class="cart-empty__actions">
         <a class="button button-primary" href="{% url 'inspo:feeds' %}">Browse Inspo</a>
@@ -50,7 +50,7 @@
 
             <div class="cart-item__info">
                 <h6 class="cart-item__name">{{ item.name }}</h6>
-                <p class="cart-item__price body-1">{{ item.price_display }} /Day</p>
+                <p class="cart-item__price body-1">{{ item.price_display }} /day</p>
                 <p class="cart-item__sub body-4">Subtotal: <span class="cart-item-subtotal">{{ item.subtotal_display }}</span></p>
                 <p class="cart-item__size-label body-4">Size</p>
                 <span class="cart-size body-4">{{ item.size }}</span>
@@ -67,13 +67,13 @@
                 <form class="cart-form cart-stepper-form" method="post" action="{% url 'cart:duration' %}">
                     {% csrf_token %}
                     <input type="hidden" name="product_id" value="{{ item.id }}">
-                    <span class="cart-stepper__label body-2" id="days-label-{{ item.id }}">Add Day</span>
+                    <span class="cart-stepper__label body-2" id="days-label-{{ item.id }}">Rental Duration</span>
                     <div class="cart-stepper" role="group" aria-labelledby="days-label-{{ item.id }}">
                         <button class="cart-stepper__btn cart-minus" type="submit" name="delta" value="-1"
                                 aria-label="Decrease rental days" {% if item.days <= min_days %}disabled{% endif %}>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                         </button>
-                        <output class="cart-stepper__value body-1" aria-live="polite"><span class="cart-days">{{ item.days }}</span> Hari</output>
+                        <output class="cart-stepper__value body-1" aria-live="polite"><span class="cart-days">{{ item.days }}</span> Day(s)</output>
                         <button class="cart-stepper__btn cart-plus" type="submit" name="delta" value="1"
                                 aria-label="Increase rental days" {% if item.days >= max_days %}disabled{% endif %}>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>

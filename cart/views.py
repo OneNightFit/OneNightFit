@@ -23,7 +23,7 @@ def cart_login_required(view):
     def wrapper(request, *args, **kwargs):
         if getattr(settings, "CART_REQUIRE_LOGIN", False) and not request.user.is_authenticated:
             if _wants_json(request):
-                return JsonResponse({"ok": False, "error": "Silakan login terlebih dahulu."}, status=401)
+                return JsonResponse({"ok": False, "error": "Please log in first."}, status=401)
             return redirect_to_login(request.get_full_path())
         return view(request, *args, **kwargs)
     return wrapper
@@ -88,11 +88,11 @@ def cart_duration(request):
         try:
             delta = int(request.POST.get("delta", ""))
         except ValueError:
-            raise services.CartError("Perubahan durasi tidak valid.")
+            raise services.CartError("The selected duration is invalid.")
         current = next((i["days"] for i in state["items"] if i["id"] == pid), None)
         
         if current is None:
-            raise services.CartError("Produk tidak ada di keranjang.")
+            raise services.CartError("Your cart is empty.")
         services.set_days(state, pid, current + delta)
     return mutate(request, run)
 
@@ -149,7 +149,7 @@ def checkout_page(request):
             storage.save_state(request, state)
             if not request.user.is_authenticated:
                 storage.keep_guest_cart_once(request)     # Guest barang balik setelah reload
-            messages.success(request, "Payment Successful.")
+            messages.success(request, "Your rental is confirmed!")
             return redirect("cart:cart")
         ctx.update(shipping=shipping, payment=payment, errors=errors)
     return render(request, "cart/checkout.html", ctx)
