@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+<link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+{% endblock meta %}
+
+{% block title %}Checkout | OneNightFit{% endblock title %}
+
+{% block content %}
+<div class="cart-page checkout-page">
+    <div class="cart-wrap">
+        <div class="checkout-top">
+            <h1 class="cart-title"><span class="cart-title__text">Checkout</span></h1>
+            <a class="checkout-back body-2" href="{% url 'cart:cart' %}">&larr; Back to Cart</a>
+        </div>
+
+        {% if errors %}
+        <ul class="cart-messages body-2" role="alert">
+            {% for e in errors %}<li class="cart-messages__item">{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if summary.is_empty %}
+        <section class="cart-panel cart-empty">
+            <h4 class="cart-empty__title">No products selected</h4>
+            <p class="body-2">Select at least one product in your cart to continue to checkout.</p>
+            <div class="cart-empty__actions"><a class="button button-primary" href="{% url 'cart:cart' %}">Back to Cart</a></div>
+        </section>
+        {% else %}
+        <form class="cart-layout checkout-layout" method="post" action="{% url 'cart:checkout' %}" id="checkout-form" novalidate>
+            {% csrf_token %}
+
+            <div class="cart-list">
+                <section class="cart-panel checkout-address">
+                    <h2 class="checkout-section-title body-2">SHIPPING ADDRESS</h2>
+                    <p class="checkout-address__who body-2"><strong>{{ user_info.name }}</strong> | {{ user_info.phone }}</p>
+                    <p class="checkout-address__line body-2">{{ user_info.address }}</p>
+                </section>
+
+                {% include 'cart/checkout_products.html' %}
+            </div>
+
+            {% include 'cart/checkout_summary.html' %}
+        </form>
+        {% endif %}
+    </div>
+</div>
+<script src="{% static 'js/checkout.js' %}" defer></script>
+{% endblock content %}

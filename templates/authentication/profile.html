@@ -1,0 +1,82 @@
+{% extends "authentication/profile_base.html" %}
+{% block title %}Your Profile | OneNightFit{% endblock %}
+
+{% block profile_content %}
+{% with p=user.profile %}
+<h2 class="a-h2">Your <span class="a-grad">Profile</span></h2>
+
+{% if p.is_seller %}
+  {# ---------- SELLER ---------- #}
+  {% if report %}
+  <section class="a-summary" aria-label="Shop summary">
+    <div class="a-summary-head">
+      <h3>Shop summary</h3>
+      <a href="{% url 'authentication:shop_report' %}">View full report</a>
+    </div>
+    {% include "authentication/_report_stats.html" %}
+  </section>
+  {% endif %}
+
+  <div class="a-cols a-cols-even">
+    <section class="a-panel">
+      <h3>Shop</h3>
+      <dl class="a-rows">
+        <div><dt>Shop name</dt><dd>{{ p.shop_name|default:"Not yet" }}</dd></div>
+        <div><dt>About the shop</dt><dd>{{ p.shop_description|default:"No description yet." }}</dd></div>
+        <div><dt>Location</dt><dd>{{ p.city|default:"Not yet" }}</dd></div>
+      </dl>
+      {% if not p.shop_description %}
+        <p class="a-muted a-hint"><a href="{% url 'authentication:edit_profile' %}">Add a short description</a> so buyers know your shop.</p>
+      {% endif %}
+    </section>
+
+    <section class="a-panel">
+      <h3>Contact</h3>
+      <dl class="a-rows">
+        <div><dt>Email</dt><dd><a href="mailto:{{ user.email }}">{{ user.email }}</a></dd></div>
+        <div><dt>Phone / WhatsApp</dt><dd>{{ p.masked_phone|default:"Not yet" }}</dd></div>
+        <div><dt>Member since</dt><dd>{{ user.date_joined|date:"d F Y" }}</dd></div>
+        <div><dt>Last Active</dt><dd>{{ user.last_login|date:"d F Y"|default:"-" }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+{% else %}
+  {# ---------- BUYER ---------- #}
+  <div class="a-cols">
+    <section class="a-panel">
+      <h3>Contact</h3>
+      <dl class="a-rows">
+        <div><dt>Email</dt><dd><a href="mailto:{{ user.email }}">{{ user.email }}</a></dd></div>
+        <div><dt>Phone</dt><dd>{{ p.masked_phone|default:"Not yet" }}</dd></div>
+        <div><dt>City</dt><dd>{{ p.city|default:"Not yet" }}</dd></div>
+        <div><dt>Last Active</dt><dd>{{ user.last_login|date:"d F Y"|default:"-" }}</dd></div>
+      </dl>
+    </section>
+
+    <div class="a-stack">
+      <section class="a-panel">
+        <h3>Fit</h3>
+        <div class="a-fit">
+          <div class="a-chip-box"><small>Size</small><span>{{ p.clothing_size|default:"-" }}</span></div>
+          <div class="a-chip-box"><small>Height</small><span>{% if p.height_cm %}{{ p.height_cm }} cm{% else %}-{% endif %}</span></div>
+          <div class="a-chip-box"><small>Chest</small><span>{% if p.chest_cm %}{{ p.chest_cm }} cm{% else %}-{% endif %}</span></div>
+          <div class="a-chip-box"><small>Waist</small><span>{% if p.waist_cm %}{{ p.waist_cm }} cm{% else %}-{% endif %}</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="a-h3">Favorite Style</h3>
+        {% if p.favorite_style_labels %}
+          <ul class="a-chips">
+            {% for label in p.favorite_style_labels %}<li>{{ label }}</li>{% endfor %}
+          </ul>
+        {% else %}
+          <p class="a-muted">No favorite style yet. <a href="{% url 'authentication:edit_profile' %}">Pick your style</a>.</p>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+{% endif %}
+{% endwith %}
+{% endblock %}

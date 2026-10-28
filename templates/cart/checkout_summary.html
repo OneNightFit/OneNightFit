@@ -1,0 +1,30 @@
+<aside class="cart-panel cart-summary checkout-summary" aria-labelledby="checkout-summary-title">
+    <h2 class="cart-summary__title body-1" id="checkout-summary-title">Checkout Summary</h2>
+    <ul class="checkout-lines">
+        {% for store in summary.stores %}{% for item in store.items %}
+        <li class="checkout-line body-1"><span>{{ item.name }}</span><span>{{ item.subtotal_display }}</span></li>
+        {% endfor %}{% endfor %}
+    </ul>
+    <p class="checkout-total body-1"><span>Total</span><strong>{{ summary.total_display }}</strong></p>
+
+    <fieldset class="checkout-payment">
+        <legend class="checkout-payment__legend body-2">PAYMENT METHODS</legend>
+        <label class="checkout-option checkout-option--pay">
+            <input class="checkout-option__input" type="radio" name="payment" value="qris" {% if payment == 'qris' %}checked{% endif %}>
+            <span class="checkout-option__box checkout-pay">
+                <svg class="checkout-pay__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 19h2M19 14h2"/></svg>
+                <span><span class="checkout-option__title body-3">QRIS</span><span class="checkout-option__desc body-4">All e-wallet and mobile banking apps</span></span>
+            </span>
+        </label>
+        <label class="checkout-option checkout-option--pay">
+            <input class="checkout-option__input" type="radio" name="payment" value="tunai" {% if payment == 'tunai' %}checked{% endif %}>
+            <span class="checkout-option__box checkout-pay">
+                <svg class="checkout-pay__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12"/><circle cx="12" cy="12" r="2.5"/></svg>
+                <span><span class="checkout-option__title body-3">Cash</span><span class="checkout-option__desc body-4">Cash on delivery</span></span>
+            </span>
+        </label>
+    </fieldset>
+
+    <button class="cart-checkout-btn body-1" type="submit" id="checkout-submit">Checkout</button>
+    <p class="cart-summary__hint body-4" id="checkout-hint" hidden>Select a payment method</p>
+</aside>
