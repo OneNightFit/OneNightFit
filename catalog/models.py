@@ -4,6 +4,8 @@ from django.db.models import Avg
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User 
 
+def get_random_size():
+    return random.choice(['S', 'M', 'L', 'XL'])
 
 class Product(models.Model):
     PRODUCT_CATEGORY = [
@@ -13,11 +15,19 @@ class Product(models.Model):
         ("women_clothing", "Women's Clothing"),
     ]
 
+    SIZE_CHOICES = [
+        ('S', 'Small'),
+        ('M', 'Medium'),
+        ('L', 'Large'),
+        ('XL', 'Extra Large'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(decimal_places=3, max_digits=8)
     category = models.CharField(max_length=50, choices=PRODUCT_CATEGORY)
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES, default=get_random_size)
     wishlisted_by = models.ManyToManyField(
         User, related_name="wishlisted_product", blank=True
     )
