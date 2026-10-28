@@ -21,16 +21,20 @@ def catalog_list(request):
     """Displays all products in the catalog."""
     selected_categories = request.GET.getlist('category')
     
-    # 1. Ambil data asli dari database Django
+    # Ambil data asli dari database Django
     products = Product.objects.all()
     
-    # 2. Hitung jumlah produk per kategori menggunakan metode filter bawaan Django
+    # Hitung jumlah produk per kategori menggunakan metode filter bawaan Django
     categories_data = [
         (code, name, products.filter(category=code).count())
         for code, name in Product.PRODUCT_CATEGORY
     ]
 
-    # 3. Filter produk berdasarkan kategori yang dicentang
+    # Jika user adalah seller, filter produk hanya yang dimiliki oleh seller tersebut
+    if is_seller(request.user):
+        products = products.filter(seller=request.user)
+
+    # Filter produk berdasarkan kategori yang dicentang
     if selected_categories:
         products = products.filter(category__in=selected_categories)
 
