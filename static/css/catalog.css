@@ -41,6 +41,22 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+
+/* Sembunyikan daftar saat collapsed */
+.filter-categories.is-collapsed {
+    display: none;
 }
 
 .filter-title {
