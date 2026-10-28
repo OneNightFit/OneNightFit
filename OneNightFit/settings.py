@@ -153,7 +153,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
 LOGIN_URL = "authentication:login"
-LOGIN_REDIRECT_URL = "authentication:profile"
+LOGIN_REDIRECT_URL = "inspo:feeds"
 LOGOUT_REDIRECT_URL = "authentication:login"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
