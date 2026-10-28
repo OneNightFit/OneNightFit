@@ -7,6 +7,14 @@ import random
 
 def get_random_size():
     return random.choice(['S', 'M', 'L', 'XL'])
+def get_random_seller():
+    SELLER = [
+        ("forza_ferrari", "Forza Ferrari"),
+        ("knuckle_velvet", "Knuckle Velvet"),
+        ("alley_rose", "Alley Rose"),
+        ("ex_machina", "Ex Machina"),
+    ]
+    return random.choice(SELLER)[0]
 
 class Product(models.Model):
     PRODUCT_CATEGORY = [
@@ -25,6 +33,7 @@ class Product(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='products')
     description = models.TextField()
     image = models.URLField(max_length=1000, null=True, blank=True)
     price = models.DecimalField(decimal_places=3, max_digits=8)
