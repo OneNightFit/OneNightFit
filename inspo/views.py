@@ -3,6 +3,8 @@ from datetime import timedelta
 
 import requests 
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import Http404
@@ -11,7 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
-from .models import Post, Tag
+from inspo.models import Bookmark, BookmarkCategory, Post, Tag
 
 API_URL = "https://fakestoreapi.com"
 
@@ -143,7 +145,6 @@ def feeds(request):
             cond |= Q(tag__name__iexact=name) | Q(categories__name__iexact=name)
         user_posts = user_posts.filter(cond).distinct()
     posts = [normalize_user_post(p) for p in user_posts[:50]] + posts
-
     if active_category == "Terpopuler":
         posts.sort(key=lambda p: p["rating_count"], reverse=True)
 
@@ -173,6 +174,14 @@ def detail(request, post_id):
     post = normalize(data)
     comments = dummy_comments()
 
+    # Produk API baru ada di tabel Post setelah import_products dijalankan
+    db_post = Post.objects.filter(external_id=post["id"]).first()
+    is_saved = bool(
+        request.user.is_authenticated
+        and db_post
+        and Bookmark.objects.filter(user=request.user, post=db_post).exists()
+    )
+
     return render(request, "inspo/detail.html", {
         "post": post,
         "author": "ONF",
@@ -181,6 +190,8 @@ def detail(request, post_id):
         "comments": comments,
         "comment_count": len(comments) + sum(len(c["replies"]) for c in comments),
         "more_posts": _more_posts(exclude_api_id=post["id"]),
+        "is_saved": is_saved,
+        "bookmark_post_id": db_post.pk if db_post else None,
     })
 
 
@@ -190,6 +201,10 @@ def user_detail(request, pk):
     )
     post = normalize_user_post(obj)
     comments = dummy_comments()
+    is_saved = bool(
+        request.user.is_authenticated
+        and Bookmark.objects.filter(user=request.user, post=obj).exists()
+    )
 
     return render(request, "inspo/detail.html", {
         "post": post,
@@ -200,6 +215,8 @@ def user_detail(request, pk):
         "comment_count": len(comments) + sum(len(c["replies"]) for c in comments),
         "more_posts": _more_posts(),
         "is_owner": request.user.is_authenticated and obj.author_id == request.user.id,
+        "is_saved": is_saved,
+        "bookmark_post_id": obj.pk,
     })
 
 
@@ -255,7 +272,7 @@ def upload(request):
             errors.append("Foto wajib diunggah.")
         else:
             err = _validate_image(image)
-            if err:
+            if err: 
                 errors.append(err)
 
         if not errors:
@@ -329,3 +346,73 @@ def edit(request, pk):
         "edit", errors, title, caption, hashtags_raw, selected,
         current_image=post.image_src, post=post,
     ))
+
+
+# --------------------------------------------------------------------------
+# Bookmark
+# --------------------------------------------------------------------------
+
+SORTS = {"terbaru": "-created_at", "terlama": "created_at"}
+
+
+@login_required
+def bookmark_categories(request):
+    cats = BookmarkCategory.objects.filter(user=request.user)
+    return JsonResponse({"categories": [{"id": c.id, "name": c.name} for c in cats]})
+ 
+
+@login_required
+def bookmarks(request):
+    sort = request.GET.get("urut", "terbaru")
+    if sort not in SORTS:
+        sort = "terbaru"
+    active_category = request.GET.get("kategori", "")
+
+    categories = BookmarkCategory.objects.filter(user=request.user)
+
+    items = Bookmark.objects.filter(user=request.user).select_related(
+        "post", "post__author", "post__tag", "category"
+    )
+    if active_category:
+        items = items.filter(category__name=active_category)
+    items = items.order_by(SORTS[sort])
+
+    return render(request, "inspo/bookmarks.html", {
+        "items": items,
+        "total": items.count(),
+        "categories": categories,
+        "active_category": active_category,
+        "sort": sort,
+    })
+
+
+def _resolve_category(user, post_data):
+    """Kategori dari input: nama baru (dibuat kalau belum ada) atau id yang sudah ada."""
+    new_name = post_data.get("new_category", "").strip()[:30]
+    if new_name:
+        existing = BookmarkCategory.objects.filter(user=user, name__iexact=new_name).first()
+        return existing or BookmarkCategory.objects.create(user=user, name=new_name)
+    category_id = post_data.get("category_id", "")
+    if category_id.isdigit():
+        return get_object_or_404(BookmarkCategory, pk=category_id, user=user)
+    return None
+
+
+@login_required
+@require_POST
+def bookmark_toggle(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    action = request.POST.get("action")
+
+    if action == "remove":
+        Bookmark.objects.filter(user=request.user, post=post).delete()
+        return JsonResponse({"saved": False})
+
+    if action == "add":
+        category = _resolve_category(request.user, request.POST)
+        Bookmark.objects.update_or_create(
+            user=request.user, post=post, defaults={"category": category}
+        )
+        return JsonResponse({"saved": True, "category": category.name if category else None})
+
+    return JsonResponse({"error": "invalid action"}, status=400)
