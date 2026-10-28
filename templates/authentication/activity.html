@@ -1,0 +1,25 @@
+{% extends "authentication/profile_base.html" %}
+{% block title %}Activity | OneNightFit{% endblock %}
+
+{% block profile_content %}
+<h2 class="a-h2">My <span class="a-grad">Wishlist</span></h2>
+{% if wishlist %}
+  <ul class="a-wish">
+    {% for item in wishlist %}
+    <li class="a-wish-card">
+      {% if item.detail_url %}<a href="{{ item.detail_url }}">{% endif %}
+        <span class="a-wish-img">{% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">{% endif %}</span>
+        <span class="a-wish-title">{{ item.title }}</span>
+      {% if item.detail_url %}</a>{% endif %}
+      <form method="post" action="{% url 'authentication:toggle_wishlist' item.product_id %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="a-wish-remove">Remove</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="a-empty">Your wishlist is empty. Tap the heart on a product to save it here.</div>
+{% endif %}
+{% endblock %}

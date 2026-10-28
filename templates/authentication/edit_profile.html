@@ -1,0 +1,50 @@
+{% extends "authentication/profile_base.html" %}
+{% block title %}Edit Profile | OneNightFit{% endblock %}
+
+{% block profile_content %}
+<form method="post" class="a-form" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="a-alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+  {% include "authentication/_field.html" with field=form.full_name %}
+
+  {% if form.shop_name %}
+    {% include "authentication/_field.html" with field=form.shop_name %}
+    {% include "authentication/_field.html" with field=form.shop_description %}
+  {% endif %}
+
+  <div class="a-grid a-grid-2">
+    {% include "authentication/_field.html" with field=form.phone_number %}
+    {% include "authentication/_field.html" with field=form.city %}
+  </div>
+
+  {% if form.clothing_size %}
+  <div class="a-grid a-grid-4">
+    {% include "authentication/_field.html" with field=form.clothing_size %}
+    {% include "authentication/_field.html" with field=form.chest_cm %}
+    {% include "authentication/_field.html" with field=form.height_cm %}
+    {% include "authentication/_field.html" with field=form.waist_cm %}
+  </div>
+
+  <fieldset class="a-styles">
+    <legend>Favorite Style</legend>
+    <div class="a-style-options">
+      {% for checkbox in form.favorite_styles %}
+        <div class="a-style">
+          {{ checkbox.tag }}
+          <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+        </div>
+      {% endfor %}
+    </div>
+    {% for error in form.favorite_styles.errors %}<small class="a-error">{{ error }}</small>{% endfor %}
+  </fieldset>
+  {% endif %}
+
+  <button type="submit" class="a-btn">Save Changes</button>
+</form>
+
+<div class="a-account-links">
+  <a href="{% url 'authentication:change_password' %}">Change password</a>
+  <a href="{% url 'authentication:delete_account' %}" class="a-danger-link">Delete account</a>
+</div>
+{% endblock %}

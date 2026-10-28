@@ -63,3 +63,74 @@ class LoginForm(AuthenticationForm):
 
     def clean_username(self):
         return self.cleaned_data["username"].lower()
+
+class EditProfileForm(forms.ModelForm):
+    """Form edit profil. Field yang tampil berbeda untuk Buyer dan Seller."""
+
+    SELLER_ONLY = ("shop_name", "shop_description")
+    BUYER_ONLY = ("clothing_size", "chest_cm", "height_cm", "waist_cm", "favorite_styles")
+
+    full_name = forms.CharField(label="Full name", max_length=100)
+    favorite_styles = forms.MultipleChoiceField(
+        label="Favorite Style",
+        choices=Profile.STYLE_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+
+    class Meta:
+        model = Profile
+        fields = (
+            "shop_name", "shop_description", "phone_number", "city",
+            "clothing_size", "chest_cm", "height_cm", "waist_cm",
+            "favorite_styles",
+        )
+        labels = {
+            "shop_name": "Shop name",
+            "shop_description": "Shop description",
+            "phone_number": "Phone",
+            "city": "City",
+            "clothing_size": "Clothing Sizes",
+            "chest_cm": "Chest (cm)",
+            "height_cm": "Height (cm)",
+            "waist_cm": "Waist (cm)",
+        }
+        widgets = {"shop_description": forms.Textarea(attrs={"rows": 4, "maxlength": 300})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["full_name"].initial = self.instance.user.first_name
+        self.order_fields(["full_name"])
+        if self.instance.is_seller:
+            self.fields["shop_name"].required = True
+            for name in self.BUYER_ONLY:
+                del self.fields[name]
+        else:
+            for name in self.SELLER_ONLY:
+                del self.fields[name]
+            self.fields["clothing_size"].choices = [("", "Select")] + Profile.SIZE_CHOICES
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        if commit:
+            user = profile.user
+            user.first_name = self.cleaned_data["full_name"].strip()
+            user.save(update_fields=["first_name"])
+        return profile
+
+
+class DeleteAccountForm(forms.Form):
+    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    confirm = forms.BooleanField(
+        label="I understand my account and all its data will be permanently deleted."
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise forms.ValidationError("Incorrect password.")
+        return password
