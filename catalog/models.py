@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Avg
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User 
+import random
 
 def get_random_size():
     return random.choice(['S', 'M', 'L', 'XL'])

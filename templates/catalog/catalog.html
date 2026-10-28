@@ -80,6 +80,7 @@
                             <div class="details-contents">
                                 <p class="product-name">{{ product.name }}</p>
                                 <p class="product-description">{{ product.description|truncatewords:15 }}</p>
+                                <p class="product-size">Ukuran: {{ product.get_size_display }}</p>
                                 <div class="rating">
                                     <span class="rate-count">⭐ {{ product.average_rating }}</span>
                                     <span class="rate-count">({{ product.rating_count }} reviews)</span>
