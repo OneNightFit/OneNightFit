@@ -125,7 +125,7 @@ def cart_reset(request):
 def checkout_page(request):
     state = storage.load_state(request)
     summary = services.checkout_summary(state)
-    return render(request, "cart/checkout.html", {
+    ctx = {
         "summary": summary,
         "user_info": {
             "name": (request.user.get_full_name() or request.user.get_username())
@@ -137,4 +137,19 @@ def checkout_page(request):
         "errors": [],
         "shipping": {g["slug"]: "" for g in summary["stores"]},
         "payment": "",
-    })
+    }
+    if request.method == "POST":
+        shipping = {g["slug"]: request.POST.get(f"shipping_{g['slug']}", "")
+                    for g in summary["stores"]}
+        payment = request.POST.get("payment", "")
+        errors = services.validate_checkout(summary, shipping, payment)
+        if not errors:
+            # Item yang dibayar dihapus dari keranjang.
+            services.complete_checkout(state, summary)
+            storage.save_state(request, state)
+            if not request.user.is_authenticated:
+                storage.keep_guest_cart_once(request)     # Guest barang balik setelah reload
+            messages.success(request, "Payment Successful.")
+            return redirect("cart:cart")
+        ctx.update(shipping=shipping, payment=payment, errors=errors)
+    return render(request, "cart/checkout.html", ctx)
