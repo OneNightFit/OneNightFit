@@ -1,0 +1,75 @@
+{% csrf_token %}
+
+<div class="bm-grid" id="lk-grid" data-url="{% url 'inspo:like_toggle' %}">
+  {% for l in liked_items %}
+    {% with post=l.post %}
+    <article class="inspo-card bm-card"
+             data-kind="{% if post.external_id %}api{% else %}user{% endif %}"
+             data-ref="{% if post.external_id %}{{ post.external_id }}{% else %}{{ post.pk }}{% endif %}">
+      <div class="inspo-card-img">
+        <a href="{{ post.detail_url }}">
+          <img src="{{ post.image_src }}" alt="{{ post.title }}">
+        </a>
+        <button type="button" class="bm-btn lk-btn" aria-label="Batal suka">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+        </button>
+      </div>
+      <div class="inspo-card-info bm-info">
+        <a href="{{ post.detail_url }}" class="body-4 inspo-card-title">{{ post.title|default:post.caption|truncatechars:40 }}</a>
+        <p class="body-4 bm-by">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6 19c1.5-3 10.5-3 12 0"/></svg>
+          {{ post.author.get_username|default:"ONF" }}
+        </p>
+        {% if post.tag %}<span class="bm-chip">{{ post.tag.name }}</span>{% endif %}
+      </div>
+    </article>
+    {% endwith %}
+  {% endfor %}
+</div>
+
+<div class="bm-empty" id="lk-empty" {% if liked_items %}hidden{% endif %}>
+  <div class="bm-empty-icon">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+  </div>
+  <h2 class="inspo-title">Belum ada postingan yang disukai</h2>
+  <p class="body-3">Tekan ikon hati pada postingan favoritmu, dan semuanya akan muncul di sini.</p>
+  <a href="{% url 'inspo:feeds' %}" class="button button-primary">Jelajahi Inspo</a>
+</div>
+
+<script>
+(() => {
+  const grid = document.getElementById('lk-grid');
+  const empty = document.getElementById('lk-empty');
+  const countEl = document.getElementById('lk-count');   
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  function refresh() {
+    const n = grid.querySelectorAll('.bm-card').length;
+    if (countEl) countEl.textContent = n;
+    empty.hidden = n > 0;
+  }
+
+  grid.addEventListener('click', async e => {
+    const btn = e.target.closest('.lk-btn');
+    if (!btn) return;
+    const card = btn.closest('.bm-card');
+    const next = card.nextElementSibling;
+
+    card.classList.add('is-removing');                  // memudar lalu hilang
+    setTimeout(() => { if (card.classList.contains('is-removing')) { card.remove(); refresh(); } }, 250);
+
+    try {
+      const res = await fetch(grid.dataset.url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf },
+        body: new URLSearchParams({ kind: card.dataset.kind, ref: card.dataset.ref }),
+      });
+      if (!res.ok) throw new Error('failed');
+    } catch (_) {
+      grid.insertBefore(card, next && next.isConnected ? next : null);   // gagal: kembalikan
+      requestAnimationFrame(() => card.classList.remove('is-removing'));
+      refresh();
+    }
+  });
+})();
+</script>
