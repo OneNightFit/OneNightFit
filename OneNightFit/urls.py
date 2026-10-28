@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', landing_page, name='landing_page'),
     path('inspo/', include('inspo.urls')),
+    path('', include('cart.urls')),
     path('', include('authentication.urls')),
 ]
 

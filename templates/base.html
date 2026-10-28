@@ -22,6 +22,7 @@
     <nav>
         <a href="#" class="body_1 desktop-only">Products</a>
         <a href="{% url 'inspo:feeds' %}" class="body_1 desktop-only">Inspo</a>
+        <a href="{% url 'cart:cart' %}" class="body_1{% if request.resolver_match.app_name == 'cart' %} nav-active{% endif %}">Cart</a>
         {% if user.is_authenticated %}
             <span class="button button_text">{{ user.username }}</span>
             <form method="POST" action="{% url 'authentication:logout' %}">
