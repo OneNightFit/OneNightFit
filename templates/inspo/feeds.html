@@ -26,7 +26,7 @@
           </button>
         </form>
 
-        <a href="#" class="feed-upload" aria-label="Upload postingan" title="Upload postingan">
+        <a href="{% url 'inspo:upload' %}" class="feed-upload" aria-label="Upload postingan" title="Upload postingan">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
         </a>
       </div>
@@ -37,7 +37,7 @@
         <p class="subheading-6 feed-banner-label">NEW ARRIVAL</p>
         <h3 class="feed-banner-title">Graphite Tren Coast</h3>
         <p class="body-2">Tampil standout semalam tanpa perlu beli. Sewa outfit pilihan ONF untuk pesta, acara spesial, atau sekadar hangout. Semua sudah dicuci bersih, siap pakai, dan tinggal dikembalikan besok.</p>
-        <a href="#" class="button button-primary">Sewa sekarang</a>
+        <a href="#" class="button button-primary">Shell it now</a>
       </div>
       <div class="feed-banner-img">
         <img src="{% static 'img/banner-ONF.jpg' %}" alt="Graphite Tren Coast">
@@ -68,7 +68,7 @@
         {% for post in posts %}
           <article class="inspo-card">
             <div class="inspo-card-img">
-              <a href="{% url 'inspo:detail' post.id %}">
+              <a href="{{ post.url }}">
                 {% if post.image %}
                   <img src="{{ post.image }}" alt="{{ post.title }}">
                 {% endif %}

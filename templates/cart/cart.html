@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock meta %}
+
+{% block title %}Your Cart | OneNightFit{% endblock title %}
+
+{% block content %}
+<div class="cart-page">
+    <div class="cart-wrap">
+
+        <div class="cart-top">
+            <h1 class="cart-title">
+                <svg class="cart-title__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h2.5l2.2 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L20 7H5.4"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg>
+                <span class="cart-title__text">Your Cart</span>
+            </h1>
+            <form class="cart-search" action="{% url 'inspo:feeds' %}" method="get" role="search"> <!--ganti ke catalog jika sudah diimplementasikan-->
+                <label class="cart-sr-only" for="cart-search-input">Find your style</label>
+                <input id="cart-search-input" class="cart-search__input body-1" type="search" name="q" placeholder="Find your style">
+                <button class="cart-search__btn" type="submit" aria-label="Search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7.5"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+                </button>
+            </form>
+        </div>
+
+    {% if messages %}
+    <ul class="cart-messages body-2" role="alert">
+        {% for m in messages %}<li class="cart-messages__item cart-messages__item--{{ m.tags }}">{{ m }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <p class="cart-messages__item body-2" id="cart-error" role="alert" hidden></p>
+
+    <div class="cart-layout" id="cart-root" data-min-days="{{ min_days }}" data-max-days="{{ max_days }}">
+        <div class="cart-list">
+            {% include 'cart/products.html' %}
+        </div>
+        {% include 'cart/summary.html' %}
+        </div>
+    </div>
+    {% include 'cart/recommendations.html' %}
+</div>
+<script src="{% static 'js/cart.js' %}" defer></script>
+{% endblock content %}

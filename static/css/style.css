@@ -412,7 +412,7 @@ body {
 .site-footer {
     background-color: var(--primary_800);
     color: #FFFF;
-    padding: 30px 0;
+    padding: 20px 0;
     margin-top: auto;
 }
 
@@ -429,14 +429,27 @@ body {
     gap: 8px;
 }
 
+.site-footer .brand {
+    width: 15em;
+    height: 5rem;
+}
+
+.site-footer a.brand img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .footer-copy {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.7);
+    margin-left : 8px;
 }
 
 .footer-social {
     display: flex;
     gap: 12px;
+    margin-right: 8px;
 }
 
 .social-icon {
@@ -447,8 +460,8 @@ body {
 }
 
 .social-icon svg {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
 }
 
 /* WHAT'S IN ONENIGHTFIT*/
@@ -668,6 +681,56 @@ body {
     .hamburg_menu {
         width: 24px;
         height: 24px;
+    }
+
+
+     .site-footer {
+        padding: 16px 0;
+    }
+
+    .footer-inner {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .footer-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .site-footer .brand {
+        width: 150px;
+        max-width: 100%;
+        height: 3.5rem;
+    }
+
+    .footer-copy {
+        font-size: 0.7rem;
+        line-height: 1.4;
+        margin-left: 8px;
+    }
+
+    .footer-social {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    .social-icon svg {
+        width: 16px;
+        height: 16px;
     }
 
 }
