@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from inspo.models import Board, Bookmark, Post, Tag
+from inspo.models import Board, Bookmark, Post, Tag, BookmarkCategory
 
 
 @admin.register(Post)
@@ -10,6 +10,4 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ("title", "caption")
 
 
-admin.site.register(Tag)
-admin.site.register(Bookmark)
-admin.site.register(Board)
+admin.site.register([Tag, Bookmark, BookmarkCategory, Board])

@@ -32,6 +32,7 @@
       </div>
 
       <div class="detail-panel">
+        {% csrf_token %}
 
         <!-- Aksi: like, komentar, share, titik tiga, save -->
         <div class="detail-actions">
@@ -57,12 +58,20 @@
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
               </button>
               <div class="card-menu" id="more-menu" hidden>
-                <button type="button" class="card-menu-item" id="menu-save">Save to bookmarks</button>
+                {% if bookmark_post_id %}
+                  <button type="button" class="card-menu-item" id="menu-save">{% if is_saved %}Remove from bookmarks{% else %}Save to bookmarks{% endif %}</button>
+                {% endif %}
               </div>
             </div>
           </div>
 
-          <button type="button" class="button button-primary detail-save" id="save-btn" aria-pressed="false">Save</button>
+          <button type="button" class="button button-primary detail-save" id="save-btn"
+                  aria-pressed="{% if is_saved %}true{% else %}false{% endif %}"
+                  {% if bookmark_post_id %}
+                    data-url="{% url 'inspo:bookmark_toggle' bookmark_post_id %}"
+                  {% else %}
+                    disabled title="Produk ini belum bisa disimpan"
+                  {% endif %}>{% if is_saved %}Saved{% else %}Save{% endif %}</button>
         </div>
 
         <p class="detail-author"><span class="comment-avatar">{{ author|slice:":1"|upper }}</span> {{ author }}</p>
@@ -79,7 +88,7 @@
               <li class="comment" data-likes="{{ c.likes }}">
                 <span class="comment-avatar">{{ c.user|slice:":1" }}</span>
                 <div class="comment-body">
-                 <p class="comment-meta"><strong>{{ c.user }}</strong> <span>{{ c.posted_at|timesince }} ago</span></p>
+                  <p class="comment-meta"><strong>{{ c.user }}</strong> <span>{{ c.posted_at|timesince }} ago</span></p>
                   <p class="comment-text">{{ c.text }}</p>
                   <div class="comment-actions">
                     <button type="button" class="comment-like" aria-pressed="false">Suka</button>
@@ -153,6 +162,9 @@
   </div>
 </div>
 
+{% include 'inspo/bookmark_picker.html' %}
+<script src="{% static 'js/bookmark-picker.js' %}"></script>
+
 <script>
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
@@ -179,16 +191,6 @@
     likeCount.textContent = parseInt(likeCount.textContent, 10) + (on ? 1 : -1);
   });
 
-  /* ---- save / bookmark (tombol Save & menu titik tiga sinkron) ---- */
-  const saveBtn = $('#save-btn'), menuSave = $('#menu-save');
-  function setSaved(on) {
-    saveBtn.setAttribute('aria-pressed', String(on));
-    saveBtn.textContent = on ? 'Saved' : 'Save';
-    menuSave.textContent = on ? 'Remove from bookmarks' : 'Save to bookmarks';
-  }
-  saveBtn.addEventListener('click', () => setSaved(saveBtn.getAttribute('aria-pressed') !== 'true'));
-  menuSave.addEventListener('click', () => { setSaved(saveBtn.getAttribute('aria-pressed') !== 'true'); closeMenu(); });
-
   /* ---- menu titik tiga ---- */
   const trigger = $('#more-trigger'), menu = $('#more-menu');
   function closeMenu() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
@@ -199,6 +201,40 @@
   });
   document.addEventListener('click', closeMenu);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+  /* ---- save / bookmark: pilih kategori dulu, klik lagi untuk menghapus ---- */
+  const saveBtn = $('#save-btn'), menuSave = $('#menu-save');
+  const csrf = $('[name=csrfmiddlewaretoken]').value;
+
+  function setSaved(on) {
+    saveBtn.setAttribute('aria-pressed', String(on));
+    saveBtn.textContent = on ? 'Saved' : 'Save';
+    if (menuSave) menuSave.textContent = on ? 'Remove from bookmarks' : 'Save to bookmarks';
+  }
+
+  async function removeSaved() {
+    setSaved(false);                                  // langsung berubah (optimistic)
+    try {
+      const res = await fetch(saveBtn.dataset.url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf },
+        body: new URLSearchParams({ action: 'remove' }),
+      });
+      if (res.redirected) { location.href = res.url; return; }
+      if (!res.ok) throw new Error('failed');
+    } catch (_) {
+      setSaved(true);                                 // gagal: kembalikan
+    }
+  }
+
+  function handleSave() {
+    if (!saveBtn.dataset.url) return;                 // produk belum bisa disimpan
+    if (saveBtn.getAttribute('aria-pressed') === 'true') removeSaved();
+    else openBookmarkPicker(saveBtn.dataset.url, () => setSaved(true));
+  }
+
+  saveBtn.addEventListener('click', handleSave);
+  if (menuSave) menuSave.addEventListener('click', () => { handleSave(); closeMenu(); });
 
   /* ---- share ---- */
   const shareBtn = $('#post-share');
