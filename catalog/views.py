@@ -55,44 +55,45 @@ def create_product(request):
         return redirect('catalog:catalog_list')
         
     form = ProductForm(request.POST or None)
-
     if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Skill baru berhasil ditambahkan!")
+        # Tahan commit penyimpanan form untuk memasukkan data seller
+        product = form.save(commit=False)
+        product.seller = request.user
+        product.save()
+        
+        messages.success(request, "Produk baru berhasil ditambahkan!")
         return redirect("catalog:catalog_list")
-
-    context = {
-        "form": form,
-    }
+        
+    context = {"form": form}
     return render(request, "catalog_form_create.html", context)
+
 
 @require_POST
 @login_required(login_url='/login/')
 def edit_product(request, product_id):
     catalog = get_object_or_404(Product, pk=product_id)
-    form = ProductForm(request.POST or None, instance=catalog)
-
-    if not is_seller(request.user):
-            raise PermissionDenied
     
+    if not is_seller(request.user) or catalog.seller != request.user:
+        raise PermissionDenied
+        
+    form = ProductForm(request.POST or None, instance=catalog)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Produk berhasil diperbarui!")
         return redirect("catalog:catalog_list")
-
-    context = {
-        "form": form,
-        "catalog": catalog,
-    }
+        
+    context = {"form": form, "catalog": catalog}
     return render(request, "catalog_form_update.html", context)
+
 
 @require_POST
 @login_required(login_url='/login/')
 def delete_product(request, id):
-    if not is_seller(request.user):
-        return redirect('catalog:catalog_list')
-        
     product = get_object_or_404(Product, id=id)
+    
+    if not is_seller(request.user) or product.seller != request.user:
+        raise PermissionDenied
+        
     product.delete()
     return redirect('catalog:catalog_list')
 
