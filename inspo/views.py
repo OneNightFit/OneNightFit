@@ -145,7 +145,6 @@ def feeds(request):
             cond |= Q(tag__name__iexact=name) | Q(categories__name__iexact=name)
         user_posts = user_posts.filter(cond).distinct()
     posts = [normalize_user_post(p) for p in user_posts[:50]] + posts
-
     if active_category == "Terpopuler":
         posts.sort(key=lambda p: p["rating_count"], reverse=True)
 
@@ -273,7 +272,7 @@ def upload(request):
             errors.append("Foto wajib diunggah.")
         else:
             err = _validate_image(image)
-            if err:
+            if err: 
                 errors.append(err)
 
         if not errors:
@@ -360,7 +359,7 @@ SORTS = {"terbaru": "-created_at", "terlama": "created_at"}
 def bookmark_categories(request):
     cats = BookmarkCategory.objects.filter(user=request.user)
     return JsonResponse({"categories": [{"id": c.id, "name": c.name} for c in cats]})
-
+ 
 
 @login_required
 def bookmarks(request):
