@@ -20,57 +20,19 @@ def is_seller(user):
 def catalog_list(request):
     """Displays all products in the catalog."""
     selected_categories = request.GET.getlist('category')
-    try:
-        res = requests.get("https://fakestoreapi.com/products", timeout=10)
-        res.raise_for_status()
-        api_data = res.json()
-    except (requests.RequestException, ValueError):
-        api_data = []
-
-    products = []
     
-    # Mapping untuk mencocokkan kategori API dengan kode kategori di Models Anda
-    category_mapping = {
-        "electronics": "electronics",
-        "jewelery": "jewelery",
-        "men's clothing": "men_clothing",
-        "women's clothing": "women_clothing"
-    }
+    # 1. Ambil data asli dari database Django
+    products = Product.objects.all()
     
-    # Mapping untuk menerjemahkan singkatan size menjadi teks penuh (display)
-    size_choices = {'S': 'Small', 'M': 'Medium', 'L': 'Large', 'XL': 'Extra Large'}
-    
-    # 2. Normalisasi data API ke format variabel template katalog
-    for item in api_data:
-        api_cat = item.get("category", "")
-        mapped_code = category_mapping.get(api_cat, "men_clothing")
-        
-        # Generate size acak
-        random_size_key = random.choice(list(size_choices.keys()))
-        random_size_display = size_choices[random_size_key]
+    # 2. Hitung jumlah produk per kategori menggunakan metode filter bawaan Django
+    categories_data = [
+        (code, name, products.filter(category=code).count())
+        for code, name in Product.PRODUCT_CATEGORY
+    ]
 
-        products.append({
-            "id": item["id"],
-            "image": item["image"],
-            "category_code": mapped_code, # untuk count dan filter
-            "get_category_display": item["category"].title(), 
-            "price": item["price"],
-            "name": item["title"], 
-            "description": item["description"],
-            "average_rating": item["rating"]["rate"] if "rating" in item else 0,
-            "rating_count": item["rating"]["count"] if "rating" in item else 0,
-            "get_size_display": random_size_display, # <-- Ditambahkan agar size muncul di HTML
-        })
-
-    # Hitung jumlah produk per kategori
-    categories_data = []
-    for code, name in Product.PRODUCT_CATEGORY:
-        count = len([p for p in products if p.get('category_code') == code]) 
-        categories_data.append((code, name, count))
-
-    # Filter produk berdasarkan kategori yang dicentang
+    # 3. Filter produk berdasarkan kategori yang dicentang
     if selected_categories:
-        products = [p for p in products if p.get('category_code') in selected_categories]
+        products = products.filter(category__in=selected_categories)
 
     context = {
         'products': products,

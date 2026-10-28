@@ -27,13 +27,12 @@ class Command(BaseCommand):
             mapped_category = category_mapping.get(api_cat, "men_clothing")
 
             _, is_new = Product.objects.update_or_create(
-                # Anda tidak memiliki field external_id, jadi kita cocokkan berdasarkan nama
                 name=item["title"][:255],
                 defaults={
                     "description": item["description"],
                     "price": item["price"],
                     "category": mapped_category,
-                    # Jika model Product Anda belum memiliki image_url, Anda perlu menambahkannya ke model Product
+                    "image": item["image"],
                 },
             )
             baru += is_new
