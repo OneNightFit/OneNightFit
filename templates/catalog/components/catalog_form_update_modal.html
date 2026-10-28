@@ -1,4 +1,4 @@
-<div id="update-product-modal"
+<div id="update-product-modal-{{ product.id }}"
      class="product-form-modal"
      popover="auto"
      role="dialog"
@@ -17,8 +17,8 @@
         popovertargetaction="hide"
         aria-label="Tutup form update product">×</button>
 
-    <h2 id="update-product-modal-title">Edit Produk</h2>
-    <form id="update-product-form"
+    <h2 id="update-product-modal-title-{{ product.id }}">Edit Produk</h2>
+    <form id="update-product-form-{{ product.id }}"
           method="post"
           action=""
           class="product-form">

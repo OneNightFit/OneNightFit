@@ -1,4 +1,4 @@
-<form method="post" action="{% url 'main:toggle_wishlist' product.id %}" class="wishlist-form">
+<form method="post" action="{% url 'catalog:toggle_wishlist' product.id %}" class="wishlist-form">
     {% csrf_token %}
     <button type="submit"
             class="button button-star{% if user in product.wishlisted_by.all %} is-wishlisted{% endif %}"

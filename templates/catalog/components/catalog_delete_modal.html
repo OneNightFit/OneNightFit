@@ -34,7 +34,7 @@
                     class="button button-secondary"
                     popovertarget="delete-product-{{ product.id }}"
                     popovertargetaction="hide">Batal</button>
-            <form method="post" action="{% url 'main:delete_product' product.id %}">
+            <form method="post" action="{% url 'catalog:delete_product' product.id %}">
                 {% csrf_token %}
                 <button type="submit" class="button button-danger">Ya, Hapus</button>
             </form>
