@@ -10,6 +10,7 @@ import requests
 import random
 from django.db.models import Q
 from django.http import JsonResponse
+from cart.models import CartItem
 
 def landing_page(request):
     return render(request, "index.html")
@@ -30,7 +31,7 @@ def product_detail(request, id):
         "fields": {
             "name": product.name,
             "description": product.description,
-            "image": product.image or "",
+            "image": product.image_src,
             "price": str(product.price),
             "category": product.category,
             "category_display": product.get_category_display(),
@@ -61,6 +62,7 @@ def catalog_list(request):
         'categories': categories_data,
         'category_choices': Product.PRODUCT_CATEGORY,
         'selected_categories': selected_categories,
+        'search_query': request.GET.get('q', '').strip(),
         'form': ProductForm(),
         'update_form': ProductForm(auto_id='update_%s'),
     }
@@ -70,6 +72,7 @@ def catalog_list(request):
 
 def get_products_json(request):
     selected_categories = request.GET.getlist('category')
+    search_query = request.GET.get('q', '').strip()
     products = Product.objects.select_related('seller').prefetch_related('wishlisted_by', 'ratings')
     products = products.exclude(pk__in=unavailable_product_ids())
 
@@ -77,6 +80,17 @@ def get_products_json(request):
         products = products.filter(seller=request.user)
     if selected_categories:
         products = products.filter(category__in=selected_categories)
+    if search_query:
+        products = products.filter(name__icontains=search_query)
+
+    cart_product_ids = set()
+    if request.user.is_authenticated:
+        cart_product_ids = set(
+            CartItem.objects.filter(
+                cart__user=request.user,
+                product__isnull=False,
+            ).values_list('product_id', flat=True)
+        )
 
     data = []
     for product in products:
@@ -88,8 +102,9 @@ def get_products_json(request):
             "fields": {
                 "name": product.name,
                 "description": product.description,
-                # Updated from product.image or "" to retrieve the URL
-                "image": product.image or "",
+                "image": product.image_src,
+                "image_url": product.image or "",
+                "image_is_upload": bool(product.image_file),
                 "price": str(product.price),
                 "category": product.category,
                 "category_display": product.get_category_display(),
@@ -99,6 +114,7 @@ def get_products_json(request):
                 "average_rating": product.average_rating,
                 "rating_count": product.rating_count,
                 "is_wishlisted": is_wishlisted,
+                "is_in_cart": product.id in cart_product_ids,
                 "is_owner": request.user.is_authenticated and product.seller_id == request.user.id,
             }
         })
@@ -151,7 +167,11 @@ def delete_product_ajax(request, id):
 @require_POST
 def toggle_wishlist(request, id):
     if not request.user.is_authenticated:
-        return JsonResponse({"message": "Harap login terlebih dahulu."}, status=401)
+        message = "Please login to continue."
+        messages.info(request, message)
+        if "application/json" in request.headers.get("Accept", ""):
+            return JsonResponse({"message": message}, status=401)
+        return redirect("authentication:login")
         
     product = get_object_or_404(Product, id=id)
     if request.user in product.wishlisted_by.all():

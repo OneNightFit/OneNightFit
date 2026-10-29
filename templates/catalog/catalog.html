@@ -10,7 +10,17 @@
 {% block content %}
     <main>
         <div class="header">
-            <!-- #TODO: Search Bar -->
+            <h1>Products for Rent</h1>
+            <div class="catalog-search">
+                <!-- <label class="catalog-search__label" for="catalog-search-input">Search products</label> -->
+                <div class="catalog-search__field">
+                    <input id="catalog-search-input" type="search" name="q" value="{{ search_query }}"
+                        placeholder="Search by product name..." autocomplete="off" aria-controls="grid">
+                    <svg class="catalog-search__icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+                        <path d="M42 42L33.3 33.3M38 22C38 30.8366 30.8366 38 22 38C13.1634 38 6 30.8366 6 22C6 13.1634 13.1634 6 22 6C30.8366 6 38 13.1634 38 22Z" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke="#EAC0EE"/>
+                    </svg>
+                </div>
+            </div>
         </div>
         <div class="catalog-container">
             <div class="product-sidebar">
@@ -22,6 +32,7 @@
                 {% endif %}
                 <div class="filters">
                     <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
+                        <input type="hidden" name="q" value="{{ search_query }}" id="filter-search-query">
                         <div class="filter-card">
                             <div class="filter-header" id="filter-header">
                                 <p class="filter-title">GARMENT CATEGORY</p>
@@ -74,6 +85,7 @@
     </main>
     {% if user.is_authenticated and user.profile.is_seller %}
         {% include 'catalog/components/catalog_form_update_modal.html' %}
+        {% include 'catalog/components/catalog_delete_modal.html' %}
     {% endif %}
     {{ selected_categories|json_script:"selected-categories" }}
     <script>
@@ -105,6 +117,7 @@
         const CREATE_PRODUCT_ENDPOINT = "{% url 'catalog:create_product_ajax' %}";
         const IS_SELLER = "{% if user.is_authenticated and user.profile.is_seller %}true{% else %}false{% endif %}" === "true";
         const CSRF_TOKEN = "{{ csrf_token }}";
+        const LOGIN_URL = "{% url 'authentication:login' %}";
         const DUMMY_ID = '00000000-0000-0000-0000-000000000000';
         const EDIT_URL = "{% url 'catalog:edit_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
         const DELETE_URL = "{% url 'catalog:delete_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
@@ -112,6 +125,7 @@
         const CART_URL = "{% url 'cart:add' %}";
 
         const selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
+        const searchInput = document.getElementById('catalog-search-input');
         const productsById = new Map();
         let productsAbortController;
 
@@ -123,8 +137,28 @@
         const addProductForm = document.getElementById('add-product-form');
         const updateProductForm = document.getElementById('update-product-form');
         const updateProductModal = document.getElementById('update-product-modal');
+        const deleteProductForm = document.getElementById('delete-product-form');
+        const deleteProductModal = document.getElementById('delete-product-modal');
+        const deleteProductName = deleteProductModal?.querySelector('[data-delete-product-name]');
 
-        const PRODUCT_FIELDS = ['name', 'category', 'size', 'description', 'price', 'image'];
+        const PRODUCT_FIELDS = ['name', 'category', 'size', 'description', 'price'];
+
+        function updateImageInput(form) {
+            const selectedSource = form.querySelector('input[name="image_source"]:checked')?.value || 'url';
+            form.querySelectorAll('[data-image-input]').forEach(panel => {
+                const active = panel.dataset.imageInput === selectedSource;
+                panel.hidden = !active;
+                panel.querySelector('input').disabled = !active;
+            });
+        }
+
+        [addProductForm, updateProductForm].forEach(form => {
+            if (!form) return;
+            form.querySelectorAll('input[name="image_source"]').forEach(input => {
+                input.addEventListener('change', () => updateImageInput(form));
+            });
+            updateImageInput(form);
+        });
 
         const ICON_WISHLISTED = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
         const ICON_NOT_WISHLISTED = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
@@ -171,10 +205,10 @@
 
             // Ubah link Add to cart menjadi button dengan data-action="cart"
             const actionsHtml = !IS_SELLER
-                ? `<button type="button" class="button button-primary" data-action="cart" data-id="${escapeHtml(id)}">Add to cart</button>`
+                ? `<button type="button" class="button ${product.is_in_cart ? 'button-secondary' : 'button-primary'}" data-action="cart" data-id="${escapeHtml(id)}">${product.is_in_cart ? 'Added to cart' : 'Add to cart'}</button>`
                 : product.is_owner
                     ? `<button type="button" class="button button-secondary" data-action="edit" data-id="${escapeHtml(id)}">Edit</button>
-                       <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}">Delete</button>`
+                       <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}" popovertarget="delete-product-modal">Delete</button>`
                     : '';
 
             card.innerHTML = `
@@ -188,14 +222,21 @@
                             <p class="product-category">${escapeHtml(product.category_display)}</p>
                             <p class="product-price">Rp ${escapeHtml(product.price)}</p>
                         </div>
-                        <div class="details-contents">
-                            <p class="product-name">${escapeHtml(product.name)}</p>
-                            <p class="product-seller">Seller: ${escapeHtml(product.seller)}</p>
-                            <p class="product-description">${escapeHtml(truncateWords(product.description, 15))}</p>
-                            <p class="product-size">Ukuran: ${escapeHtml(product.size_display)}</p>
-                            <div class="rating">
-                                <span class="rate-count">  ${product.average_rating}</span>
-                                <span class="rate-count">(${product.rating_count} reviews)</span>
+                        <div class="product-details">
+                            <div class="product-name-description">
+                                <h4 class="product-name ">${escapeHtml(product.name)}</h4>
+                                <p class="product-description body_1">${escapeHtml(truncateWords(product.description, 15))}</p>
+                            </div>
+                            <div class="product-seller-size-rating"> 
+                                <div class="product-seller">
+                                    <span class="store-icon"><svg></svg></span>
+                                    <span class="body_1">${escapeHtml(product.seller)}</span>
+                                </div>
+                                <p class="product-size body_1">Size: ${escapeHtml(product.size_display)}</p>
+                                <div class="rating">
+                                    <span class="rate-count">  ${product.average_rating}</span>
+                                    <span class="rate-count">(${product.rating_count} reviews)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -214,6 +255,7 @@
 
                 const params = new URLSearchParams();
                 selectedCategories.forEach(c => params.append('category', c));
+                if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
                 const qs = params.toString();
 
                 const response = await fetch(qs ? `${PRODUCTS_ENDPOINT}?${qs}` : PRODUCTS_ENDPOINT, {
@@ -226,9 +268,11 @@
 
                 productsById.clear();
                 if (products.length === 0) {
-                    emptyState.innerHTML = IS_SELLER
-                        ? '<p>Anda belum menambahkan produk. Klik "Add New Product" untuk memulai.</p>'
-                        : '<p>Belum ada produk di katalog.</p>';
+                    emptyState.innerHTML = searchInput.value.trim()
+                        ? '<p>Produk tidak ditemukan. Coba kata kunci lain.</p>'
+                        : IS_SELLER
+                            ? '<p>Anda belum menambahkan produk. Klik "Add New Product" untuk memulai.</p>'
+                            : '<p>Belum ada produk di katalog.</p>';
                     displayPageSection({ showEmpty: true });
                     return;
                 }
@@ -246,6 +290,13 @@
                 displayPageSection({ showError: true });
             }
         }
+
+        let searchDebounceTimer;
+        searchInput.addEventListener('input', () => {
+            document.getElementById('filter-search-query').value = searchInput.value;
+            window.clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = window.setTimeout(fetchProducts, 300);
+        });
 
         function extractErrors(result, status) {
             return result.errors
@@ -295,6 +346,17 @@
                 const el = updateProductForm.elements.namedItem(key);
                 if (el) el.value = product[key] ?? '';
             });
+            const imageUrl = updateProductForm.elements.namedItem('image');
+            if (imageUrl) imageUrl.value = product.image_url ?? '';
+            const imageUpload = updateProductForm.elements.namedItem('image_upload');
+            if (imageUpload) imageUpload.value = '';
+            const uploadSource = updateProductForm.querySelector('input[name="image_source"][value="upload"]');
+            const urlSource = updateProductForm.querySelector('input[name="image_source"][value="url"]');
+            if (uploadSource && urlSource) {
+                uploadSource.checked = Boolean(product.image_is_upload);
+                urlSource.checked = !product.image_is_upload;
+                updateImageInput(updateProductForm);
+            }
             updateProductForm.action = EDIT_URL.replace(DUMMY_ID, id);
             updateProductModal.showPopover();
         }
@@ -320,17 +382,24 @@
             }
         }
 
-        // DELETE
-        async function deleteProduct(id) {
-            if (!confirm('Yakin ingin menghapus produk ini?')) return;
+        // DELETE: gunakan dialog konfirmasi, lalu kirim form ke endpoint AJAX.
+        function openDeleteProductModal(id) {
+            const product = productsById.get(id);
+            if (!product || !deleteProductForm || !deleteProductModal) return;
+
+            deleteProductName.textContent = product.name;
+            deleteProductForm.action = DELETE_URL.replace(DUMMY_ID, id);
+        }
+
+        async function deleteProduct(event) {
+            event.preventDefault();
+            const submitButton = deleteProductForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
             try {
-                const response = await fetch(DELETE_URL.replace(DUMMY_ID, id), {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': CSRF_TOKEN },
-                });
-                const result = await response.json().catch(() => ({}));
+                const { response, result } = await postForm(deleteProductForm, deleteProductForm.action);
                 if (response.ok) {
-                    notify('Berhasil', 'Produk berhasil dihapus!', 'success');
+                    deleteProductModal.hidePopover();
+                    notify('Berhasil', 'Produk berhasil dihapus.', 'success');
                     fetchProducts();
                 } else {
                     notify('Gagal menghapus produk', extractErrors(result, response.status), 'error');
@@ -338,6 +407,8 @@
             } catch (error) {
                 console.error(error);
                 notify('Gagal menghapus produk', 'Tidak dapat terhubung ke server.', 'error');
+            } finally {
+                submitButton.disabled = false;
             }
         }
 
@@ -345,8 +416,13 @@
             try {
                 const response = await fetch(WISHLIST_URL.replace(DUMMY_ID, id), {
                     method: 'POST',
-                    headers: { 'X-CSRFToken': CSRF_TOKEN }
+                    headers: { 'X-CSRFToken': CSRF_TOKEN, 'Accept': 'application/json' }
                 });
+
+                if (response.status === 401) {
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
                 
                 if (response.ok) {
                     // Cek jika Django redirect ke halaman login
@@ -365,7 +441,7 @@
             }
         }
 
-        async function addToCart(id) {
+        async function addToCart(id, button) {
             try {
                 const response = await fetch(CART_URL, {
                     method: 'POST',
@@ -386,6 +462,13 @@
                 const result = await response.json().catch(() => ({}));
                 
                 if (response.ok) {
+                    if (button) {
+                        button.classList.remove('button-primary');
+                        button.classList.add('button-secondary');
+                        button.textContent = 'Added to cart';
+                    }
+                    const product = productsById.get(id);
+                    if (product) product.is_in_cart = true;
                     notify('Berhasil', 'Produk berhasil ditambahkan ke keranjang.', 'success');
                 } else {
                     notify('Gagal', result.error || 'Gagal menambahkan produk.', 'error');
@@ -405,9 +488,9 @@
                 const id = button.dataset.id;
                 
                 if (action === 'edit') openUpdateProductModal(id);
-                if (action === 'delete') deleteProduct(id);
+                if (action === 'delete') openDeleteProductModal(id);
                 if (action === 'wishlist') toggleWishlist(id);
-                if (action === 'cart') addToCart(id);
+                if (action === 'cart') addToCart(id, button);
                 
                 return; // HENTIKAN EKSEKUSI DI SINI agar klik tidak diteruskan ke card
             }
@@ -415,9 +498,11 @@
 
         if (addProductForm) addProductForm.addEventListener('submit', addProduct);
         if (updateProductForm) updateProductForm.addEventListener('submit', updateProduct);
+        if (deleteProductForm) deleteProductForm.addEventListener('submit', deleteProduct);
 
         document.addEventListener('product:changed', fetchProducts);
         fetchProducts();
     </script>
     <script>document.addEventListener('DOMContentLoaded',()=>{const id=new URLSearchParams(location.search).get('product');if(id)window.openProductDetail(id);});</script>
 {% endblock content %}
+

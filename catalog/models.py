@@ -28,6 +28,7 @@ class Product(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='products')
     description = models.TextField()
     image = models.URLField(max_length=1000, null=True, blank=True)
+    image_file = models.ImageField(upload_to="catalog/products/", blank=True)
     price = models.DecimalField(decimal_places=3, max_digits=8)
     category = models.CharField(max_length=50, choices=PRODUCT_CATEGORY)
     size = models.CharField(max_length=2, choices=SIZE_CHOICES, default=get_random_size)
@@ -36,6 +37,11 @@ class Product(models.Model):
     )
     def __str__(self):
         return self.name
+
+    @property
+    def image_src(self):
+        """Return the uploaded image URL, or the legacy external image URL."""
+        return self.image_file.url if self.image_file else (self.image or "")
 
     @property
     def average_rating(self):
