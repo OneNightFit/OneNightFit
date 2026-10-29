@@ -10,7 +10,7 @@
   {% for t in tabs %}
   <a href="?tab={{ t.key }}"
      class="a-pilltab{% if t.key == current %} active{% endif %}"
-     {% if t.key == current %}aria-current="page"{% endif %}>{{ t.label }} ({{ t.cards|length }})</a>
+     {% if t.key == current %}aria-current="page"{% endif %}>{{ t.label }} (<span data-tab-count="{{ t.key }}">{{ t.cards|length }}</span>)</a>
   {% endfor %}
 </nav>
 
@@ -23,23 +23,9 @@
 {% elif current == 'like' %}
   {% include 'inspo/_likes_grid.html' %}
 
-  
-{% elif current == 'wishlist' and wishlist %}
-  <ul class="a-wish">
-    {% for item in wishlist %}
-    <li class="a-wish-card">
-      {% if item.detail_url %}<a href="{{ item.detail_url }}">{% endif %}
-        <span class="a-wish-img">{% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">{% endif %}</span>
-        <span class="a-wish-title">{{ item.title }}</span>
-      {% if item.detail_url %}</a>{% endif %}
-      <form method="post" action="{% url 'authentication:toggle_wishlist' item.product_id %}">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="a-wish-remove">Remove</button>
-      </form>
-    </li>
-    {% endfor %}
-  </ul>
+
+{% elif current == 'wishlist' %}
+  {% include 'authentication/_wishlist_grid.html' %}
 
 {% else %}
   <div class="a-empty">{{ active.empty }}</div>
