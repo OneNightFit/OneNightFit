@@ -2,13 +2,29 @@
 {% load static %}
 {% block title %}Activity | OneNightFit{% endblock %}
 
-{% block meta %}{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
-{% endblock meta %}
-
 {% block profile_content %}
-<h2 class="a-h2">My <span class="a-grad">Wishlist</span></h2>
-{% if wishlist %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+<link rel="stylesheet" href="{% static 'css/authentication.css' %}">
+
+<nav class="a-pilltabs" aria-label="Activity sections">
+  {% for t in tabs %}
+  <a href="?tab={{ t.key }}"
+     class="a-pilltab{% if t.key == current %} active{% endif %}"
+     {% if t.key == current %}aria-current="page"{% endif %}>{{ t.label }} ({{ t.cards|length }})</a>
+  {% endfor %}
+</nav>
+
+<h2 class="a-h2">{{ active.heading.0 }} <span class="a-grad">{{ active.heading.1 }}</span></h2>
+
+
+{% if current == 'bookmark' %}
+  {% include 'inspo/_bookmark_list.html' with tab_key='bookmark' %}
+
+{% elif current == 'like' %}
+  {% include 'inspo/_likes_grid.html' %}
+
+  
+{% elif current == 'wishlist' and wishlist %}
   <ul class="a-wish">
     {% for item in wishlist %}
     <li class="a-wish-card">
@@ -24,13 +40,9 @@
     </li>
     {% endfor %}
   </ul>
+
 {% else %}
-  <div class="a-empty">Your wishlist is empty. Tap the heart on a product to save it here.</div>
+  <div class="a-empty">{{ active.empty }}</div>
 {% endif %}
 
-<section class="likes-embed">
-  <h2 class="a-h2">My <span class="a-grad">Likes</span></h2>
-  <p class="a-muted"><span id="lk-count">{{ liked_items|length }}</span> Inspo yang kamu sukai</p>
-  {% include 'inspo/_likes_grid.html' %}
-</section>
 {% endblock %}
