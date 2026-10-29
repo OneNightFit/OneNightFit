@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('catalog', '0005_product_seller'),
+        ('catalog', '0001_initial'),
         ('inspo', '0008_like'),
     ]
 
