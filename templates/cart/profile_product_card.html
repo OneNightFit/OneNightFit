@@ -14,8 +14,8 @@
     {% else %}
     <h3 class="inspo-card-title profile-product-card-name"><a href="{% url 'catalog:catalog_list' %}?edit={{ card_id }}">{{ card_name }}</a></h3>
     <p class="seller-product-price">{{ product.daily_price_display }} / hari</p>
-    <p class="seller-product-status{% if product.is_rented %} is-rented{% endif %}">
-      {% if product.is_rented %}Dipinjam{% else %}Tidak dipinjam{% endif %}
+    <p class="seller-product-status{% if product.is_rented %} is-rented{% elif product.is_pending %} is-pending{% endif %}">
+      {% if product.is_rented %}Dipinjam{% elif product.is_pending %}Menunggu persetujuan{% else %}Tidak dipinjam{% endif %}
     </p>
     {% endif %}
   </div>

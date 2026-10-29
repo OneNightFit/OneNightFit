@@ -31,6 +31,7 @@ class TopItem:
 
 @dataclass
 class RecentRental:
+    id: int
     item: str
     renter: str
     date: date
@@ -53,6 +54,7 @@ class SellerProduct:
     image: str
     daily_price: int
     is_rented: bool
+    is_pending: bool
 
     @property
     def daily_price_display(self):
@@ -105,12 +107,17 @@ def get_seller_report(user):
         .select_related("buyer")
         .order_by("-rental_date", "-created_at")
     )
-    active_product_ids = {r.product_uuid for r in rentals if _is_active(r, today)}
+    approved_rentals = [r for r in rentals if r.status == Rental.STATUS_APPROVED]
+    pending_rentals = [r for r in rentals if r.status == Rental.STATUS_PENDING]
+    active_product_ids = {r.product_uuid for r in approved_rentals if _is_active(r, today)}
+    pending_product_ids = {
+        r.product_uuid for r in pending_rentals if r.rental_date == today
+    }
     monthly = {key: 0 for key in _six_months(today)}
     by_item = {}
     active = 0
 
-    for rental in rentals:
+    for rental in approved_rentals:
         key = (rental.rental_date.year, rental.rental_date.month)
         if key in monthly:
             monthly[key] += rental.total
@@ -128,22 +135,30 @@ def get_seller_report(user):
         (TopItem(value["name"], value["rentals"]) for value in by_item.values()),
         key=lambda item: (-item.rentals, item.name.lower()),
     )[:5]
-    recent = [
-        RecentRental(
+    recent = []
+    visible_rentals = pending_rentals + [
+        rental for rental in approved_rentals[:5]
+    ]
+    for rental in visible_rentals:
+        status = (
+            "Pending" if rental.status == Rental.STATUS_PENDING
+            else "Active" if _is_active(rental, today)
+            else "Returned"
+        )
+        recent.append(RecentRental(
+            id=rental.pk,
             item=rental.product_name,
             renter=rental.buyer.get_full_name() or rental.buyer.get_username(),
             date=rental.rental_date,
-            status="Active" if _is_active(rental, today) else "Returned",
+            status=status,
             amount=rental.total,
-        )
-        for rental in rentals[:5]
-    ]
+        ))
 
     return SellerReport(
         products_listed=Product.objects.filter(seller_id=user.pk).count(),
         active_rentals=active,
-        total_rentals=len(rentals),
-        total_earnings=sum(rental.total for rental in rentals),
+        total_rentals=len(approved_rentals),
+        total_earnings=sum(rental.total for rental in approved_rentals),
         monthly_bars=bars,
         top_items=top_items,
         recent_rentals=recent,
@@ -154,6 +169,7 @@ def get_seller_report(user):
                 image=product.image or "",
                 daily_price=daily_rent(product.price),
                 is_rented=product.pk in active_product_ids,
+                is_pending=product.pk in pending_product_ids,
             )
             for product in Product.objects.filter(seller_id=user.pk).order_by("name")
         ],

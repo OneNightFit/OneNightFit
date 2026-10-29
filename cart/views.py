@@ -2,11 +2,13 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import catalog, services, storage
@@ -131,6 +133,20 @@ def cart_add(request):
         days = request.POST.get("days", 1)
         return services.add_item(state, product_id, days, False)
     return mutate(request, add)
+
+
+@login_required
+@require_POST
+def approve_rental(request, rental_id):
+    """Seller approves a pending checkout rental for their own product."""
+    if not getattr(getattr(request.user, "profile", None), "is_seller", False):
+        raise PermissionDenied
+    rental = get_object_or_404(Rental, pk=rental_id, seller=request.user)
+    if rental.status == Rental.STATUS_PENDING:
+        rental.status = Rental.STATUS_APPROVED
+        rental.save(update_fields=["status"])
+        messages.success(request, f"Rental for {rental.product_name} approved.")
+    return redirect("authentication:shop_report")
 
 # =======================================================
 # CHECKOUT PAGE

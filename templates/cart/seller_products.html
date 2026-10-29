@@ -15,3 +15,8 @@
     <p class="a-muted">Belum ada produk di toko.</p>
   {% endif %}
 </section>
+<script>
+  document.querySelectorAll(".onf-auth .a-toast").forEach((toast) => {
+    window.setTimeout(() => toast.remove(), 1000);
+  });
+</script>

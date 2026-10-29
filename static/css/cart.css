@@ -92,10 +92,9 @@
     margin: 0 0 1rem; 
 }
 .cart-messages__item {
-    background: var(--danger); 
+    background: var(--primary_800); 
     color: var(--neutral_0);
     padding: 0.65rem 1rem; 
-    border-radius: 0.5rem; 
     font-weight: 700; 
     margin-bottom: 0.5rem;
 }
@@ -688,6 +687,18 @@
 
 /* ================= RENTALS AND SHOP REPORT CARDS ================= */
 .seller-products { margin-bottom: 1.75rem; }
+.onf-auth .a-toasts {
+    top: 5rem;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.onf-auth .a-toast-success {
+    --toast-accent: var(--a-line);
+    border-color: var(--a-line);
+    border-left-color: var(--a-line);
+}
+.onf-auth .a-toast-success::before { background: var(--a-line); }
 .profile-product-card-grid { align-items: stretch; }
 .profile-product-card { min-height: 19rem; }
 .profile-product-card .inspo-card-img { background: #fff; }
@@ -705,6 +716,7 @@
 .seller-product-price { margin: .5rem 0; font-weight: 600; }
 .seller-product-status { margin: 0; color: var(--secondary_200); font-size: .85rem; font-weight: 600; }
 .seller-product-status.is-rented { color: #b42318; }
+.seller-product-status.is-pending { color: #b7791f; }
 
 @media (max-width: 1023px) {
     .cart-reco__list {

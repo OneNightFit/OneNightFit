@@ -61,6 +61,12 @@
         <div class="a-recent-end">
           <span class="a-status a-status-{{ r.status_slug }}">{{ r.status }}</span>
           <small>{{ r.amount_display }}</small>
+          {% if r.status_slug == "pending" %}
+          <form method="post" action="{% url 'cart:approve_rental' r.id %}">
+            {% csrf_token %}
+            <button type="submit" class="button button-primary">Approve</button>
+          </form>
+          {% endif %}
         </div>
       </li>
       {% endfor %}
