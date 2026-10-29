@@ -154,7 +154,11 @@ def delete_product_ajax(request, id):
 @require_POST
 def toggle_wishlist(request, id):
     if not request.user.is_authenticated:
-        return JsonResponse({"message": "Harap login terlebih dahulu."}, status=401)
+        message = "Please login to continue."
+        messages.info(request, message)
+        if "application/json" in request.headers.get("Accept", ""):
+            return JsonResponse({"message": message}, status=401)
+        return redirect("authentication:login")
         
     product = get_object_or_404(Product, id=id)
     if request.user in product.wishlisted_by.all():

@@ -116,6 +116,7 @@
         const CREATE_PRODUCT_ENDPOINT = "{% url 'catalog:create_product_ajax' %}";
         const IS_SELLER = "{% if user.is_authenticated and user.profile.is_seller %}true{% else %}false{% endif %}" === "true";
         const CSRF_TOKEN = "{{ csrf_token }}";
+        const LOGIN_URL = "{% url 'authentication:login' %}";
         const DUMMY_ID = '00000000-0000-0000-0000-000000000000';
         const EDIT_URL = "{% url 'catalog:edit_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
         const DELETE_URL = "{% url 'catalog:delete_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
@@ -401,8 +402,13 @@
             try {
                 const response = await fetch(WISHLIST_URL.replace(DUMMY_ID, id), {
                     method: 'POST',
-                    headers: { 'X-CSRFToken': CSRF_TOKEN }
+                    headers: { 'X-CSRFToken': CSRF_TOKEN, 'Accept': 'application/json' }
                 });
+
+                if (response.status === 401) {
+                    window.location.href = LOGIN_URL;
+                    return;
+                }
                 
                 if (response.ok) {
                     // Cek jika Django redirect ke halaman login
