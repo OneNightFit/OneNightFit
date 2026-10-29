@@ -20,13 +20,17 @@ def _wants_json(request):
             or "application/json" in request.headers.get("Accept", ""))
 
 def cart_login_required(view):
-    """Cart hanya untuk authenticated user"""
+    """Cart hanya untuk pengguna yang bukan seller."""
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             if _wants_json(request):
                 return JsonResponse({"ok": False, "error": "Please log in first."}, status=401)
             return redirect_to_login(request.get_full_path())
+        if getattr(getattr(request.user, "profile", None), "is_seller", False):
+            if _wants_json(request):
+                return JsonResponse({"ok": False, "error": "Cart is not available to sellers."}, status=403)
+            return redirect("catalog:catalog_list")
         return view(request, *args, **kwargs)
     return wrapper
 
