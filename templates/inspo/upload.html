@@ -75,16 +75,20 @@
         </div>
 
         <div class="upload-field">
-          <span class="upload-label">Tag Produk ONF <small>(Optional)</small></span>
-          <div class="upload-product" id="product-selected" hidden>
-            <img id="product-img" alt="">
-            <div>
-              <p class="body-4" id="product-name"></p>
-              <p class="body-6" id="product-price"></p>
-            </div>
-            <button type="button" class="upload-product-remove" id="product-remove" aria-label="Hapus tag produk">&times;</button>
-          </div>
-          <input type="hidden" name="product_id" id="product-id" value="">
+          <span class="upload-label">Tag Produk ONF <small>(Optional, maks. 10)</small></span>
+          <ul class="upload-product-list" id="product-list">
+            {% for p in selected_products %}
+              <li class="upload-product" data-id="{{ p.id }}">
+                {% if p.image %}<img src="{{ p.image }}" alt="">{% endif %}
+                <div>
+                  <p class="body-4">{{ p.name }}</p>
+                  <p class="body-6">{{ p.price|floatformat:2 }}</p>
+                </div>
+                <button type="button" class="upload-product-remove" aria-label="Hapus {{ p.name }}">&times;</button>
+                <input type="hidden" name="product_ids" value="{{ p.id }}">
+              </li>
+            {% endfor %}
+          </ul>
           <button type="button" class="upload-catalog-btn" id="catalog-open">+ Pilih dari katalog</button>
         </div>
 
@@ -125,23 +129,30 @@
     <h2 class="body-2">Pilih produk ONF</h2>
     <button type="button" id="catalog-close" aria-label="Tutup">&times;</button>
   </div>
+
   <ul class="upload-catalog-list">
     {% for p in products %}
       <li>
-        <button type="button" class="upload-catalog-item"
-                data-id="{{ p.id }}" data-name="{{ p.name }}"
-                data-price="{{ p.price }}" data-img="{{ p.image }}">
+        <label class="upload-catalog-item"
+               data-id="{{ p.id }}" data-name="{{ p.name }}"
+               data-price="{{ p.price|floatformat:2 }}" data-img="{{ p.image }}">
+          <input type="checkbox">
           {% if p.image %}<img src="{{ p.image }}" alt="">{% endif %}
           <span>
             <strong class="body-4">{{ p.name }}</strong>
-            <small class="body-6">{{ p.price }}</small>
+            <small class="body-6">{{ p.price|floatformat:2 }}</small>
           </span>
-        </button>
+        </label>
       </li>
     {% empty %}
       <li class="body-2">Katalog belum bisa dimuat.</li>
     {% endfor %}
   </ul>
+
+  <div class="upload-dialog-foot">
+    <button type="button" class="upload-cancel" id="catalog-cancel">Batal</button>
+    <button type="button" class="upload-submit" id="catalog-confirm">Pilih produk</button>
+  </div>
 </dialog>
 
 <script>
@@ -227,26 +238,75 @@
   box.addEventListener('click', () => tagInput.focus());
   renderTags();
 
-  /* ---------- Katalog produk ---------- */
+  /* ---------- Katalog produk (pilih lebih dari satu) ---------- */
+  const MAX_PRODUCTS = 10;
   const dialog = document.getElementById('catalog-dialog');
-  const sel = document.getElementById('product-selected');
-  const pid = document.getElementById('product-id');
-  document.getElementById('catalog-open').addEventListener('click', () => dialog.showModal());
+  const list = document.getElementById('product-list');
+  const confirmBtn = document.getElementById('catalog-confirm');
+  const items = [...dialog.querySelectorAll('.upload-catalog-item')];
+
+  const checkedItems = () => items.filter(it => it.querySelector('input').checked);
+
+  function updateConfirm() {
+    const n = checkedItems().length;
+    confirmBtn.textContent = n ? `Pilih produk (${n})` : 'Pilih produk';
+  }
+
+  function openCatalog() {
+    const chosen = new Set([...list.querySelectorAll('li[data-id]')].map(li => li.dataset.id));
+    items.forEach(it => { it.querySelector('input').checked = chosen.has(it.dataset.id); });
+    updateConfirm();
+    dialog.showModal();
+  }
+
+  function buildRow(it) {
+    const li = document.createElement('li');
+    li.className = 'upload-product';
+    li.dataset.id = it.dataset.id;
+
+    if (it.dataset.img) {
+      const img = document.createElement('img');
+      img.src = it.dataset.img; img.alt = '';
+      li.appendChild(img);
+    }
+    const info = document.createElement('div');
+    const name = document.createElement('p'); name.className = 'body-4'; name.textContent = it.dataset.name;
+    const price = document.createElement('p'); price.className = 'body-6'; price.textContent = it.dataset.price;
+    info.append(name, price);
+
+    const rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'upload-product-remove';
+    rm.setAttribute('aria-label', 'Hapus ' + it.dataset.name); rm.textContent = '×';
+
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden'; hidden.name = 'product_ids'; hidden.value = it.dataset.id;
+
+    li.append(info, rm, hidden);
+    return li;
+  }
+
+  document.getElementById('catalog-open').addEventListener('click', openCatalog);
   document.getElementById('catalog-close').addEventListener('click', () => dialog.close());
+  document.getElementById('catalog-cancel').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
-  dialog.querySelectorAll('.upload-catalog-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      pid.value = btn.dataset.id;
-      document.getElementById('product-name').textContent = btn.dataset.name;
-      document.getElementById('product-price').textContent = btn.dataset.price;
-      const img = document.getElementById('product-img');
-      img.src = btn.dataset.img || ''; img.hidden = !btn.dataset.img;
-      sel.hidden = false;
-      dialog.close();
-    });
+
+  dialog.addEventListener('change', e => {
+    if (!e.target.matches('.upload-catalog-item input')) return;
+    if (checkedItems().length > MAX_PRODUCTS) {
+      e.target.checked = false;
+      alert('Maksimal ' + MAX_PRODUCTS + ' produk per postingan.');
+    }
+    updateConfirm();
   });
-  document.getElementById('product-remove').addEventListener('click', () => {
-    pid.value = ''; sel.hidden = true;
+
+  confirmBtn.addEventListener('click', () => {
+    list.replaceChildren(...checkedItems().map(buildRow));
+    dialog.close();
+  });
+
+  list.addEventListener('click', e => {
+    const rm = e.target.closest('.upload-product-remove');
+    if (rm) rm.closest('li').remove();
   });
 
   /* ---------- Dropdown kategori ---------- */
