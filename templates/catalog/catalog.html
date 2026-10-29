@@ -188,14 +188,21 @@
                             <p class="product-category">${escapeHtml(product.category_display)}</p>
                             <p class="product-price">Rp ${escapeHtml(product.price)}</p>
                         </div>
-                        <div class="details-contents">
-                            <p class="product-name">${escapeHtml(product.name)}</p>
-                            <p class="product-seller">Seller: ${escapeHtml(product.seller)}</p>
-                            <p class="product-description">${escapeHtml(truncateWords(product.description, 15))}</p>
-                            <p class="product-size">Ukuran: ${escapeHtml(product.size_display)}</p>
-                            <div class="rating">
-                                <span class="rate-count">  ${product.average_rating}</span>
-                                <span class="rate-count">(${product.rating_count} reviews)</span>
+                        <div class="product-details">
+                            <div class="product-name-description">
+                                <h4 class="product-name ">${escapeHtml(product.name)}</h4>
+                                <p class="product-description body_1">${escapeHtml(truncateWords(product.description, 15))}</p>
+                            </div>
+                            <div class="product-seller-size-rating"> 
+                                <div class="product-seller">
+                                    <span class="store-icon"><svg></svg></span>
+                                    <span class="body_1">${escapeHtml(product.seller)}</span>
+                                </div>
+                                <p class="product-size body_1">Size: ${escapeHtml(product.size_display)}</p>
+                                <div class="rating">
+                                    <span class="rate-count">  ${product.average_rating}</span>
+                                    <span class="rate-count">(${product.rating_count} reviews)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
