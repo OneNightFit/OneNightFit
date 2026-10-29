@@ -157,6 +157,6 @@ def checkout_page(request):
                 storage.save_state(request.user, state)
                 storage.record_rentals(request.user, summary)
             messages.success(request, "Your rental is confirmed!")
-            return redirect("OneNightFit:landing_page")
+            return redirect("landing_page")
         ctx.update(shipping=shipping, payment=payment, errors=errors)
     return render(request, "cart/checkout.html", ctx)
