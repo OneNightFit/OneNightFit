@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from catalog.models import Product
+from authentication.models import Profile
 
 SELLERS = [
     ("forza_ferrari", "Forza Ferrari"),
@@ -39,7 +40,8 @@ def get_or_create_sellers():
                 f"User '{username}' tidak punya profile. Cek signal pembuat Profile."
             )
         if not profile.is_seller:
-            profile.is_seller = True
+            profile.role = Profile.Role.SELLER
+            profile.shop_name = profile.shop_name or display_name
             profile.save()
 
         sellers.append(user)
