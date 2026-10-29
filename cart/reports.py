@@ -93,12 +93,6 @@ def _six_months(today):
     return list(reversed(months))
 
 
-def _is_active(rental, today):
-    return rental.rental_date <= today < rental.rental_date.fromordinal(
-        rental.rental_date.toordinal() + rental.days
-    )
-
-
 def get_seller_report(user):
     """Build report values from products owned and completed Cart checkouts."""
     today = local_rental_date()
@@ -107,24 +101,25 @@ def get_seller_report(user):
         .select_related("buyer")
         .order_by("-rental_date", "-created_at")
     )
+    completed_rentals = [
+        r for r in rentals
+        if r.status in (Rental.STATUS_APPROVED, Rental.STATUS_RETURNED)
+    ]
     approved_rentals = [r for r in rentals if r.status == Rental.STATUS_APPROVED]
     pending_rentals = [r for r in rentals if r.status == Rental.STATUS_PENDING]
-    active_product_ids = {r.product_uuid for r in approved_rentals if _is_active(r, today)}
+    active_product_ids = {r.product_uuid for r in approved_rentals}
     pending_product_ids = {
-        r.product_uuid for r in pending_rentals if r.rental_date == today
+        r.product_uuid for r in pending_rentals
     }
     monthly = {key: 0 for key in _six_months(today)}
     by_item = {}
-    active = 0
-
-    for rental in approved_rentals:
+    for rental in completed_rentals:
         key = (rental.rental_date.year, rental.rental_date.month)
         if key in monthly:
             monthly[key] += rental.total
         item = by_item.setdefault(rental.product_uuid, {"name": rental.product_name, "rentals": 0})
         item["rentals"] += 1
-        if _is_active(rental, today):
-            active += 1
+    active = len(approved_rentals)
 
     bars = [MonthlyBar(month_abbr[month], amount) for (_, month), amount in monthly.items()]
     peak = max((bar.amount for bar in bars), default=0)
@@ -136,13 +131,12 @@ def get_seller_report(user):
         key=lambda item: (-item.rentals, item.name.lower()),
     )[:5]
     recent = []
-    visible_rentals = pending_rentals + [
-        rental for rental in approved_rentals[:5]
-    ]
+    visible_rentals = pending_rentals + completed_rentals[:5]
     for rental in visible_rentals:
         status = (
             "Pending" if rental.status == Rental.STATUS_PENDING
-            else "Active" if _is_active(rental, today)
+            else "Returned" if rental.status == Rental.STATUS_RETURNED
+            else "Active" if rental.status == Rental.STATUS_APPROVED
             else "Returned"
         )
         recent.append(RecentRental(
@@ -157,8 +151,8 @@ def get_seller_report(user):
     return SellerReport(
         products_listed=Product.objects.filter(seller_id=user.pk).count(),
         active_rentals=active,
-        total_rentals=len(approved_rentals),
-        total_earnings=sum(rental.total for rental in approved_rentals),
+        total_rentals=len(completed_rentals),
+        total_earnings=sum(rental.total for rental in completed_rentals),
         monthly_bars=bars,
         top_items=top_items,
         recent_rentals=recent,

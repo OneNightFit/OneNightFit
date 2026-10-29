@@ -66,6 +66,11 @@
             {% csrf_token %}
             <button type="submit" class="button button-primary">Approve</button>
           </form>
+          {% elif r.status_slug == "active" %}
+          <form method="post" action="{% url 'cart:seller_return_rental' r.id %}">
+            {% csrf_token %}
+            <button type="submit" class="button button-secondary">Mark returned</button>
+          </form>
           {% endif %}
         </div>
       </li>

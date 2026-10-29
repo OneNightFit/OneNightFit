@@ -11,6 +11,16 @@
       <div><dt>Tanggal peminjaman</dt><dd>{{ rental.rental_date|date:"d M Y" }}</dd></div>
       <div><dt>Harga</dt><dd>{{ rental.total_display }}</dd></div>
     </dl>
+    {% if rental.status == "pending" %}
+    <p class="seller-product-status is-pending">Menunggu persetujuan seller</p>
+    {% elif rental.status == "returned" %}
+    <p class="seller-product-status">Telah dikembalikan</p>
+    {% else %}
+    <form method="post" action="{% url 'cart:return_rental' rental.pk %}">
+      {% csrf_token %}
+      <button class="button button-secondary rental-return-button" type="submit">Kembalikan produk</button>
+    </form>
+    {% endif %}
     {% else %}
     <h3 class="inspo-card-title profile-product-card-name"><a href="{% url 'catalog:catalog_list' %}?edit={{ card_id }}">{{ card_name }}</a></h3>
     <p class="seller-product-price">{{ product.daily_price_display }} / hari</p>

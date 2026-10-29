@@ -148,6 +148,34 @@ def approve_rental(request, rental_id):
         messages.success(request, f"Rental for {rental.product_name} approved.")
     return redirect("authentication:shop_report")
 
+
+@login_required
+@require_POST
+def return_rental(request, rental_id):
+    """Buyer returns their own approved rental."""
+    if getattr(getattr(request.user, "profile", None), "is_seller", False):
+        raise PermissionDenied
+    rental = get_object_or_404(Rental, pk=rental_id, buyer=request.user)
+    if rental.status == Rental.STATUS_APPROVED:
+        rental.status = Rental.STATUS_RETURNED
+        rental.save(update_fields=["status"])
+        messages.success(request, f"{rental.product_name} has been returned.")
+    return redirect("authentication:rentals")
+
+
+@login_required
+@require_POST
+def seller_return_rental(request, rental_id):
+    """Seller marks their own rental as returned."""
+    if not getattr(getattr(request.user, "profile", None), "is_seller", False):
+        raise PermissionDenied
+    rental = get_object_or_404(Rental, pk=rental_id, seller=request.user)
+    if rental.status == Rental.STATUS_APPROVED:
+        rental.status = Rental.STATUS_RETURNED
+        rental.save(update_fields=["status"])
+        messages.success(request, f"{rental.product_name} has been marked as returned.")
+    return redirect("authentication:shop_report")
+
 # =======================================================
 # CHECKOUT PAGE
 # =======================================================
@@ -178,7 +206,7 @@ def checkout_page(request):
                     product_ids = [item["id"] for store in summary["stores"] for item in store["items"]]
                     if Rental.objects.filter(
                         product_uuid__in=product_ids,
-                        rental_date=local_rental_date(),
+                        status__in=(Rental.STATUS_PENDING, Rental.STATUS_APPROVED),
                     ).exists():
                         raise services.CartError("A product in this cart was just rented by someone else.")
                     services.complete_checkout(state, summary)

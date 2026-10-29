@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 import uuid
 from zoneinfo import ZoneInfo
@@ -45,9 +46,11 @@ class Rental(models.Model):
     """Riwayat sewa yang sudah dibayar"""
     STATUS_PENDING = "pending"
     STATUS_APPROVED = "approved"
+    STATUS_RETURNED = "returned"
     STATUS_CHOICES = [
         (STATUS_PENDING, "Pending approval"),
         (STATUS_APPROVED, "Approved"),
+        (STATUS_RETURNED, "Returned"),
     ]
 
     buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rentals")
@@ -68,8 +71,9 @@ class Rental(models.Model):
     class Meta:
         ordering = ["-created_at", "-id"]
         constraints = [models.UniqueConstraint(
-            fields=["product_uuid", "rental_date"],
-            name="unique_product_rental_per_day",
+            fields=["product_uuid"],
+            name="unique_active_product_rental",
+            condition=Q(status__in=["pending", "approved"]),
         )]
 
     @property
@@ -81,3 +85,10 @@ class Rental(models.Model):
         """Tanggal berakhirnya sewa (tanggal mulai + jumlah hari)."""
         start = timezone.localtime(self.created_at, RENTAL_TIME_ZONE).date()
         return start + timedelta(days=self.days)
+
+    @property
+    def is_active(self):
+        return (
+            self.status == self.STATUS_APPROVED
+            and self.rental_date <= local_rental_date() < self.rental_date + timedelta(days=self.days)
+        )

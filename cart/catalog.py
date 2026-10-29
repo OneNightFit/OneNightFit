@@ -25,7 +25,7 @@ def daily_rent(price):
     return min(MAX_DAILY_RENT, max(MIN_DAILY_RENT, rent))
 
 def unavailable_product_ids(product_ids=None):
-    rentals = Rental.objects.filter(rental_date=local_rental_date())
+    rentals = Rental.objects.filter(status__in=(Rental.STATUS_PENDING, Rental.STATUS_APPROVED))
     if product_ids is not None:
         rentals = rentals.filter(product_uuid__in=product_ids)
     return set(rentals.values_list("product_uuid", flat=True))

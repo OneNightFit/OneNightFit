@@ -717,6 +717,7 @@
 .seller-product-status { margin: 0; color: var(--secondary_200); font-size: .85rem; font-weight: 600; }
 .seller-product-status.is-rented { color: #b42318; }
 .seller-product-status.is-pending { color: #b7791f; }
+.rental-return-button { margin-top: .6rem; }
 
 @media (max-width: 1023px) {
     .cart-reco__list {

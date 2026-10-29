@@ -57,4 +57,9 @@
 })();
 </script>
 {% endif %}
+<script>
+  document.querySelectorAll(".onf-auth .a-toast").forEach((toast) => {
+    window.setTimeout(() => toast.remove(), 1000);
+  });
+</script>
 {% endblock %}
