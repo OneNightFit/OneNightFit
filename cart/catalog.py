@@ -13,6 +13,8 @@ Jika nanti ada model Product asli, cukup ubah file ini.
 
 import random
 
+import requests
+
 
 # Nama toko dummy karena API tidak menyediakan data toko
 STORES = {
@@ -55,8 +57,38 @@ def to_product(post):
     }
 
 def api_posts():
-    from inspo.models import Post # Import di dalam fungsi modul aman diimpor tanpa Django
+    from inspo.models import Post
     return Post.objects.filter(external_id__isnull=False, price__isnull=False)
+
+def sync_api_posts():
+    """Sinkronkan daftar produk API ke tabel Post yang dipakai Inspo."""
+    from inspo.models import Post, Tag
+
+    try:
+        response = requests.get("https://fakestoreapi.com/products", timeout=5)
+        response.raise_for_status()
+        products = response.json()
+    except (requests.RequestException, ValueError):
+        return
+
+    for product in products:
+        tag = None
+        category = product.get("category")
+        if category:
+            tag, _ = Tag.objects.get_or_create(name=category[:30])
+        Post.objects.update_or_create(
+            external_id=product["id"],
+            defaults={
+                "title": product.get("title", "")[:100],
+                "caption": product.get("description", "")[:1000],
+                "image_url": product.get("image", ""),
+                "price": product.get("price"),
+                "tag": tag,
+            },
+        )
+
+def has_products():
+    return api_posts().exists()
 
 def get_product(product_id):
     """Mengambil satu produk berdasarkan ID"""
@@ -70,8 +102,13 @@ def get_products(ids):
         return {}
     return {p.pk: to_product(p)for p in api_posts().filter(pk__in=ids)}
 
+def default_cart_products(limit=4):
+    """Mengambil beberapa produk awal agar keranjang tidak kosong; memastikan feature bekerja"""
+    return [to_product(p) for p in api_posts().order_by("external_id")[:limit]]
+
 def recommended_products(exclude_ids=(), limit=5):
     """Mengambil produk rekomendasi yang belum ada di keranjang"""
+    sync_api_posts()
     exclude_ids = list(exclude_ids)
     picked = list(api_posts().exclude(pk__in=exclude_ids).order_by("?")[:limit])
 

@@ -108,6 +108,34 @@ def toggle_wishlist(request, id):
     return redirect('catalog:catalog_list')
 
 @login_required(login_url='/login/')
+@require_POST
 def add_to_cart(request, id):
-    # TODO: Implementasi logika Cart
-    return redirect('catalog:catalog_list')
+    product = get_object_or_404(Product, pk=id)
+
+    # CartItem saat ini mereferensikan inspo.Post; buat/pakai baris yang
+    # merepresentasikan produk katalog agar data tetap diambil dari database.
+    from inspo.models import Post
+    from cart import services, storage
+
+    post = Post.objects.filter(
+        author__isnull=True,
+        title=product.name,
+        price__isnull=False,
+    ).first()
+    if post is None:
+        post = Post.objects.create(
+            title=product.name[:100],
+            caption=product.description[:1000],
+            image_url=product.image or "",
+            price=product.price,
+        )
+
+    state = storage.load_state(request.user)
+    try:
+        services.add_item(state, post.pk, days=1, selected=True)
+    except services.CartError as exc:
+        messages.error(request, str(exc))
+        return redirect("catalog:catalog_list")
+    storage.save_state(request.user, state)
+    messages.success(request, f"{product.name} ditambahkan ke cart.")
+    return redirect("cart:cart")

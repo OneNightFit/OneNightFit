@@ -29,8 +29,14 @@ def cart_login_required(view):
     return wrapper
 
 def recommendations(state):
-    recs = catalog.recommended_products(exclude_ids=[it["id"] for it in state["items"]], limit=5)
-    return [{**p, "price_display": services.format_rupiah(p["price"])} for p in recs]
+    recs = catalog.recommended_products(
+        exclude_ids=[item["id"] for item in state["items"]],
+        limit=5,
+    )
+    return [
+        {**product, "price_display": services.format_rupiah(product["price"])}
+        for product in recs
+    ]
 
 def mutate(request, fn):
     """Mengubah isi keranjang dan mengirim respons sesuai request."""

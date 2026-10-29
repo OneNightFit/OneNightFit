@@ -112,7 +112,10 @@
                                     <!-- Tombol Add to Cart: Tampil untuk Guest dan User (Bukan Seller) -->
                                     {% if not user.is_authenticated or not user.profile.is_seller %}
                                         {% if user.is_authenticated %}
-                                            <a href="{% url 'catalog:add_to_cart' product.id %}" class="button button-primary">Add to cart</a>
+                                            <form method="post" action="{% url 'catalog:add_to_cart' product.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="button button-primary">Add to cart</button>
+                                            </form>
                                         {% else %}
                                             <a href="#" class="button button-primary">Add to cart</a>
                                         {% endif %}
