@@ -1,12 +1,81 @@
+:root {
+    --gradient_primary: linear-gradient(107deg, #FCB005 -27.34%, #B34BBC 96.87%);
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 /* ==========================================================================
    CATALOG PAGE LAYOUT
    ========================================================================== */
+
+.header {
+    padding: 2rem 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.header h1 {
+    background: var(--gradient_primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.catalog-search {
+    display: block;
+    width: 100%;
+    padding-top: 0 1rem;
+}
+/* 
+.catalog-search__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--neutral_100);
+    font-weight: 600;
+} */
+
+.catalog-search input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--primary_500);
+    border-radius: 0.5rem;
+    background: var(--primary_100);
+    color: var(--secondary_950);
+    font: inherit;
+}
+
+.catalog-search__field {
+    position: relative;
+}
+
+.catalog-search__field input {
+    padding-right: 3.5rem;
+}
+
+.catalog-search__icon {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.catalog-search input:focus-visible {
+    outline: 2px solid var(--primary_300);
+    outline-offset: 2px;
+}
+
 .catalog-container {
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 2rem;
-    padding: 3rem 5rem;
-    background-color: var(--secondary_950);
+    padding: 3rem 0rem;
     color: var(--neutral_100);
     min-height: 100vh;
 }

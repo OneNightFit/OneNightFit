@@ -10,7 +10,17 @@
 {% block content %}
     <main>
         <div class="header">
-            <!-- #TODO: Search Bar -->
+            <h1>Products for Rent</h1>
+            <div class="catalog-search">
+                <!-- <label class="catalog-search__label" for="catalog-search-input">Search products</label> -->
+                <div class="catalog-search__field">
+                    <input id="catalog-search-input" type="search" name="q" value="{{ search_query }}"
+                        placeholder="Search by product name..." autocomplete="off" aria-controls="grid">
+                    <svg class="catalog-search__icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+                        <path d="M42 42L33.3 33.3M38 22C38 30.8366 30.8366 38 22 38C13.1634 38 6 30.8366 6 22C6 13.1634 13.1634 6 22 6C30.8366 6 38 13.1634 38 22Z" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke="#1E1E1E"/>
+                    </svg>
+                </div>
+            </div>
         </div>
         <div class="catalog-container">
             <div class="product-sidebar">
@@ -22,6 +32,7 @@
                 {% endif %}
                 <div class="filters">
                     <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
+                        <input type="hidden" name="q" value="{{ search_query }}" id="filter-search-query">
                         <div class="filter-card">
                             <div class="filter-header" id="filter-header">
                                 <p class="filter-title">GARMENT CATEGORY</p>
@@ -112,6 +123,7 @@
         const CART_URL = "{% url 'catalog:add_to_cart' '00000000-0000-0000-0000-000000000000' %}";
 
         const selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
+        const searchInput = document.getElementById('catalog-search-input');
         const productsById = new Map();
         let productsAbortController;
 
@@ -221,6 +233,7 @@
 
                 const params = new URLSearchParams();
                 selectedCategories.forEach(c => params.append('category', c));
+                if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
                 const qs = params.toString();
 
                 const response = await fetch(qs ? `${PRODUCTS_ENDPOINT}?${qs}` : PRODUCTS_ENDPOINT, {
@@ -233,9 +246,11 @@
 
                 productsById.clear();
                 if (products.length === 0) {
-                    emptyState.innerHTML = IS_SELLER
-                        ? '<p>Anda belum menambahkan produk. Klik "Add New Product" untuk memulai.</p>'
-                        : '<p>Belum ada produk di katalog.</p>';
+                    emptyState.innerHTML = searchInput.value.trim()
+                        ? '<p>Produk tidak ditemukan. Coba kata kunci lain.</p>'
+                        : IS_SELLER
+                            ? '<p>Anda belum menambahkan produk. Klik "Add New Product" untuk memulai.</p>'
+                            : '<p>Belum ada produk di katalog.</p>';
                     displayPageSection({ showEmpty: true });
                     return;
                 }
@@ -252,6 +267,13 @@
                 displayPageSection({ showError: true });
             }
         }
+
+        let searchDebounceTimer;
+        searchInput.addEventListener('input', () => {
+            document.getElementById('filter-search-query').value = searchInput.value;
+            window.clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = window.setTimeout(fetchProducts, 300);
+        });
 
         function extractErrors(result, status) {
             return result.errors

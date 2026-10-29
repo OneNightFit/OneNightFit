@@ -60,6 +60,7 @@ def catalog_list(request):
         'categories': categories_data,
         'category_choices': Product.PRODUCT_CATEGORY,
         'selected_categories': selected_categories,
+        'search_query': request.GET.get('q', '').strip(),
         'form': ProductForm(),
         'update_form': ProductForm(auto_id='update_%s'),
     }
@@ -69,12 +70,15 @@ def catalog_list(request):
 
 def get_products_json(request):
     selected_categories = request.GET.getlist('category')
+    search_query = request.GET.get('q', '').strip()
     products = Product.objects.select_related('seller').prefetch_related('wishlisted_by', 'ratings')
 
     if is_seller(request.user):
         products = products.filter(seller=request.user)
     if selected_categories:
         products = products.filter(category__in=selected_categories)
+    if search_query:
+        products = products.filter(name__icontains=search_query)
 
     data = []
     for product in products:
