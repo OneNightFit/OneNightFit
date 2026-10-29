@@ -6,7 +6,7 @@ Browser mengirim ID dan detail produk diambil dari catalog.
 """
 from django.db import transaction
 
-from .models import Cart, CartItem, Rental
+from .models import Cart, CartItem, Rental, local_rental_date
 
 def _get_cart(user):
     result = Cart.objects.get_or_create(user=user)
@@ -56,19 +56,21 @@ def save_state(user, state):
                     row.save(update_fields = ["days", "selected"])
 
 def record_rentals(user, summary):
-    """Menyimpan item yang sudah dibayar sebagai riwayat sewa."""
+    """Catat produk yang dipesan pada tanggal sewa saat ini."""
+    rental_date = local_rental_date()
     Rental.objects.bulk_create([
         Rental(
             buyer=user,
             product_id=None,
-            product_uuid=i["id"],
-            product_name=i["name"],
-            image=i["image"] or "",
-            store_slug=g["slug"],
-            store_name=g["name"],
-            price_per_day=i["price"],
-            days=i["days"],
-            total=i["subtotal"],
+            product_uuid=item["id"],
+            rental_date=rental_date,
+            product_name=item["name"],
+            image=item["image"] or "",
+            store_slug=store["slug"],
+            store_name=store["name"],
+            price_per_day=item["price"],
+            days=item["days"],
+            total=item["subtotal"],
         )
-        for g in summary["stores"] for i in g["items"]
+        for store in summary["stores"] for item in store["items"]
     ])

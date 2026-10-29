@@ -131,11 +131,10 @@ def activity_view(request):
         ctx["liked_items"] = liked_items if liked_items is not None else []
 
     return render(request, "authentication/activity.html", ctx)
+
 @buyer_required
 def rentals_view(request):
-    rentals = []
-    return render(request, "authentication/rentals.html", {"rentals": rentals})
-
+    return render(request, "cart/rentals.html", {"rentals": request.user.rentals.all()})
 
 @seller_required
 def shop_report_view(request):

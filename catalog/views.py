@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from catalog.models import Product
 from catalog.forms import ProductForm
+from cart.catalog import unavailable_product_ids
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import requests
@@ -70,6 +71,7 @@ def catalog_list(request):
 def get_products_json(request):
     selected_categories = request.GET.getlist('category')
     products = Product.objects.select_related('seller').prefetch_related('wishlisted_by', 'ratings')
+    products = products.exclude(pk__in=unavailable_product_ids())
 
     if is_seller(request.user):
         products = products.filter(seller=request.user)

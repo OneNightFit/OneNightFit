@@ -1,0 +1,11 @@
+.rental-grid { align-items: stretch; }
+.rental-card { min-height: 19rem; }
+.rental-card .inspo-card-img { background: #fff; }
+.rental-card .inspo-card-img img { object-fit: contain; background: var(--neutral_0); }
+.rental-card-info { width: 100%; gap: .85rem; }
+.rental-card-store { color: var(--secondary_200); font-size: .85rem; font-weight: 600; }
+.rental-card-name { color: var(--neutral_0); font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
+.rental-card-details { display: grid; gap: .65rem; width: 100%; margin: 0; }
+.rental-card-details div { display: flex; justify-content: space-between; gap: .75rem; }
+.rental-card-details dt { color: var(--secondary_200); font-size: .82rem; }
+.rental-card-details dd { margin: 0; color: var(--neutral_0); font-size: .88rem; font-weight: 600; text-align: right; }

@@ -4,11 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from . import catalog, services, storage
+from .models import Rental, local_rental_date
 
 # =======================================================
 # HELPER
@@ -151,11 +153,24 @@ def checkout_page(request):
         payment = request.POST.get("payment", "")
         errors = services.validate_checkout(summary, shipping, payment)
         if not errors:
-            with transaction.atomic():
-                # Item yang dibayar dihapus dari keranjang.
-                services.complete_checkout(state, summary)
-                storage.save_state(request.user, state)
-                storage.record_rentals(request.user, summary)
+            try:
+                with transaction.atomic():
+                    product_ids = [item["id"] for store in summary["stores"] for item in store["items"]]
+                    if Rental.objects.filter(
+                        product_uuid__in=product_ids,
+                        rental_date=local_rental_date(),
+                    ).exists():
+                        raise services.CartError("A product in this cart was just rented by someone else.")
+                    services.complete_checkout(state, summary)
+                    storage.save_state(request.user, state)
+                    storage.record_rentals(request.user, summary)
+            except (IntegrityError, services.CartError):
+                ctx.update(
+                    errors=["A product in this cart was just rented by someone else. Please review your cart."],
+                    shipping=shipping,
+                    payment=payment,
+                )
+                return render(request, "cart/checkout.html", ctx)
             messages.success(request, "Your rental is confirmed!")
             return redirect("landing_page")
         ctx.update(shipping=shipping, payment=payment, errors=errors)

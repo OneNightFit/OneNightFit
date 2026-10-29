@@ -3,8 +3,15 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 import uuid
+from zoneinfo import ZoneInfo
 
 from datetime import timedelta
+
+RENTAL_TIME_ZONE = ZoneInfo("Asia/Jakarta")
+
+
+def local_rental_date():
+    return timezone.localdate(timezone=RENTAL_TIME_ZONE)
 
 # One User one cart, cart unique to each User (OnetoOne).
 class Cart(models.Model):
@@ -39,6 +46,7 @@ class Rental(models.Model):
     buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rentals")
     product_id = models.PositiveIntegerField(null=True, blank=True)
     product_uuid = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
+    rental_date = models.DateField(default=local_rental_date, db_index=True)
     product_name = models.CharField(max_length=255)
     image = models.URLField(max_length=1000, blank=True)
     store_slug = models.CharField(max_length=50)
@@ -50,6 +58,10 @@ class Rental(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        constraints = [models.UniqueConstraint(
+            fields=["product_uuid", "rental_date"],
+            name="unique_product_rental_per_day",
+        )]
 
     @property
     def total_display(self):
@@ -58,5 +70,5 @@ class Rental(models.Model):
     @property
     def end_date(self):
         """Tanggal berakhirnya sewa (tanggal mulai + jumlah hari)."""
-        start = timezone.localtime(self.created_at).date()
+        start = timezone.localtime(self.created_at, RENTAL_TIME_ZONE).date()
         return start + timedelta(days=self.days)
