@@ -37,10 +37,10 @@
                 <noscript><button type="submit" class="cart-link-btn body-3">Apply</button></noscript>
             </form>
 
-            <div class="cart-item__img">{% if item.image %}<img src="{{ item.image }}" alt="{{ item.name }}" loading="lazy" onerror="this.remove()">{% endif %}</div>
+            <a class="cart-item__img" href="{% url 'catalog:catalog_list' %}?product={{ item.id }}">{% if item.image %}<img src="{{ item.image }}" alt="{{ item.name }}" loading="lazy" onerror="this.remove()">{% endif %}</a>
 
             <div class="cart-item__info">
-                <h6 class="cart-item__name">{{ item.name }}</h6>
+                <h6 class="cart-item__name"><a href="{% url 'catalog:catalog_list' %}?product={{ item.id }}">{{ item.name }}</a></h6>
                 <p class="cart-item__price body-1">{{ item.price_display }} /day</p>
                 <p class="cart-item__sub body-4">Subtotal: <span class="cart-item-subtotal">{{ item.subtotal_display }}</span></p>
                 <p class="cart-item__size-label body-4">Size</p>

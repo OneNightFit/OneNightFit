@@ -137,6 +137,7 @@ def build_cart(state):
             "id": p["id"], 
             "name": p["name"], 
             "image": p["image"], 
+            "seller_id": p.get("seller_id"),
             "size": p["size"],
             "available": p["available"], 
             "selected": selected, 

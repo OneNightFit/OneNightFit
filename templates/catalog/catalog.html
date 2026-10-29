@@ -282,6 +282,7 @@
                     productsById.set(item.pk, item.fields);
                     gridContainer.appendChild(buildProductCardElement(item));
                 });
+                const editId = new URLSearchParams(location.search).get('edit'); if (editId && productsById.has(editId)) openUpdateProductModal(editId);
                 displayPageSection({ showGrid: true });
             } catch (error) {
                 if (error.name === 'AbortError') return;
@@ -502,4 +503,6 @@
         document.addEventListener('product:changed', fetchProducts);
         fetchProducts();
     </script>
+    <script>document.addEventListener('DOMContentLoaded',()=>{const id=new URLSearchParams(location.search).get('product');if(id)window.openProductDetail(id);});</script>
 {% endblock content %}
+

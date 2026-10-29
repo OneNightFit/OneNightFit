@@ -2,13 +2,17 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from . import catalog, services, storage
+from .models import Rental, local_rental_date
 
 # =======================================================
 # HELPER
@@ -18,13 +22,17 @@ def _wants_json(request):
             or "application/json" in request.headers.get("Accept", ""))
 
 def cart_login_required(view):
-    """Cart hanya untuk authenticated user"""
+    """Cart hanya untuk pengguna yang bukan seller."""
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             if _wants_json(request):
                 return JsonResponse({"ok": False, "error": "Please log in first."}, status=401)
             return redirect_to_login(request.get_full_path())
+        if getattr(getattr(request.user, "profile", None), "is_seller", False):
+            if _wants_json(request):
+                return JsonResponse({"ok": False, "error": "Cart is not available to sellers."}, status=403)
+            return redirect("catalog:catalog_list")
         return view(request, *args, **kwargs)
     return wrapper
 
@@ -126,6 +134,48 @@ def cart_add(request):
         return services.add_item(state, product_id, days, False)
     return mutate(request, add)
 
+
+@login_required
+@require_POST
+def approve_rental(request, rental_id):
+    """Seller approves a pending checkout rental for their own product."""
+    if not getattr(getattr(request.user, "profile", None), "is_seller", False):
+        raise PermissionDenied
+    rental = get_object_or_404(Rental, pk=rental_id, seller=request.user)
+    if rental.status == Rental.STATUS_PENDING:
+        rental.status = Rental.STATUS_APPROVED
+        rental.save(update_fields=["status"])
+        messages.success(request, f"Rental for {rental.product_name} approved.")
+    return redirect("authentication:shop_report")
+
+
+@login_required
+@require_POST
+def return_rental(request, rental_id):
+    """Buyer returns their own approved rental."""
+    if getattr(getattr(request.user, "profile", None), "is_seller", False):
+        raise PermissionDenied
+    rental = get_object_or_404(Rental, pk=rental_id, buyer=request.user)
+    if rental.status == Rental.STATUS_APPROVED:
+        rental.status = Rental.STATUS_RETURNED
+        rental.save(update_fields=["status"])
+        messages.success(request, f"{rental.product_name} has been returned.")
+    return redirect("authentication:rentals")
+
+
+@login_required
+@require_POST
+def seller_return_rental(request, rental_id):
+    """Seller marks their own rental as returned."""
+    if not getattr(getattr(request.user, "profile", None), "is_seller", False):
+        raise PermissionDenied
+    rental = get_object_or_404(Rental, pk=rental_id, seller=request.user)
+    if rental.status == Rental.STATUS_APPROVED:
+        rental.status = Rental.STATUS_RETURNED
+        rental.save(update_fields=["status"])
+        messages.success(request, f"{rental.product_name} has been marked as returned.")
+    return redirect("authentication:shop_report")
+
 # =======================================================
 # CHECKOUT PAGE
 # =======================================================
@@ -151,11 +201,24 @@ def checkout_page(request):
         payment = request.POST.get("payment", "")
         errors = services.validate_checkout(summary, shipping, payment)
         if not errors:
-            with transaction.atomic():
-                # Item yang dibayar dihapus dari keranjang.
-                services.complete_checkout(state, summary)
-                storage.save_state(request.user, state)
-                storage.record_rentals(request.user, summary)
+            try:
+                with transaction.atomic():
+                    product_ids = [item["id"] for store in summary["stores"] for item in store["items"]]
+                    if Rental.objects.filter(
+                        product_uuid__in=product_ids,
+                        status__in=(Rental.STATUS_PENDING, Rental.STATUS_APPROVED),
+                    ).exists():
+                        raise services.CartError("A product in this cart was just rented by someone else.")
+                    services.complete_checkout(state, summary)
+                    storage.save_state(request.user, state)
+                    storage.record_rentals(request.user, summary)
+            except (IntegrityError, services.CartError):
+                ctx.update(
+                    errors=["A product in this cart was just rented by someone else. Please review your cart."],
+                    shipping=shipping,
+                    payment=payment,
+                )
+                return render(request, "cart/checkout.html", ctx)
             messages.success(request, "Your rental is confirmed!")
             return redirect("landing_page")
         ctx.update(shipping=shipping, payment=payment, errors=errors)

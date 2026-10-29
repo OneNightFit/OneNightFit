@@ -10,7 +10,7 @@ from django.urls import NoReverseMatch, reverse
 from inspo.models import Bookmark
 from .decorators import buyer_required, seller_required
 from .forms import DeleteAccountForm, EditProfileForm, LoginForm, SignUpForm
-from .reports import get_seller_report
+from cart.reports import get_seller_report
 BOOKMARK_PAGE_URL_NAME = "inspo:bookmark_list" 
 from .integrations import (
     buyer_wishlist, product_card, inspo_card,
@@ -131,11 +131,10 @@ def activity_view(request):
         ctx["liked_items"] = liked_items if liked_items is not None else []
 
     return render(request, "authentication/activity.html", ctx)
+
 @buyer_required
 def rentals_view(request):
-    rentals = []
-    return render(request, "authentication/rentals.html", {"rentals": rentals})
-
+    return render(request, "cart/rentals.html", {"rentals": request.user.rentals.all()})
 
 @seller_required
 def shop_report_view(request):
