@@ -403,6 +403,74 @@
 }
 .detail-visit:hover { background: var(--secondary_200); }
 
+/* Produk ONF yang di-tag pada postingan */
+.detail-products { display: flex; flex-direction: column; gap: 0.75rem; }
+.product-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; }
+
+.product-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.625rem 0.875rem 0.625rem 0.625rem;
+    background: var(--primary_850);
+    border: 1px solid var(--primary_700);
+    border-radius: 1rem;
+    color: var(--secondary_50);
+    transition: border-color .15s, background-color .15s;
+}
+.product-card:hover,
+.product-card:focus-visible {
+    border-color: var(--primary_0);
+    background: var(--primary_800);
+}
+.product-card:focus-visible { outline: 2px solid var(--primary_300); outline-offset: 2px; }
+
+.product-card-img {
+    flex: 0 0 auto;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #fff;               /* foto produk biasanya berlatar putih */
+}
+.product-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.product-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.product-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--neutral_0);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+.product-card-desc {
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--secondary_200);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+.product-card-price { font-size: 13px; font-weight: 700; color: var(--secondary_300); }
+.product-card-arrow { flex: 0 0 auto; color: var(--primary_300); }
+.product-card:hover .product-card-arrow { color: var(--primary_0); }
+
 .detail-desc p { margin: 0; }
 .detail-desc .body-6 {
     color: var(--secondary_200);

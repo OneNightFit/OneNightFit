@@ -19,8 +19,29 @@ def is_seller(user):
 
 
 def product_detail(request, id):
-    product = get_object_or_404(Product, id=id)
-    return render(request, 'catalog/components/product_detail.html', {'product': product})
+    product = get_object_or_404(Product.objects.select_related('seller'), id=id)
+    is_wishlisted = (
+        request.user.is_authenticated
+        and product.wishlisted_by.filter(pk=request.user.pk).exists()
+    )
+    return JsonResponse({
+        "pk": str(product.id),
+        "fields": {
+            "name": product.name,
+            "description": product.description,
+            "image": product.image or "",
+            "price": str(product.price),
+            "category": product.category,
+            "category_display": product.get_category_display(),
+            "size": product.size,
+            "size_display": product.get_size_display(),
+            "seller": product.seller.username if product.seller else "-",
+            "average_rating": product.average_rating,
+            "rating_count": product.rating_count,
+            "is_wishlisted": is_wishlisted,
+            "is_owner": request.user.is_authenticated and product.seller_id == request.user.id,
+        }
+    })
 
 
 def catalog_list(request):

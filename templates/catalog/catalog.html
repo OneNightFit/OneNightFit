@@ -109,7 +109,7 @@
         const EDIT_URL = "{% url 'catalog:edit_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
         const DELETE_URL = "{% url 'catalog:delete_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
         const WISHLIST_URL = "{% url 'catalog:toggle_wishlist' '00000000-0000-0000-0000-000000000000' %}";
-        const CART_URL = "{% url 'catalog:add_to_cart' '00000000-0000-0000-0000-000000000000' %}";
+        const CART_URL = "{% url 'cart:add' %}";
 
         const selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
         const productsById = new Map();
@@ -157,7 +157,8 @@
             const id = item.pk;
             const card = document.createElement('div');
             card.className = 'card';
-            
+            card.dataset.productDetail = id;  
+
             // Ubah menjadi button dengan data-action="wishlist"
             const wishlistHtml = !IS_SELLER
                 ? `<button type="button"
@@ -365,9 +366,15 @@
 
         async function addToCart(id) {
             try {
-                const response = await fetch(CART_URL.replace(DUMMY_ID, id), {
-                    method: 'POST', // Ubah dari GET menjadi POST
-                    headers: { 'X-CSRFToken': CSRF_TOKEN } // Tambahkan CSRF token
+                const response = await fetch(CART_URL, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': CSRF_TOKEN,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: new URLSearchParams({ product_id: id }),
                 });
                 
                 if (response.status === 401) {
@@ -375,12 +382,12 @@
                     return;
                 }
                 
-                const result = await response.json();
+                const result = await response.json().catch(() => ({}));
                 
                 if (response.ok) {
-                    notify('Berhasil', result.message, 'success');
+                    notify('Berhasil', 'Produk berhasil ditambahkan ke keranjang.', 'success');
                 } else {
-                    notify('Gagal', result.message || 'Gagal menambahkan produk.', 'error');
+                    notify('Gagal', result.error || 'Gagal menambahkan produk.', 'error');
                 }
             } catch (error) {
                 console.error(error);
@@ -388,23 +395,27 @@
             }
         }
 
-        // Event delegation untuk semua action buttons di grid (Edit, Delete, Cart, Wishlist)
+        // Event delegation untuk semua action buttons dan klik card
         gridContainer.addEventListener('click', event => {
+            // 1. Cek apakah yang diklik adalah tombol action (Wishlist, Cart, dll)
             const button = event.target.closest('button[data-action]');
-            if (!button) return;
-            
-            const action = button.dataset.action;
-            const id = button.dataset.id;
-            
-            if (action === 'edit') openUpdateProductModal(id);
-            if (action === 'delete') deleteProduct(id);
-            if (action === 'wishlist') toggleWishlist(id);
-            if (action === 'cart') addToCart(id);
+            if (button) {
+                const action = button.dataset.action;
+                const id = button.dataset.id;
+                
+                if (action === 'edit') openUpdateProductModal(id);
+                if (action === 'delete') deleteProduct(id);
+                if (action === 'wishlist') toggleWishlist(id);
+                if (action === 'cart') addToCart(id);
+                
+                return; // HENTIKAN EKSEKUSI DI SINI agar klik tidak diteruskan ke card
+            }
         });
 
         if (addProductForm) addProductForm.addEventListener('submit', addProduct);
         if (updateProductForm) updateProductForm.addEventListener('submit', updateProduct);
 
+        document.addEventListener('product:changed', fetchProducts);
         fetchProducts();
     </script>
 {% endblock content %}

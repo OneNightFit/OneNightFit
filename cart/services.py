@@ -5,6 +5,7 @@ Keranjang hanya menyimpan ID produk, lama sewa, dan status pilihan.
 Nama, harga, dan ketersediaan produk selalu diambil ulang dari catalog
 agar data tetap sesuai dan tidak bergantung pada data dari browser.
 """
+import uuid
 
 from . import catalog
 
@@ -22,10 +23,8 @@ def format_rupiah(amount):
 # =======================================================
 def parse_product_id(raw):
     try:
-        pid = int(str(raw).strip())
-    except (TypeError, ValueError):
-        raise CartError("Invalid product.")
-    if pid < 1:
+        pid = uuid.UUID(str(raw).strip())
+    except (TypeError, ValueError, AttributeError):
         raise CartError("Invalid product.")
     return pid
 

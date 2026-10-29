@@ -49,7 +49,11 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # TODO: tag produk ONF (ForeignKey/ManyToMany ke model produk)
-    # setelah model Product dari modul Product Catalog tersedia.
+    products = models.ManyToManyField(
+        "catalog.Product",
+        blank=True,
+        related_name="inspo_posts",
+    )
 
     class Meta:
         ordering = ["-created_at"]

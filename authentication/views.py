@@ -6,11 +6,17 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-from inspo.models import Like
-
+from django.urls import NoReverseMatch, reverse
+from inspo.models import Bookmark
 from .decorators import buyer_required, seller_required
 from .forms import DeleteAccountForm, EditProfileForm, LoginForm, SignUpForm
 from .reports import get_seller_report
+BOOKMARK_PAGE_URL_NAME = "inspo:bookmark_list" 
+from .integrations import (
+    buyer_wishlist, product_card, inspo_card,
+    inspo_bookmarks, inspo_likes,
+    inspo_bookmark_items, inspo_bookmark_categories, inspo_like_items,
+)
 
 
 def _safe_next_url(request):
@@ -22,7 +28,12 @@ def _safe_next_url(request):
         return next_url
     return None
 
-
+def _safe_reverse(name):
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return ""
+    
 def signup_view(request):
     if request.user.is_authenticated:
         return redirect(settings.LOGIN_REDIRECT_URL)
@@ -67,17 +78,59 @@ def profile_view(request):
     report = get_seller_report(request.user) if request.user.profile.is_seller else None
     return render(request, "authentication/profile.html", {"report": report})
 
-@buyer_required
+@login_required
 def activity_view(request):
-    liked_items = Like.objects.filter(user=request.user).select_related(
-        "post", "post__author", "post__tag"
-    )
-    return render(
-        request,
-        "authentication/activity.html",
-        {"liked_items": liked_items},
-    )
+    user = request.user
 
+    wishlist = []
+    if user.profile.is_buyer:
+        products = buyer_wishlist(user)
+        wishlist = [product_card(p) for p in products.order_by("-pk")] if products is not None else []
+    liked = [inspo_card(p) for p in (inspo_likes(user) or [])]
+    bookmarked = [inspo_card(p) for p in (inspo_bookmarks(user) or [])]
+
+    tabs = []
+    if user.profile.is_buyer:
+        tabs.append({
+            "key": "wishlist", "label": "Wishlist", "cards": wishlist,
+            "heading": ("Wishlist", "Product"),
+            "empty": "No wishlist products yet. Tap the heart on a product to save it here.",
+        })
+    tabs.append({
+        "key": "like", "label": "Like", "cards": liked,
+        "heading": ("Like", "Inspo"), "empty": "No liked inspo yet.",
+    })
+    tabs.append({
+        "key": "bookmark", "label": "Bookmark", "cards": bookmarked,
+        "heading": ("Bookmark", "Inspo"), "empty": "No bookmarked inspo yet.",
+        "url": _safe_reverse(BOOKMARK_PAGE_URL_NAME),
+    })
+
+    active = next((t for t in tabs if t["key"] == request.GET.get("tab")), tabs[0])
+    ctx = {"tabs": tabs, "active": active, "current": active["key"], "wishlist": wishlist}
+
+    if active["key"] == "bookmark":
+        sort = request.GET.get("urut", "terbaru")
+        if sort not in ("terbaru", "terlama"):
+            sort = "terbaru"
+        active_category = request.GET.get("kategori", "")
+
+        items = inspo_bookmark_items(user, active_category, sort)
+        if items is None:
+            items = []
+        ctx.update({
+            "items": items,
+            "total": len(items),
+            "categories": inspo_bookmark_categories(user),
+            "active_category": active_category,
+            "sort": sort,
+        })
+
+    if active["key"] == "like":
+        liked_items = inspo_like_items(user)
+        ctx["liked_items"] = liked_items if liked_items is not None else []
+
+    return render(request, "authentication/activity.html", ctx)
 @buyer_required
 def rentals_view(request):
     rentals = []

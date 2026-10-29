@@ -1,4 +1,5 @@
 import re
+import uuid
 from datetime import timedelta
 
 import requests 
@@ -12,6 +13,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
+from catalog.models import Product
+from django.db.models import Count, Q
 
 from inspo.models import Bookmark, BookmarkCategory, Like, Post, Tag
 
@@ -238,7 +241,8 @@ def detail(request, post_id):
 
 def user_detail(request, pk):
     obj = get_object_or_404(
-        Post.objects.select_related("author", "tag"), pk=pk, author__isnull=False
+        Post.objects.select_related("author", "tag").prefetch_related("products"),
+        pk=pk, author__isnull=False,
     )
     post = normalize_user_post(obj)
     comments = dummy_comments()
@@ -253,6 +257,7 @@ def user_detail(request, pk):
 
     return render(request, "inspo/detail.html", {
         "post": post,
+        "products": obj.products.all(),
         "author": obj.author.get_username(),
         "description": obj.caption,
         "likes": obj.likes.count(),
@@ -283,9 +288,9 @@ def _validate_image(image):
     return None
 
 
-def _form_context(mode, errors, title, caption, hashtags, selected, current_image="", post=None):
+def _form_context(mode, errors, title, caption, hashtags, selected, current_image="", post=None, tagged=None):
     return {
-        "mode": mode,                      # "create" atau "edit"
+        "mode": mode,                      
         "post": post,
         "errors": errors,
         "title": title,
@@ -294,7 +299,8 @@ def _form_context(mode, errors, title, caption, hashtags, selected, current_imag
         "selected_categories": selected,
         "current_image": current_image,
         "categories": UPLOAD_CATEGORIES,
-        "products": [],   # TODO: isi setelah model Product tersedia
+        "products": Product.objects.all(),         
+        "selected_products": tagged or [],        
     }
 
 
@@ -303,6 +309,7 @@ def upload(request):
     errors = []
     title = caption = hashtags_raw = ""
     selected = []
+    tagged = []
 
     if request.method == "POST":
         image = request.FILES.get("image")
@@ -310,6 +317,7 @@ def upload(request):
         caption = request.POST.get("caption", "").strip()[:300]
         hashtags_raw = request.POST.get("hashtags", "")
         selected = [k for k in request.POST.getlist("kategori") if k in UPLOAD_CATEGORIES]
+        tagged = _get_products(request.POST.getlist("product_ids"))
 
         if not title:
             errors.append("Judul wajib diisi.")
@@ -317,7 +325,7 @@ def upload(request):
             errors.append("Foto wajib diunggah.")
         else:
             err = _validate_image(image)
-            if err: 
+            if err:
                 errors.append(err)
 
         if not errors:
@@ -328,23 +336,23 @@ def upload(request):
                 title=title,
                 caption=caption,
                 image=image,
-                tag=cat_tags[0] if cat_tags else None,   # kategori utama (kompatibel dengan data lama)
+                tag=cat_tags[0] if cat_tags else None,
             )
             post.categories.set(cat_tags)
+            post.products.set(tagged)
 
             tag_objs = [Tag.objects.get_or_create(name=n)[0] for n in _clean_hashtags(hashtags_raw)]
             post.hashtags.set(tag_objs)
 
             messages.success(request, "Postingan berhasil dibagikan.")
-            return redirect("inspo:user_detail", pk=post.pk)
+            return redirect("inspo:my_posts")
 
     return render(request, "inspo/upload.html",
-                  _form_context("create", errors, title, caption, hashtags_raw, selected))
-
+                  _form_context("create", errors, title, caption, hashtags_raw, selected, tagged=tagged))
 
 @login_required
 def edit(request, pk):
-    # author=request.user: postingan orang lain otomatis 404, jadi tidak bisa diedit lewat URL
+    # author=request.user: postingan orang lain otomatis 404
     post = get_object_or_404(Post.objects.select_related("tag"), pk=pk, author=request.user)
     errors = []
 
@@ -354,6 +362,7 @@ def edit(request, pk):
         caption = request.POST.get("caption", "").strip()[:300]
         hashtags_raw = request.POST.get("hashtags", "")
         selected = [k for k in request.POST.getlist("kategori") if k in UPLOAD_CATEGORIES]
+        tagged = _get_products(request.POST.getlist("product_ids"))   # pilihan terbaru
 
         if not title:
             errors.append("Judul wajib diisi.")
@@ -369,15 +378,17 @@ def edit(request, pk):
             post.caption = caption
             post.tag = cat_tags[0] if cat_tags else None
             if image:
-                post.image = image                   # tanpa file baru, foto lama dipertahankan
+                post.image = image
             post.save()
             post.categories.set(cat_tags)
+            post.products.set(tagged)
 
             tag_objs = [Tag.objects.get_or_create(name=n)[0] for n in _clean_hashtags(hashtags_raw)]
             post.hashtags.set(tag_objs)
 
             messages.success(request, "Perubahan berhasil disimpan.")
-            return redirect("inspo:user_detail", pk=post.pk)
+        return redirect("inspo:my_posts")
+
     else:
         title = post.title
         caption = post.caption
@@ -386,12 +397,24 @@ def edit(request, pk):
         if post.tag:
             names.add(post.tag.name)
         selected = [c for c in UPLOAD_CATEGORIES if c in names]
+        tagged = list(post.products.all())
 
     return render(request, "inspo/upload.html", _form_context(
         "edit", errors, title, caption, hashtags_raw, selected,
-        current_image=post.image_src, post=post,
+        current_image=post.image_src, post=post, tagged=tagged,
     ))
 
+MAX_TAGGED_PRODUCTS = 10
+def _get_products(raw_ids):
+    """Daftar id (string) -> list Product yang valid. Id rusak atau tidak ada diabaikan."""
+    ids = []
+    for raw in raw_ids:
+        try:
+            ids.append(uuid.UUID(str(raw)))
+        except ValueError:
+            continue
+    ids = list(dict.fromkeys(ids))[:MAX_TAGGED_PRODUCTS]     
+    return list(Product.objects.filter(pk__in=ids)) if ids else []
 
 # --------------------------------------------------------------------------
 # Bookmark
@@ -487,3 +510,54 @@ def likes(request):
         "post", "post__author", "post__tag"
     )
     return render(request, "inspo/likes.html", {"liked_items": items})
+
+# --------------------------------------------------------------------------
+# My Post
+# --------------------------------------------------------------------------
+
+@login_required
+def my_posts(request):
+    posts = (
+        Post.objects.filter(author=request.user)
+        .select_related("tag")
+        .prefetch_related("hashtags")
+        .annotate(like_count=Count("likes", distinct=True))
+    )
+    return render(request, "inspo/my_posts.html", {
+        "posts": posts,
+        "total": len(posts),
+    })
+
+
+def _wants_json(request):
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+
+@login_required
+@require_POST
+def post_quick_edit(request, pk):
+    """Edit cepat dari modal: hanya caption dan hashtag."""
+    post = get_object_or_404(Post, pk=pk, author=request.user)
+    post.caption = request.POST.get("caption", "").strip()[:50]
+    post.save(update_fields=["caption", "updated_at"])
+
+    names = _clean_hashtags(request.POST.get("hashtags", ""))
+    post.hashtags.set([Tag.objects.get_or_create(name=n)[0] for n in names])
+
+    if _wants_json(request):
+        return JsonResponse({"ok": True, "caption": post.caption, "hashtags": names})
+    messages.success(request, "Perubahan berhasil disimpan.")
+    return redirect("inspo:my_posts")
+
+
+@login_required
+@require_POST
+def delete(request, pk):
+    post = get_object_or_404(Post, pk=pk, author=request.user)
+    post.delete()
+
+    if _wants_json(request):
+        total = Post.objects.filter(author=request.user).count()
+        return JsonResponse({"ok": True, "total": total})
+    messages.success(request, "Postingan dihapus.")
+    return redirect("inspo:my_posts")

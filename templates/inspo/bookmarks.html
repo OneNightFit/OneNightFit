@@ -8,163 +8,19 @@
 {% block title %}Bookmarks{% endblock title %}
 
 {% block content %}
-<div class="inspo-page">
-  <div class="inspo-container">
+  <div class="inspo-page">
+    <div class="inspo-container">
 
-    <h1 class="bm-heading">Bookmarks</h1>
-    <p class="bm-meta body-3">
-      <span id="bm-count">{{ total }}</span> Postingan
-      <span class="bm-dot" aria-hidden="true">&bull;</span>
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-      Hanya kamu yang dapat melihatnya
-    </p>
+      <h1 class="bm-heading">Bookmarks</h1>
+      <p class="bm-meta body-3">
+        <span id="bm-count">{{ total }}</span> Postingan
+        <span class="bm-dot" aria-hidden="true">&bull;</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+        Hanya kamu yang dapat melihatnya
+      </p>
 
-    <div class="bm-toolbar">
-      <div class="feed-pill-row">
-        <a href="?urut={{ sort }}" class="feed-pill body-2{% if not active_category %} feed-pill-active{% endif %}">Semua</a>
-        {% for c in categories %}
-          <a href="?kategori={{ c.name|urlencode }}&urut={{ sort }}" class="feed-pill body-2{% if c.name == active_category %} feed-pill-active{% endif %}">{{ c.name }}</a>
-        {% endfor %}
-      </div>
+      {% include 'inspo/_bookmark_list.html' %}
 
-      <form method="get" class="bm-sort">
-        {% if active_category %}<input type="hidden" name="kategori" value="{{ active_category }}">{% endif %}
-        <select name="urut" aria-label="Urutkan" onchange="this.form.submit()">
-          <option value="terbaru" {% if sort == 'terbaru' %}selected{% endif %}>Terbaru disimpan</option>
-          <option value="terlama" {% if sort == 'terlama' %}selected{% endif %}>Terlama disimpan</option>
-        </select>
-      </form>
     </div>
-
-    {% csrf_token %}
-
-    <div class="bm-grid" id="bm-grid">
-      {% for b in items %}
-        {% with post=b.post %}
-        <article class="inspo-card bm-card" data-url="{% url 'inspo:bookmark_toggle' post.id %}" data-category-id="{{ b.category_id|default:'' }}">
-          <div class="inspo-card-img">
-            <a href="{{ post.detail_url }}">
-              <img src="{{ post.image_src }}" alt="{{ post.title }}">
-            </a>
-            <button type="button" class="bm-btn" aria-label="Hapus dari tersimpan">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 3h12a1 1 0 011 1v17l-7-4-7 4V4a1 1 0 011-1z"/></svg>
-            </button>
-          </div>
-          <div class="inspo-card-info bm-info">
-            <a href="{{ post.detail_url }}" class="body-4 inspo-card-title">{{ post.title|default:post.caption|truncatechars:40 }}</a>
-            <p class="body-4 bm-by">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6 19c1.5-3 10.5-3 12 0"/></svg>
-              {{ post.author.get_username|default:"ONF" }}
-            </p>
-            {% if post.tag %}<span class="bm-chip">{{ post.tag.name }}</span>{% endif %}
-          </div>
-        </article>
-        {% endwith %}
-      {% endfor %}
-    </div>
-
-    <div class="bm-empty" id="bm-empty" {% if total %}hidden{% endif %}>
-      <div class="bm-empty-icon">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12a1 1 0 011 1v17l-7-4-7 4V4a1 1 0 011-1z"/></svg>
-      </div>
-      <h2 class="inspo-title">Belum ada postingan tersimpan</h2>
-      <p class="body-3">Tekan ikon bookmark pada postingan favoritmu untuk menyimpannya di sini.</p>
-      <a href="{% url 'inspo:feeds' %}" class="button button-primary">Jelajahi Inspo</a>
-    </div>
-
   </div>
-</div>
-
-<div class="bm-toast" id="bm-toast" role="status" aria-live="polite" hidden>
-  <span id="bm-toast-text">Dihapus dari tersimpan</span>
-  <button type="button" id="bm-undo">Urungkan</button>
-</div>
-
-<script>
-(() => {
-  const grid = document.getElementById('bm-grid');
-  const empty = document.getElementById('bm-empty');
-  const countEl = document.getElementById('bm-count');
-  const toast = document.getElementById('bm-toast');
-  const toastText = document.getElementById('bm-toast-text');
-  const undoBtn = document.getElementById('bm-undo');
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  let last = null;       // { card, next, url, categoryId }
-  let timer = null;
-
-  async function send(url, action, categoryId) {
-    const data = { action };
-    if (categoryId) data.category_id = categoryId;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': csrf },
-      body: new URLSearchParams(data),
-    });
-    if (!res.ok) throw new Error('request failed');
-  }
-
-  function refresh() {
-    const n = grid.querySelectorAll('.bm-card').length;
-    countEl.textContent = n;
-    empty.hidden = n > 0;
-  }
-
-  function showToast(text, withUndo) {
-    toastText.textContent = text;
-    undoBtn.hidden = !withUndo;
-    toast.hidden = false;
-    clearTimeout(timer);
-    timer = setTimeout(() => { toast.hidden = true; last = null; }, 5000);
-  }
-
-  function restore(entry) {
-    const ref = entry.next && entry.next.isConnected ? entry.next : null;
-    grid.insertBefore(entry.card, ref);
-    requestAnimationFrame(() => entry.card.classList.remove('is-removing'));
-    refresh();
-  }
-
-  grid.addEventListener('click', async e => {
-    const btn = e.target.closest('.bm-btn');
-    if (!btn) return;
-    const card = btn.closest('.bm-card');
-    const entry = {
-      card,
-      next: card.nextElementSibling,
-      url: card.dataset.url,
-      categoryId: card.dataset.categoryId,
-    };
-
-    // optimistic: kartu memudar lalu hilang
-    card.classList.add('is-removing');
-    setTimeout(() => { if (card.classList.contains('is-removing')) { card.remove(); refresh(); } }, 250);
-    last = entry;
-    showToast('Dihapus dari tersimpan', true);
-
-    try {
-      await send(entry.url, 'remove');
-    } catch (_) {
-      restore(entry);                       // gagal di server: kembalikan kartu
-      showToast('Gagal menghapus, coba lagi', false);
-    }
-  });
-
-  undoBtn.addEventListener('click', async () => {
-    if (!last) return;
-    const entry = last;
-    last = null;
-    toast.hidden = true;
-    clearTimeout(timer);
-    restore(entry);
-    try {
-      await send(entry.url, 'add', entry.categoryId);   // kembali ke kategori semula
-    } catch (_) {
-      entry.card.remove();
-      refresh();
-      showToast('Gagal mengurungkan', false);
-    }
-  });
-})();
-</script>
 {% endblock content %}

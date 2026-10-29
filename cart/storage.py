@@ -17,8 +17,8 @@ def load_state(user):
     cart = _get_cart(user)
     return {
         "items": [
-            {"id": r.post_id, "days": r.days, "selected": r.selected}
-            for r in cart.items.all()
+            {"id": r.product_id, "days": r.days, "selected": r.selected}
+            for r in cart.items.filter(product__isnull=False)
         ]
     }
 
@@ -30,21 +30,21 @@ def save_state(user, state):
         wanted[item["id"]] = item
 
     with transaction.atomic(): 
-        cart_items = cart.items.all() # hapus barang yang tidak ada dalam state
+        cart_items = cart.items.filter(product__isnull=False)
         for row in cart_items:
-            if row.post_id not in wanted:
+            if row.product_id not in wanted:
                 row.delete()
 
         existing = {} # ambil barang yang masih tersimpan di db
-        for row in cart.items.all():
-            existing[row.post_id] = row
+        for row in cart.items.filter(product__isnull=False):
+            existing[row.product_id] = row
 
         for pid in wanted: # tambah atau perbarui barang
             item = wanted[pid]
             if pid not in existing:
                 CartItem.objects.create(
                     cart = cart,
-                    post_id = pid,
+                    product_id = pid,
                     days = item["days"],
                     selected = item["selected"]
                 )
@@ -60,7 +60,8 @@ def record_rentals(user, summary):
     Rental.objects.bulk_create([
         Rental(
             buyer=user,
-            product_id=i["id"],
+            product_id=None,
+            product_uuid=i["id"],
             product_name=i["name"],
             image=i["image"] or "",
             store_slug=g["slug"],

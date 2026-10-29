@@ -447,7 +447,7 @@ class EditTests(TestCase):
             "hashtags": "y2k",
             "kategori": ["Man"],
         })
-        self.assertRedirects(res, reverse("inspo:user_detail", args=[self.post.pk]))
+        self.assertRedirects(res, reverse("inspo:my_posts"))
         self.post.refresh_from_db()
         self.assertEqual(self.post.title, "Baru")
         self.assertEqual(self.post.caption, "caption baru")
@@ -626,38 +626,33 @@ class BookmarksPageTests(TestCase):
     def test_endpoint_bookmark_categories_wajib_login(self):
         res = self.client.get(reverse("inspo:bookmark_categories"))
         self.assertEqual(res.status_code, 302)
+class MyPostsTests(TestCase):
+    def setUp(self):
+        self.user = make_user()
+        self.other = make_user("bob")
+        self.mine = Post.objects.create(author=self.user, title="Punyaku")
+        Post.objects.create(author=self.other, title="Punya Bob")
 
+    def test_wajib_login(self):
+        self.assertEqual(self.client.get(reverse("inspo:my_posts")).status_code, 302)
 
-# --------------------------------------------------------------------------
-# LATIHAN TDD (fitur Delete belum ada di views.py)
-# Hapus tanda '#' di bawah, jalankan test -> harus MERAH (red).
-# Lalu tulis view `delete` + path "post/<int:pk>/delete/" name="delete"
-# sampai HIJAU (green), baru refactor.
-# --------------------------------------------------------------------------
-#
-# class DeletePostTests(TestCase):
-#     def setUp(self):
-#         self.user = make_user()
-#         self.other = make_user("bob")
-#         self.post = Post.objects.create(author=self.user, title="Outfit")
-#         self.url = reverse("inspo:delete", args=[self.post.pk])
-#
-#     def test_wajib_login(self):
-#         res = self.client.post(self.url)
-#         self.assertEqual(res.status_code, 302)
-#         self.assertEqual(Post.objects.count(), 1)
-#
-#     def test_pemilik_bisa_hapus(self):
-#         self.client.login(username="alice", password="pw12345")
-#         res = self.client.post(self.url)
-#         self.assertRedirects(res, reverse("inspo:feeds"), fetch_redirect_response=False)
-#         self.assertEqual(Post.objects.count(), 0)
-#
-#     def test_orang_lain_404(self):
-#         self.client.login(username="bob", password="pw12345")
-#         self.assertEqual(self.client.post(self.url).status_code, 404)
-#         self.assertEqual(Post.objects.count(), 1)
-#
-#     def test_get_ditolak_405(self):
-#         self.client.login(username="alice", password="pw12345")
-#         self.assertEqual(self.client.get(self.url).status_code, 405)
+    def test_hanya_tampilkan_post_milik_sendiri(self):
+        self.client.login(username="alice", password="pw12345")
+        res = self.client.get(reverse("inspo:my_posts"))
+        self.assertEqual([p.title for p in res.context["posts"]], ["Punyaku"])
+        self.assertEqual(res.context["total"], 1)
+
+    def test_quick_edit_tidak_menghapus_kategori(self):
+        man = Tag.objects.create(name="Man")
+        self.mine.categories.add(man)
+        self.client.login(username="alice", password="pw12345")
+        self.client.post(reverse("inspo:quick_edit", args=[self.mine.pk]),
+                         {"caption": "baru", "hashtags": "ootd"})
+        self.mine.refresh_from_db()
+        self.assertEqual(self.mine.caption, "baru")
+        self.assertEqual(self.mine.categories.count(), 1)   # tetap utuh
+
+    def test_quick_edit_post_orang_lain_404(self):
+        self.client.login(username="bob", password="pw12345")
+        res = self.client.post(reverse("inspo:quick_edit", args=[self.mine.pk]), {"caption": "x"})
+        self.assertEqual(res.status_code, 404)
