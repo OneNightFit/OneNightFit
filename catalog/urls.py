@@ -34,15 +34,14 @@ urlpatterns = [
     # Detail view for a specific product
     path('<uuid:id>/', views.product_detail, name='product_detail'),
     
-    # Add new product
-    path('create/', views.create_product, name='create_product'),
-    
-    # Edit existing product
-    path('edit/<uuid:id>/', views.edit_product, name='edit_product'),
-    
-    # Delete product
-    path('delete/<uuid:id>/', views.delete_product, name='delete_product'),
+    path('json/', views.get_products_json, name='get_products_json'),
+    path('create-ajax/', views.create_product_ajax, name='create_product_ajax'),
+    path('edit-ajax/<uuid:id>/', views.edit_product_ajax, name='edit_product_ajax'),
+    path('delete-ajax/<uuid:id>/', views.delete_product_ajax, name='delete_product_ajax'),
     
     # Toggle wishlist status
     path('wishlist/toggle/<uuid:id>/', views.toggle_wishlist, name='toggle_wishlist'),
+    
+    # Add to cart
+    path('cart/add/<uuid:id>/', views.add_to_cart, name='add_to_cart'),
 ]

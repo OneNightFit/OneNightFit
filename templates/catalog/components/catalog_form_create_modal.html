@@ -18,9 +18,10 @@
                 aria-label="Tutup form tambah product">×</button>
 
         <h2 id="add-product-modal-title">Tambah product Baru</h2>
-        <form id="product-form"
+        <form id="add-product-form"
               method="post"
-              action="{% url 'catalog:create_product' %}"
+              enctype="multipart/form-data"
+              action="{% url 'catalog:create_product_ajax' %}"
               class="product-form">
             {% csrf_token %}
             {% for field in form %}

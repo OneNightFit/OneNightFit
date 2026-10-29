@@ -10,130 +10,72 @@
 {% block content %}
     <main>
         <div class="header">
+            <!-- #TODO: Search Bar -->
         </div>
-        <div class="contents">
-            <div class="filters">
-                <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
-                    <div class="filter-card">
-                        <div class="filter-header" id="filter-header">
-                            <p class="filter-title">GARMENT CATEGORY</p>
-                            <button type="button" class="filter-toggle" aria-expanded="true" aria-controls="filter-categories">
-                                <span class="filter-toggle-icon" aria-hidden="true">&minus;</span>
-                            </button>
-                        </div>
-                        
-                        <div class="filter-categories" id="filter-categories">
-                            {% for code, name, count in categories %}
-                                <div class="filter-category-item">
-                                    <div class="filter-checkbox-group">
-                                        <input type="checkbox" 
-                                            id="cat-{{ code }}" 
-                                            name="category" 
-                                            value="{{ code }}" 
-                                            class="filter-checkbox"
-                                            {% if code in selected_categories %}checked{% endif %}
-                                            onchange="document.getElementById('filter-form').submit();">
-                                        <label for="cat-{{ code }}" class="category-name">
-                                            {{ name }}
-                                        </label>
-                                    </div>
-                                    <span class="category-count">{{ count }}</span>
-                                </div>
-                            {% empty %}
-                                <p class="empty-categories">No categories found.</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Clear Filters Button -->
-                        {% if selected_categories %}
-                        <div class="filter-actions">
-                            <a href="{% url 'catalog:catalog_list' %}" class="clear-filter-btn">Clear Filters</a>
-                        </div>
-                        {% endif %}
-                        
+        <div class="container">
+            <div class="product-sidebar">
+                {% if user.is_authenticated and user.profile.is_seller %}
+                    <div style="margin-bottom: 20px;">
+                        <button type="button" class="button button-primary" popovertarget="add-product-modal">Add New Product</button>
                     </div>
-                </form>
+                    {% include 'catalog/components/catalog_form_create_modal.html' %}
+                {% endif %}
+                <div class="filters">
+                    <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
+                        <div class="filter-card">
+                            <div class="filter-header" id="filter-header">
+                                <p class="filter-title">GARMENT CATEGORY</p>
+                                <button type="button" class="filter-toggle" aria-expanded="true" aria-controls="filter-categories">
+                                    <span class="filter-toggle-icon" aria-hidden="true">&minus;</span>
+                                </button>
+                            </div>
+                            
+                            <div class="filter-categories" id="filter-categories">
+                                {% for code, name, count in categories %}
+                                    <div class="filter-category-item">
+                                        <div class="filter-checkbox-group">
+                                            <input type="checkbox" 
+                                                id="cat-{{ code }}" 
+                                                name="category" 
+                                                value="{{ code }}" 
+                                                class="filter-checkbox"
+                                                {% if code in selected_categories %}checked{% endif %}
+                                                onchange="document.getElementById('filter-form').submit();">
+                                            <label for="cat-{{ code }}" class="category-name">
+                                                {{ name }}
+                                            </label>
+                                        </div>
+                                        <span class="category-count">{{ count }}</span>
+                                    </div>
+                                {% empty %}
+                                    <p class="empty-categories">No categories found.</p>
+                                {% endfor %}
+                            </div>
+    
+                            <!-- Clear Filters Button -->
+                            {% if selected_categories %}
+                            <div class="filter-actions">
+                                <a href="{% url 'catalog:catalog_list' %}" class="clear-filter-btn">Clear Filters</a>
+                            </div>
+                            {% endif %}
+                            
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            {% if user.is_authenticated and user.profile.is_seller %}
-                <div style="margin-bottom: 20px;">
-                    <button type="button" class="button button-primary" popovertarget="add-product-modal">Add New Product</button>
-                </div>
-                {% include 'components/catalog_form_create_modal.html' %}
-            {% endif %}
             <div class="cards-container">
-                <div class="cards">
-                    {% for product in products %}
-                        <div class="card">
-                            <!-- Button wishlist -->
-                            <form method="post" action="{% url 'catalog:toggle_wishlist' product.id %}" class="wishlist-form">
-                                {% csrf_token %}
-                                <button type="submit" 
-                                        class="button-wishlist {% if user in product.wishlisted_by.all %}is-wishlisted{% endif %}"
-                                        title="Toggle Wishlist">
-                                        
-                                    {% if user in product.wishlisted_by.all %}
-                                        <!-- Icon Wishlisted -->
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                        </svg>
-                                    {% else %}
-                                        <!-- Icon Not Wishlisted -->
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                        </svg>
-                                    {% endif %}
-
-                                </button>
-                            </form>
-                            
-                            <div class="image">
-                                <img src="{{ product.image }}" alt="{{ product.name }}">
-                            </div>
-                            
-                            <div class="product-card-contents">
-                                <div class="product-details">
-                                    <div class="product-category-price">
-                                        <p class="product-category">{{ product.get_category_display }}</p>
-                                        <p class="product-price">Rp {{ product.price }}</p>
-                                    </div>
-                                    <div class="details-contents">
-                                        <p class="product-name">{{ product.name }}</p>
-                                        <p class="product-description">{{ product.description|truncatewords:15 }}</p>
-                                        <p class="product-size">Ukuran: {{ product.get_size_display }}</p>
-                                        <div class="rating">
-                                            <span class="rate-count">⭐ {{ product.average_rating }}</span>
-                                            <span class="rate-count">({{ product.rating_count }} reviews)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="product-actions">
-                                    <!-- Tombol Add to Cart: Tampil untuk Guest dan User (Bukan Seller) -->
-                                    {% if not user.is_authenticated or not user.profile.is_seller %}
-                                        {% if user.is_authenticated %}
-                                            <a href="{% url 'catalog:add_to_cart' product.id %}" class="button button-primary">Add to cart</a>
-                                        {% else %}
-                                            <a href="#" class="button button-primary">Add to cart</a>
-                                        {% endif %}
-                                    {% endif %}
-
-                                    <!-- Tombol Update dan Delete: Hanya tampil untuk Seller -->
-                                    {% if user.is_authenticated and user.profile.is_seller %}
-                                        <button type="button" class="button button-secondary" popovertarget="update-product-modal-{{ product.id }}">Edit Item</button>
-                                        {% include 'components/catalog_delete_modal.html' with product=product %}
-                                        {% include 'components/catalog_form_update_modal.html' with product=product %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <p>Belum ada produk di katalog.</p>
-                    {% endfor %}
-                </div>
+                <div id="loading" class="empty-state hide"><p>Memuat produk...</p></div>
+                <div id="error" class="empty-state hide"><p>Gagal memuat produk. Silakan coba lagi.</p></div>
+                <div id="empty" class="empty-state hide"></div>
+                <div id="grid" class="cards hide"></div>
             </div>
         </div>
     </main>
+    {% if user.is_authenticated and user.profile.is_seller %}
+        {% include 'catalog/components/catalog_form_update_modal.html' %}
+    {% endif %}
+    {{ selected_categories|json_script:"selected-categories" }}
     <script>
         // Button di expand/close filter
         document.addEventListener('DOMContentLoaded', () => {
@@ -158,5 +100,311 @@
                 setCollapsed(!list.classList.contains('is-collapsed'));
             });
         });
+
+        const PRODUCTS_ENDPOINT = "{% url 'catalog:get_products_json' %}";
+        const CREATE_PRODUCT_ENDPOINT = "{% url 'catalog:create_product_ajax' %}";
+        const IS_SELLER = "{% if user.is_authenticated and user.profile.is_seller %}true{% else %}false{% endif %}" === "true";
+        const CSRF_TOKEN = "{{ csrf_token }}";
+        const DUMMY_ID = '00000000-0000-0000-0000-000000000000';
+        const EDIT_URL = "{% url 'catalog:edit_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
+        const DELETE_URL = "{% url 'catalog:delete_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
+        const WISHLIST_URL = "{% url 'catalog:toggle_wishlist' '00000000-0000-0000-0000-000000000000' %}";
+        const CART_URL = "{% url 'catalog:add_to_cart' '00000000-0000-0000-0000-000000000000' %}";
+
+        const selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
+        const productsById = new Map();
+        let productsAbortController;
+
+        const loadingState = document.getElementById('loading');
+        const errorState = document.getElementById('error');
+        const emptyState = document.getElementById('empty');
+        const gridContainer = document.getElementById('grid');
+
+        const addProductForm = document.getElementById('add-product-form');
+        const updateProductForm = document.getElementById('update-product-form');
+        const updateProductModal = document.getElementById('update-product-modal');
+
+        const PRODUCT_FIELDS = ['name', 'category', 'size', 'description', 'price', 'image'];
+
+        const ICON_WISHLISTED = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+        const ICON_NOT_WISHLISTED = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value ?? '';
+            return div.innerHTML;
+        }
+
+        function notify(title, message, type) {
+            if (typeof showToast === 'function') showToast(title, message, type);
+            else alert(`${title}: ${message}`);
+        }
+
+        function truncateWords(text, limit) {
+            const words = (text || '').split(/\s+/);
+            return words.length > limit ? words.slice(0, limit).join(' ') + '…' : text;
+        }
+
+        function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+            loadingState.classList.toggle('hide', !showLoading);
+            errorState.classList.toggle('hide', !showError);
+            emptyState.classList.toggle('hide', !showEmpty);
+            gridContainer.classList.toggle('hide', !showGrid);
+        }
+
+        function buildProductCardElement(item) {
+            const product = item.fields;
+            const id = item.pk;
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Ubah menjadi button dengan data-action="wishlist"
+            const wishlistHtml = !IS_SELLER
+                ? `<button type="button"
+                            class="button-wishlist${product.is_wishlisted ? ' is-wishlisted' : ''}"
+                            data-action="wishlist" data-id="${escapeHtml(id)}"
+                            title="Toggle Wishlist">
+                        ${product.is_wishlisted ? ICON_WISHLISTED : ICON_NOT_WISHLISTED}
+                    </button>`
+                : '';
+
+            // Ubah link Add to cart menjadi button dengan data-action="cart"
+            const actionsHtml = !IS_SELLER
+                ? `<button type="button" class="button button-primary" data-action="cart" data-id="${escapeHtml(id)}">Add to cart</button>`
+                : product.is_owner
+                    ? `<button type="button" class="button button-secondary" data-action="edit" data-id="${escapeHtml(id)}">Edit</button>
+                       <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}">Delete</button>`
+                    : '';
+
+            card.innerHTML = `
+                ${wishlistHtml}
+                <div class="image">
+                    <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}">
+                </div>
+                <div class="product-card-contents">
+                    <div class="product-details">
+                        <div class="product-category-price">
+                            <p class="product-category">${escapeHtml(product.category_display)}</p>
+                            <p class="product-price">Rp ${escapeHtml(product.price)}</p>
+                        </div>
+                        <div class="details-contents">
+                            <p class="product-name">${escapeHtml(product.name)}</p>
+                            <p class="product-seller">Seller: ${escapeHtml(product.seller)}</p>
+                            <p class="product-description">${escapeHtml(truncateWords(product.description, 15))}</p>
+                            <p class="product-size">Ukuran: ${escapeHtml(product.size_display)}</p>
+                            <div class="rating">
+                                <span class="rate-count">  ${product.average_rating}</span>
+                                <span class="rate-count">(${product.rating_count} reviews)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-actions">${actionsHtml}</div>
+                </div>
+            `;
+            return card;
+        }
+
+        async function fetchProducts() {
+            if (productsAbortController) productsAbortController.abort();
+            productsAbortController = new AbortController();
+
+            try {
+                displayPageSection({ showLoading: true });
+
+                const params = new URLSearchParams();
+                selectedCategories.forEach(c => params.append('category', c));
+                const qs = params.toString();
+
+                const response = await fetch(qs ? `${PRODUCTS_ENDPOINT}?${qs}` : PRODUCTS_ENDPOINT, {
+                    headers: { 'Accept': 'application/json' },
+                    signal: productsAbortController.signal,
+                });
+                if (!response.ok) throw new Error('Failed to fetch data');
+
+                const products = await response.json();
+
+                productsById.clear();
+                if (products.length === 0) {
+                    emptyState.innerHTML = IS_SELLER
+                        ? '<p>Anda belum menambahkan produk. Klik "Add New Product" untuk memulai.</p>'
+                        : '<p>Belum ada produk di katalog.</p>';
+                    displayPageSection({ showEmpty: true });
+                    return;
+                }
+
+                gridContainer.innerHTML = '';
+                products.forEach(item => {
+                    productsById.set(item.pk, item.fields);
+                    gridContainer.appendChild(buildProductCardElement(item));
+                });
+                displayPageSection({ showGrid: true });
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                console.error('Error loading products:', error);
+                displayPageSection({ showError: true });
+            }
+        }
+
+        function extractErrors(result, status) {
+            return result.errors
+                ? Object.values(result.errors).flat().map(e => e.message).join(' ')
+                : (result.message || `Terjadi kesalahan (status ${status}).`);
+        }
+
+        async function postForm(form, url) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF_TOKEN },
+                body: new FormData(form),
+            });
+            const result = await response.json().catch(() => ({}));
+            return { response, result };
+        }
+
+        // CREATE
+        async function addProduct(event) {
+            event.preventDefault();
+            const submitButton = addProductForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            try {
+                const { response, result } = await postForm(addProductForm, CREATE_PRODUCT_ENDPOINT);
+                if (response.ok) {
+                    addProductForm.reset();
+                    document.getElementById('add-product-modal').hidePopover();
+                    notify('Berhasil', 'Produk baru berhasil ditambahkan!', 'success');
+                    fetchProducts();
+                } else {
+                    notify('Gagal menambahkan produk', extractErrors(result, response.status), 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Gagal menambahkan produk', 'Tidak dapat terhubung ke server.', 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
+        }
+
+        // UPDATE: isi modal dari data JSON (bukan dari DOM card)
+        function openUpdateProductModal(id) {
+            const product = productsById.get(id);
+            if (!product) return;
+
+            PRODUCT_FIELDS.forEach(key => {
+                const el = updateProductForm.elements.namedItem(key);
+                if (el) el.value = product[key] ?? '';
+            });
+            updateProductForm.action = EDIT_URL.replace(DUMMY_ID, id);
+            updateProductModal.showPopover();
+        }
+
+        async function updateProduct(event) {
+            event.preventDefault();
+            const submitButton = updateProductForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            try {
+                const { response, result } = await postForm(updateProductForm, updateProductForm.action);
+                if (response.ok) {
+                    updateProductModal.hidePopover();
+                    notify('Berhasil', 'Produk berhasil diperbarui!', 'success');
+                    fetchProducts();
+                } else {
+                    notify('Gagal memperbarui produk', extractErrors(result, response.status), 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Gagal memperbarui produk', 'Tidak dapat terhubung ke server.', 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
+        }
+
+        // DELETE
+        async function deleteProduct(id) {
+            if (!confirm('Yakin ingin menghapus produk ini?')) return;
+            try {
+                const response = await fetch(DELETE_URL.replace(DUMMY_ID, id), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN },
+                });
+                const result = await response.json().catch(() => ({}));
+                if (response.ok) {
+                    notify('Berhasil', 'Produk berhasil dihapus!', 'success');
+                    fetchProducts();
+                } else {
+                    notify('Gagal menghapus produk', extractErrors(result, response.status), 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Gagal menghapus produk', 'Tidak dapat terhubung ke server.', 'error');
+            }
+        }
+
+        async function toggleWishlist(id) {
+            try {
+                const response = await fetch(WISHLIST_URL.replace(DUMMY_ID, id), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN }
+                });
+                
+                if (response.ok) {
+                    // Cek jika Django redirect ke halaman login
+                    if (response.redirected && response.url.includes('/login')) {
+                         window.location.href = response.url; 
+                         return;
+                    }
+                    notify('Berhasil', 'Status wishlist berhasil diperbarui!', 'success');
+                    fetchProducts(); // Refresh products grid secara seamless
+                } else {
+                    notify('Gagal', 'Gagal memperbarui wishlist.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+            }
+        }
+
+        async function addToCart(id) {
+            try {
+                const response = await fetch(CART_URL.replace(DUMMY_ID, id), {
+                    method: 'POST', // Ubah dari GET menjadi POST
+                    headers: { 'X-CSRFToken': CSRF_TOKEN } // Tambahkan CSRF token
+                });
+                
+                if (response.status === 401) {
+                    window.location.href = '/login/'; // Redirect jika tidak terautentikasi
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    notify('Berhasil', result.message, 'success');
+                } else {
+                    notify('Gagal', result.message || 'Gagal menambahkan produk.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+            }
+        }
+
+        // Event delegation untuk semua action buttons di grid (Edit, Delete, Cart, Wishlist)
+        gridContainer.addEventListener('click', event => {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+            
+            const action = button.dataset.action;
+            const id = button.dataset.id;
+            
+            if (action === 'edit') openUpdateProductModal(id);
+            if (action === 'delete') deleteProduct(id);
+            if (action === 'wishlist') toggleWishlist(id);
+            if (action === 'cart') addToCart(id);
+        });
+
+        if (addProductForm) addProductForm.addEventListener('submit', addProduct);
+        if (updateProductForm) updateProductForm.addEventListener('submit', updateProduct);
+
+        fetchProducts();
     </script>
 {% endblock content %}
