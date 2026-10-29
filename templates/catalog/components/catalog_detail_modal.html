@@ -1,0 +1,44 @@
+<div id="product-detail-modal"
+     class="product-modal"
+     popover="auto"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="product-detail-title">
+
+    <button type="button"
+        class="product-modal__backdrop"
+        popovertarget="product-detail-modal"
+        popovertargetaction="hide"
+        aria-label="Tutup detail produk"></button>
+
+    <div class="product-modal__content">
+        <button type="button"
+            class="product-modal__close subheading-5"
+            popovertarget="product-detail-modal"
+            popovertargetaction="hide"
+            aria-label="Tutup detail produk">&times;</button>
+
+                <div class="image-container">
+            <img id="detail-image" alt="" hidden>
+        </div>
+
+        <div class="card-content">
+            <span id="detail-category" class="category body-5"></span>
+            <h4 id="product-detail-title" class="product-title"></h4>
+            <p id="detail-desc" class="product-desc body-3"></p>
+
+            <div class="product-info body-3">
+                <p id="detail-price"></p>
+                <p id="detail-rating"></p>
+                <p id="detail-reviews"></p>
+                <p id="detail-seller"></p>
+                <p id="detail-meta"></p>
+            </div>
+
+            <div class="detail-actions">
+                <button type="button" id="detail-cart" class="button button-primary" data-action="cart">Add to cart</button>
+                <button type="button" id="detail-wishlist" class="button button-secondary" data-action="wishlist">Add to wishlist</button>
+            </div>
+        </div>
+    </div>
+</div>
