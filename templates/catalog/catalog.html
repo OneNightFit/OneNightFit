@@ -10,62 +10,66 @@
 {% block content %}
     <main>
         <div class="header">
+            <!-- #TODO: Search Bar -->
         </div>
-        <div class="contents">
-            <div class="filters">
-                <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
-                    <div class="filter-card">
-                        <div class="filter-header" id="filter-header">
-                            <p class="filter-title">GARMENT CATEGORY</p>
-                            <button type="button" class="filter-toggle" aria-expanded="true" aria-controls="filter-categories">
-                                <span class="filter-toggle-icon" aria-hidden="true">&minus;</span>
-                            </button>
-                        </div>
-                        
-                        <div class="filter-categories" id="filter-categories">
-                            {% for code, name, count in categories %}
-                                <div class="filter-category-item">
-                                    <div class="filter-checkbox-group">
-                                        <input type="checkbox" 
-                                            id="cat-{{ code }}" 
-                                            name="category" 
-                                            value="{{ code }}" 
-                                            class="filter-checkbox"
-                                            {% if code in selected_categories %}checked{% endif %}
-                                            onchange="document.getElementById('filter-form').submit();">
-                                        <label for="cat-{{ code }}" class="category-name">
-                                            {{ name }}
-                                        </label>
-                                    </div>
-                                    <span class="category-count">{{ count }}</span>
-                                </div>
-                            {% empty %}
-                                <p class="empty-categories">No categories found.</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Clear Filters Button -->
-                        {% if selected_categories %}
-                        <div class="filter-actions">
-                            <a href="{% url 'catalog:catalog_list' %}" class="clear-filter-btn">Clear Filters</a>
-                        </div>
-                        {% endif %}
-                        
+        <div class="container">
+            <div class="product-sidebar">
+                {% if user.is_authenticated and user.profile.is_seller %}
+                    <div style="margin-bottom: 20px;">
+                        <button type="button" class="button button-primary" popovertarget="add-product-modal">Add New Product</button>
                     </div>
-                </form>
+                    {% include 'catalog/components/catalog_form_create_modal.html' %}
+                {% endif %}
+                <div class="filters">
+                    <form method="GET" action="{% url 'catalog:catalog_list' %}" id="filter-form">
+                        <div class="filter-card">
+                            <div class="filter-header" id="filter-header">
+                                <p class="filter-title">GARMENT CATEGORY</p>
+                                <button type="button" class="filter-toggle" aria-expanded="true" aria-controls="filter-categories">
+                                    <span class="filter-toggle-icon" aria-hidden="true">&minus;</span>
+                                </button>
+                            </div>
+                            
+                            <div class="filter-categories" id="filter-categories">
+                                {% for code, name, count in categories %}
+                                    <div class="filter-category-item">
+                                        <div class="filter-checkbox-group">
+                                            <input type="checkbox" 
+                                                id="cat-{{ code }}" 
+                                                name="category" 
+                                                value="{{ code }}" 
+                                                class="filter-checkbox"
+                                                {% if code in selected_categories %}checked{% endif %}
+                                                onchange="document.getElementById('filter-form').submit();">
+                                            <label for="cat-{{ code }}" class="category-name">
+                                                {{ name }}
+                                            </label>
+                                        </div>
+                                        <span class="category-count">{{ count }}</span>
+                                    </div>
+                                {% empty %}
+                                    <p class="empty-categories">No categories found.</p>
+                                {% endfor %}
+                            </div>
+    
+                            <!-- Clear Filters Button -->
+                            {% if selected_categories %}
+                            <div class="filter-actions">
+                                <a href="{% url 'catalog:catalog_list' %}" class="clear-filter-btn">Clear Filters</a>
+                            </div>
+                            {% endif %}
+                            
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            {% if user.is_authenticated and user.profile.is_seller %}
-                <div style="margin-bottom: 20px;">
-                    <button type="button" class="button button-primary" popovertarget="add-product-modal">Add New Product</button>
-                </div>
-                {% include 'components/catalog_form_create_modal.html' %}
-            {% endif %}
             <div class="cards-container">
                 <div class="cards">
                     {% for product in products %}
                         <div class="card">
                             <!-- Button wishlist -->
+                            {% if not user.profile.is_seller %}
                             <form method="post" action="{% url 'catalog:toggle_wishlist' product.id %}" class="wishlist-form">
                                 {% csrf_token %}
                                 <button type="submit" 
@@ -86,6 +90,7 @@
 
                                 </button>
                             </form>
+                            {% endif %}
                             
                             <div class="image">
                                 <img src="{{ product.image }}" alt="{{ product.name }}">
@@ -99,6 +104,7 @@
                                     </div>
                                     <div class="details-contents">
                                         <p class="product-name">{{ product.name }}</p>
+                                        <p class="product-seller">Seller: {{ product.seller.username }}</p>
                                         <p class="product-description">{{ product.description|truncatewords:15 }}</p>
                                         <p class="product-size">Ukuran: {{ product.get_size_display }}</p>
                                         <div class="rating">
@@ -109,26 +115,28 @@
                                 </div>
                                 
                                 <div class="product-actions">
-                                    <!-- Tombol Add to Cart: Tampil untuk Guest dan User (Bukan Seller) -->
-                                    {% if not user.is_authenticated or not user.profile.is_seller %}
-                                        {% if user.is_authenticated %}
-                                            <a href="{% url 'catalog:add_to_cart' product.id %}" class="button button-primary">Add to cart</a>
-                                        {% else %}
-                                            <a href="#" class="button button-primary">Add to cart</a>
-                                        {% endif %}
-                                    {% endif %}
-
-                                    <!-- Tombol Update dan Delete: Hanya tampil untuk Seller -->
                                     {% if user.is_authenticated and user.profile.is_seller %}
-                                        <button type="button" class="button button-secondary" popovertarget="update-product-modal-{{ product.id }}">Edit Item</button>
-                                        {% include 'components/catalog_delete_modal.html' with product=product %}
-                                        {% include 'components/catalog_form_update_modal.html' with product=product %}
+                                        <!-- Seller: Edit & Delete -->
+                                        <button type="button" class="button button-secondary"
+                                                popovertarget="update-product-modal-{{ product.id }}">Edit</button>
+                                        <button type="button" class="button button-danger"
+                                                popovertarget="delete-product-modal-{{ product.id }}">Delete</button>
+
+                                        {% include 'catalog/components/catalog_delete_modal.html' with product=product %}
+                                        {% include 'catalog/components/catalog_form_update_modal.html' with product=product %}
+                                    {% else %}
+                                        <!-- Guest & user biasa: Add to cart -->
+                                        <a href="{% url 'catalog:add_to_cart' product.id %}" class="button button-primary">Add to cart</a>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     {% empty %}
-                        <p>Belum ada produk di katalog.</p>
+                        {% if user.is_authenticated and user.profile.is_seller %}
+                            <p>Anda belum menambahkan produk. Klik "Add New Product" untuk memulai.</p>
+                        {% else %}
+                            <p>Belum ada produk di katalog.</p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
