@@ -22,7 +22,7 @@
       {% if user.profile.is_seller %}
       <a href="{% url 'authentication:shop_report' %}" {% if current == "shop_report" %}class="active" aria-current="page"{% endif %}>Shop Report</a>
       {% else %}
-      <a href="{% url 'inspo:my_posts' %}" class="myposts-upload">My Post</a>
+      <a href="{% url 'inspo:my_posts' %}" {% if current == "my_posts" %}class="active" aria-current="page"{% endif %}>My Post</a>
       <a href="{% url 'authentication:activity' %}" {% if current == "activity" %}class="active" aria-current="page"{% endif %}>Activity</a>
       <a href="{% url 'authentication:rentals' %}" {% if current == "rentals" %}class="active" aria-current="page"{% endif %}>Rentals</a>
       {% endif %}
