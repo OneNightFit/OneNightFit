@@ -4,6 +4,7 @@
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 2rem;
 }
 
 /* ==========================================================================
@@ -43,7 +44,7 @@
     padding: 0.8rem 1rem;
     border: 1px solid var(--primary_500);
     border-radius: 0.5rem;
-    background: var(--primary_100);
+    background: var(--primary_800);
     color: var(--secondary_950);
     font: inherit;
 }
@@ -386,6 +387,16 @@
     width: 90%;
     margin: auto;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Keep long create/update forms inside the viewport and scroll them in place. */
+.product-form-modal {
+    box-sizing: border-box;
+    margin: 2rem auto;
+    max-height: calc(100vh - 4rem);
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .product-form-modal::backdrop,
