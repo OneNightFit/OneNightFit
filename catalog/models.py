@@ -7,14 +7,6 @@ import random
 
 def get_random_size():
     return random.choice(['S', 'M', 'L', 'XL'])
-def get_random_seller():
-    SELLER = [
-        ("forza_ferrari", "Forza Ferrari"),
-        ("knuckle_velvet", "Knuckle Velvet"),
-        ("alley_rose", "Alley Rose"),
-        ("ex_machina", "Ex Machina"),
-    ]
-    return random.choice(SELLER)[0]
 
 class Product(models.Model):
     PRODUCT_CATEGORY = [
@@ -41,9 +33,6 @@ class Product(models.Model):
     size = models.CharField(max_length=2, choices=SIZE_CHOICES, default=get_random_size)
     wishlisted_by = models.ManyToManyField(
         User, related_name="wishlisted_product", blank=True
-    )
-    rated_by = models.ManyToManyField(
-        User, related_name="rated_by", blank=True
     )
     def __str__(self):
         return self.name
