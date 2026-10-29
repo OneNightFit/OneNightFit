@@ -1,4 +1,4 @@
-<div id="update-product-modal-{{ product.id }}"
+<div id="update-product-modal"
      class="product-form-modal"
      popover="auto"
      role="dialog"
@@ -11,27 +11,21 @@
         aria-label="Tutup form update product"></button>
 
     <div class="product-form-modal__content">
-    <button type="button"
-        class="product-form-modal__close"
-        popovertarget="update-product-modal"
-        popovertargetaction="hide"
-        aria-label="Tutup form update product">×</button>
+        <button type="button"
+            class="product-form-modal__close"
+            popovertarget="update-product-modal"
+            popovertargetaction="hide"
+            aria-label="Tutup form update product">×</button>
 
-    <h2 id="update-product-modal-title-{{ product.id }}">Edit Produk</h2>
-    <form id="update-product-form-{{ product.id }}"
-          method="post"
-          action=""
-          class="product-form">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% for error in field.errors %}
-                    <p class="form-error">{{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endfor %}
+        <h2 id="update-product-modal-title">Edit Produk</h2>
+        <form id="update-product-form" method="post" enctype="multipart/form-data" action="" class="product-form">
+            {% csrf_token %}
+            {% for field in update_form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
             <div class="product-form-modal__actions">
                 <button type="button"
                         class="button button-secondary"
