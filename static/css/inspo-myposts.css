@@ -24,7 +24,18 @@
 .mp-btn:focus-visible { outline: 2px solid var(--mp-pink); outline-offset: 2px; }
 .mp-btn[disabled] { opacity: .6; cursor: progress; }
 .mp-btn--pill { border-radius: 999px; }
-.mp-btn--light { background: var(--mp-pink); color: var(--secondary_950); }
+.mp-btn--light,
+.onf-auth a.mp-btn--light,
+.myposts-page a.mp-btn--light {
+  background: var(--mp-pink, #F9B9FF);
+  color: var(--secondary_950);
+}
+.mp-btn--light:hover,
+.onf-auth a.mp-btn--light:hover,
+.myposts-page a.mp-btn--light:hover {
+  background: var(--primary_150);
+  color: var(--secondary_950);
+}
 .mp-btn--light:hover { background: var(--primary_150); }
 .mp-btn--primary { background: var(--gradient_primary); color: var(--neutral_0); }
 .mp-btn--primary:hover { background: var(--button_primary__hovered); }
