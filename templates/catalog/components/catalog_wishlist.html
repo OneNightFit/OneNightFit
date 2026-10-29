@@ -2,7 +2,7 @@
     {% csrf_token %}
     <button type="submit"
             class="button button-star{% if user in product.wishlisted_by.all %} is-wishlisted{% endif %}"
-            title="{% if product.starred_by.all %}Dimasukkan ke wishlist oleh {{ product.wishlisted_by.all|join:', ' }}{% else %}Jadilah yang pertama memasukkan ke wishlist{% endif %}">
+            title="{% if product.product.wishlisted_by.all %}Dimasukkan ke wishlist oleh {{ product.wishlisted_by.all|join:', ' }}{% else %}Jadilah yang pertama memasukkan ke wishlist{% endif %}">
         <span aria-hidden="true">🤍</span>
         {% if user in product.wishlisted_by.all %}Undo add to wishlist{% else %}Add to wishlist{% endif %}
         <span class="star-count">{{ product.wishlisted_by.count }}</span>
