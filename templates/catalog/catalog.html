@@ -76,7 +76,6 @@
         {% include 'catalog/components/catalog_form_update_modal.html' %}
     {% endif %}
     {{ selected_categories|json_script:"selected-categories" }}
-    {% include 'catalog/components/catalog_detail_modal.html' %}
     <script>
         // Button di expand/close filter
         document.addEventListener('DOMContentLoaded', () => {
@@ -129,7 +128,6 @@
 
         const ICON_WISHLISTED = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
         const ICON_NOT_WISHLISTED = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-        const DETAIL_URL = "{% url 'catalog:product_detail' '00000000-0000-0000-0000-000000000000' %}";
 
         function escapeHtml(value) {
             const div = document.createElement('div');
@@ -159,8 +157,8 @@
             const id = item.pk;
             const card = document.createElement('div');
             card.className = 'card';
-            card.dataset.cardId = id;
-            
+            card.dataset.productDetail = id;  
+
             // Ubah menjadi button dengan data-action="wishlist"
             const wishlistHtml = !IS_SELLER
                 ? `<button type="button"
@@ -406,65 +404,12 @@
                 
                 return; // HENTIKAN EKSEKUSI DI SINI agar klik tidak diteruskan ke card
             }
-
-            // 2. Jika bukan tombol, cek apakah yang diklik adalah area card
-            const card = event.target.closest('.card');
-            if (card) openDetailModal(card.dataset.cardId);
         });
 
         if (addProductForm) addProductForm.addEventListener('submit', addProduct);
         if (updateProductForm) updateProductForm.addEventListener('submit', updateProduct);
 
-        const detailModal = document.getElementById('product-detail-modal');
-
-        async function openDetailModal(id) {
-            let p = productsById.get(id);
-            if (!p) {
-                const res = await fetch(DETAIL_URL.replace(DUMMY_ID, id), { headers: { 'Accept': 'application/json' } });
-                if (!res.ok) return notify('Gagal', 'Produk tidak ditemukan.', 'error');
-                p = (await res.json()).fields;
-                productsById.set(id, p);
-            }
-            if (!detailModal) return;
-            const $ = sel => detailModal.querySelector(sel);
-
-            detailModal.dataset.id = id;
-                $('#detail-category').textContent = p.category_display;
-                $('#product-detail-title').textContent = p.name;
-                $('#detail-desc').textContent = p.description;
-                $('#detail-price').textContent = `Price: Rp ${p.price}`;
-                $('#detail-rating').textContent = `Rating: ${p.average_rating}`;
-                $('#detail-reviews').textContent = `Rated by ${p.rating_count} people`;
-                $('#detail-seller').textContent = `Store: ${p.seller}`;
-                $('#detail-meta').textContent = `Ukuran: ${p.size_display}`;
-
-                const img = $('#detail-image');
-                if (p.image) { img.src = p.image; img.alt = p.name; img.hidden = false; }
-                else { img.removeAttribute('src'); img.hidden = true; }
-
-                const wl = $('#detail-wishlist');
-                wl.classList.toggle('is-wishlisted', !!p.is_wishlisted);
-                wl.textContent = p.is_wishlisted ? 'Remove from wishlist' : 'Add to wishlist';
-                wl.hidden = IS_SELLER;
-                $('#detail-cart').hidden = IS_SELLER;
-
-            detailModal.showPopover();
-        }
-
-        if (detailModal) {
-            detailModal.addEventListener('click', event => {
-                const button = event.target.closest('button[data-action]');
-                if (!button) return;
-                const id = detailModal.dataset.id;
-                if (button.dataset.action === 'cart') addToCart(id);
-                if (button.dataset.action === 'wishlist') {
-                    const on = button.classList.toggle('is-wishlisted');
-                    button.textContent = on ? 'Remove from wishlist' : 'Add to wishlist';
-                    toggleWishlist(id);
-                }
-            });
-        }
-
+        document.addEventListener('product:changed', fetchProducts);
         fetchProducts();
     </script>
 {% endblock content %}

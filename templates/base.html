@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/product_detail_modal.css' %}">
     
     <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
     {% block meta %} {% endblock meta %}
@@ -39,6 +40,8 @@
     <main class="container main-content">
         {% block content %} {% endblock content %}
     </main>
+    {% include 'catalog/components/catalog_detail_modal.html' %}
+    <script src="{% static 'js/product_detail.js' %}"></script>
 
     <footer class="site-footer">
         <div class="container footer-inner">
