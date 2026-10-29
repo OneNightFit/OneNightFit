@@ -45,6 +45,7 @@ def to_product(product, unavailable_ids=None):
         "price": daily_rent(product.price),
         "size": product.size,
         "image": product.image or "",
+        "seller_id": product.seller_id,
         "available": product.pk not in unavailable_ids,
         "rating": round(rng.uniform(4.0, 5.0), 1),
         "reviews": rng.randint(5, 150),

@@ -238,6 +238,7 @@
                     productsById.set(item.pk, item.fields);
                     gridContainer.appendChild(buildProductCardElement(item));
                 });
+                const editId = new URLSearchParams(location.search).get('edit'); if (editId && productsById.has(editId)) openUpdateProductModal(editId);
                 displayPageSection({ showGrid: true });
             } catch (error) {
                 if (error.name === 'AbortError') return;

@@ -6,6 +6,7 @@
 <p class="a-muted a-lead">A summary of how {{ user.profile.shop_name|default:"your shop" }} is doing.</p>
 
 {% include "authentication/_report_stats.html" %}
+{% include "cart/seller_products.html" %}
 
 {% if not report.has_data %}
   <div class="a-empty a-empty-report">
@@ -19,12 +20,19 @@
     {% for bar in report.monthly_bars %}
     <li title="{{ bar.label }}: {{ bar.amount_display }}">
       <span class="a-bar-value">{{ bar.amount_display }}</span>
-      <span class="a-bar"><span style="height: {{ bar.percent }}%"></span></span>
+      <span class="a-bar"><span class="a-bar-fill" data-percent="{{ bar.percent }}"></span></span>
       <span class="a-bar-label">{{ bar.label }}</span>
     </li>
     {% endfor %}
   </ol>
 </section>
+
+<script>
+  document.querySelectorAll(".a-bar-fill").forEach((bar) => {
+    const percent = Number(bar.dataset.percent);
+    bar.style.height = `${Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : 0}%`;
+  });
+</script>
 
 <div class="a-cols a-cols-even">
   <section class="a-panel">

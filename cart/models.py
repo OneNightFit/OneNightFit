@@ -44,6 +44,7 @@ class CartItem(models.Model):
 class Rental(models.Model):
     """Riwayat sewa yang sudah dibayar"""
     buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rentals")
+    seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="seller_rentals")
     product_id = models.PositiveIntegerField(null=True, blank=True)
     product_uuid = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
     rental_date = models.DateField(default=local_rental_date, db_index=True)

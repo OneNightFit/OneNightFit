@@ -1,0 +1,22 @@
+<article class="inspo-card bm-card profile-product-card">
+  <a class="inspo-card-img" href="{% url 'catalog:catalog_list' %}?{% if kind == 'seller' %}edit{% else %}product{% endif %}={{ card_id }}" aria-label="{% if kind == 'seller' %}Edit{% else %}View{% endif %} {{ card_name }}">
+    {% if card_image %}<img src="{{ card_image }}" alt="{{ card_name }}" loading="lazy">{% endif %}
+  </a>
+  <div class="bm-info profile-product-card-info">
+    {% if kind == "rental" %}
+    <p class="rental-card-store">{{ rental.store_name }}</p>
+    <h3 class="inspo-card-title profile-product-card-name rental-card-name" data-fit-title><a href="{% url 'catalog:catalog_list' %}?product={{ card_id }}">{{ card_name }}</a></h3>
+    <dl class="rental-card-details">
+      <div><dt>Total hari</dt><dd>{{ rental.days }} hari</dd></div>
+      <div><dt>Tanggal peminjaman</dt><dd>{{ rental.rental_date|date:"d M Y" }}</dd></div>
+      <div><dt>Harga</dt><dd>{{ rental.total_display }}</dd></div>
+    </dl>
+    {% else %}
+    <h3 class="inspo-card-title profile-product-card-name"><a href="{% url 'catalog:catalog_list' %}?edit={{ card_id }}">{{ card_name }}</a></h3>
+    <p class="seller-product-price">{{ product.daily_price_display }} / hari</p>
+    <p class="seller-product-status{% if product.is_rented %} is-rented{% endif %}">
+      {% if product.is_rented %}Dipinjam{% else %}Tidak dipinjam{% endif %}
+    </p>
+    {% endif %}
+  </div>
+</article>

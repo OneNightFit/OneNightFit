@@ -10,7 +10,7 @@ from django.urls import NoReverseMatch, reverse
 from inspo.models import Bookmark
 from .decorators import buyer_required, seller_required
 from .forms import DeleteAccountForm, EditProfileForm, LoginForm, SignUpForm
-from .reports import get_seller_report
+from cart.reports import get_seller_report
 BOOKMARK_PAGE_URL_NAME = "inspo:bookmark_list" 
 from .integrations import (
     buyer_wishlist, product_card, inspo_card,

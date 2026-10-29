@@ -1,0 +1,17 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+<section class="a-panel seller-products" aria-labelledby="seller-products-title">
+  <h3 id="seller-products-title">Products in your shop</h3>
+  {% if report.products %}
+  <div class="likes-embed">
+    <div class="bm-grid profile-product-card-grid">
+      {% for product in report.products %}
+      {% include "cart/profile_product_card.html" with kind="seller" card_name=product.name card_image=product.image card_id=product.id product=product %}
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+    <p class="a-muted">Belum ada produk di toko.</p>
+  {% endif %}
+</section>

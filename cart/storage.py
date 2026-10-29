@@ -61,6 +61,7 @@ def record_rentals(user, summary):
     Rental.objects.bulk_create([
         Rental(
             buyer=user,
+            seller_id=item.get("seller_id"),
             product_id=None,
             product_uuid=item["id"],
             rental_date=rental_date,
