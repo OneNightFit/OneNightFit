@@ -190,6 +190,15 @@ h6 {
     color: var(--primary_500);
 }
 
+.button-danger {
+    background-color: var(--danger);
+    color: var(--neutral_0);
+}
+.button-danger:hover {
+    background-color: var(--button_danger__hovered);
+    color: var(--neutral_0);
+}
+
 @media (min-width: 768px) {
     .mobile-only {
         display: none !important;
