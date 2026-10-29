@@ -418,4 +418,5 @@
         document.addEventListener('product:changed', fetchProducts);
         fetchProducts();
     </script>
+    <script>document.addEventListener('DOMContentLoaded',()=>{const id=new URLSearchParams(location.search).get('product');if(id)window.openProductDetail(id);});</script>
 {% endblock content %}

@@ -237,6 +237,8 @@
     font-weight: 400; 
     overflow-wrap: anywhere; 
 } 
+.cart-item__name a { color: inherit; text-decoration: none; }
+.cart-item__name a:hover { text-decoration: underline; }
 .cart-item__price { 
     color: var(--cart-price); 
     font-weight: 700; 

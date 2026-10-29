@@ -5,6 +5,8 @@
 .rental-card-info { width: 100%; gap: .85rem; }
 .rental-card-store { color: var(--secondary_200); font-size: .85rem; font-weight: 600; }
 .rental-card-name { color: var(--neutral_0); font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
+.rental-card-name a { color: inherit; text-decoration: none; }
+.rental-card-name a:hover { text-decoration: underline; }
 .rental-card-details { display: grid; gap: .65rem; width: 100%; margin: 0; }
 .rental-card-details div { display: flex; justify-content: space-between; gap: .75rem; }
 .rental-card-details dt { color: var(--secondary_200); font-size: .82rem; }

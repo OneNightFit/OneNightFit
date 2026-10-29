@@ -13,12 +13,12 @@
       <article class="inspo-card bm-card rental-card">
         {% if rental.image %}
         <div class="inspo-card-img">
-          <img src="{{ rental.image }}" alt="{{ rental.product_name }}" loading="lazy">
+          <a href="{% url 'catalog:catalog_list' %}?product={{ rental.product_uuid }}"><img src="{{ rental.image }}" alt="{{ rental.product_name }}" loading="lazy"></a>
         </div>
         {% endif %}
         <div class="bm-info rental-card-info">
           <p class="rental-card-store">{{ rental.store_name }}</p>
-          <h3 class="inspo-card-title rental-card-name" data-fit-title>{{ rental.product_name }}</h3>
+          <h3 class="inspo-card-title rental-card-name" data-fit-title><a href="{% url 'catalog:catalog_list' %}?product={{ rental.product_uuid }}">{{ rental.product_name }}</a></h3>
           <dl class="rental-card-details">
             <div><dt>Total hari</dt><dd>{{ rental.days }} hari</dd></div>
             <div><dt>Tanggal peminjaman</dt><dd>{{ rental.rental_date|date:"d M Y" }}</dd></div>
