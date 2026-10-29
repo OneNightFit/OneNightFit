@@ -2,11 +2,10 @@
     const modal = document.getElementById('product-detail-modal');
     if (!modal) return;
 
-    const DUMMY_ID = '00000000-0000-0000-0000-000000000000';
     const IS_SELLER = modal.dataset.isSeller === 'true';
     const cache = new Map();
 
-    const urlFor = (tpl, id) => tpl.replace(DUMMY_ID, id);
+    const detailUrlFor = id => modal.dataset.detailUrl.replace('00000000-0000-0000-0000-000000000000', id);
     const $ = sel => modal.querySelector(sel);
 
     function notify(title, message, type) {
@@ -39,7 +38,7 @@
         try {
             let p = cache.get(id);
             if (!p) {
-                const res = await fetch(urlFor(modal.dataset.detailUrl, id), {
+                const res = await fetch(detailUrlFor(id), {
                     headers: { 'Accept': 'application/json' },
                 });
                 if (!res.ok) throw new Error('not found');
@@ -57,13 +56,19 @@
 
     async function addToCart(id) {
         try {
-            const res = await fetch(urlFor(modal.dataset.cartUrl, id), {
+            const res = await fetch(modal.dataset.cartUrl, {
                 method: 'POST',
-                headers: { 'X-CSRFToken': modal.dataset.csrf },
+                headers: {
+                    'X-CSRFToken': modal.dataset.csrf,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: new URLSearchParams({ product_id: id }),
             });
             if (res.status === 401) { window.location.href = '/login/'; return; }
             const result = await res.json().catch(() => ({}));
-            notify(res.ok ? 'Berhasil' : 'Gagal', result.message || '', res.ok ? 'success' : 'error');
+            notify(res.ok ? 'Berhasil' : 'Gagal', result.error || 'Produk berhasil ditambahkan ke keranjang.', res.ok ? 'success' : 'error');
         } catch (err) {
             console.error(err);
             notify('Error', 'Tidak dapat terhubung ke server.', 'error');
@@ -72,7 +77,7 @@
 
     async function toggleWishlist(id, button) {
         try {
-            const res = await fetch(urlFor(modal.dataset.wishlistUrl, id), {
+            const res = await fetch(modal.dataset.wishlistUrl.replace('00000000-0000-0000-0000-000000000000', id), {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': modal.dataset.csrf,

@@ -14,6 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 from catalog.models import Product
+from django.db.models import Count, Q
 
 from inspo.models import Bookmark, BookmarkCategory, Like, Post, Tag
 
@@ -344,7 +345,7 @@ def upload(request):
             post.hashtags.set(tag_objs)
 
             messages.success(request, "Postingan berhasil dibagikan.")
-            return redirect("inspo:user_detail", pk=post.pk)
+            return redirect("inspo:my_posts")
 
     return render(request, "inspo/upload.html",
                   _form_context("create", errors, title, caption, hashtags_raw, selected, tagged=tagged))
@@ -386,7 +387,8 @@ def edit(request, pk):
             post.hashtags.set(tag_objs)
 
             messages.success(request, "Perubahan berhasil disimpan.")
-            return redirect("inspo:user_detail", pk=post.pk)
+        return redirect("inspo:my_posts")
+
     else:
         title = post.title
         caption = post.caption
@@ -508,3 +510,54 @@ def likes(request):
         "post", "post__author", "post__tag"
     )
     return render(request, "inspo/likes.html", {"liked_items": items})
+
+# --------------------------------------------------------------------------
+# My Post
+# --------------------------------------------------------------------------
+
+@login_required
+def my_posts(request):
+    posts = (
+        Post.objects.filter(author=request.user)
+        .select_related("tag")
+        .prefetch_related("hashtags")
+        .annotate(like_count=Count("likes", distinct=True))
+    )
+    return render(request, "inspo/my_posts.html", {
+        "posts": posts,
+        "total": len(posts),
+    })
+
+
+def _wants_json(request):
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+
+@login_required
+@require_POST
+def post_quick_edit(request, pk):
+    """Edit cepat dari modal: hanya caption dan hashtag."""
+    post = get_object_or_404(Post, pk=pk, author=request.user)
+    post.caption = request.POST.get("caption", "").strip()[:50]
+    post.save(update_fields=["caption", "updated_at"])
+
+    names = _clean_hashtags(request.POST.get("hashtags", ""))
+    post.hashtags.set([Tag.objects.get_or_create(name=n)[0] for n in names])
+
+    if _wants_json(request):
+        return JsonResponse({"ok": True, "caption": post.caption, "hashtags": names})
+    messages.success(request, "Perubahan berhasil disimpan.")
+    return redirect("inspo:my_posts")
+
+
+@login_required
+@require_POST
+def delete(request, pk):
+    post = get_object_or_404(Post, pk=pk, author=request.user)
+    post.delete()
+
+    if _wants_json(request):
+        total = Post.objects.filter(author=request.user).count()
+        return JsonResponse({"ok": True, "total": total})
+    messages.success(request, "Postingan dihapus.")
+    return redirect("inspo:my_posts")

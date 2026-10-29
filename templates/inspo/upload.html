@@ -110,7 +110,7 @@
 
         <div class="upload-buttons">
           {% if mode == "edit" %}
-            <a href="{% url 'inspo:user_detail' post.pk %}" class="upload-cancel">Batal</a>
+            <a href="{% url 'inspo:my_posts' %}" class="upload-cancel">Batal</a>
             <button type="submit" class="upload-submit">Save the changes</button>
           {% else %}
             <a href="{% url 'inspo:feeds' %}" class="upload-cancel">Batal</a>

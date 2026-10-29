@@ -5,12 +5,12 @@ Keranjang hanya menyimpan ID produk, lama sewa, dan status pilihan.
 Nama, harga, dan ketersediaan produk selalu diambil ulang dari catalog
 agar data tetap sesuai dan tidak bergantung pada data dari browser.
 """
+import uuid
 
 from . import catalog
 
 MIN_DAYS = 1
 MAX_DAYS = 30
-DEFAULT_CART_SIZE = 4
 
 class CartError(ValueError):
     """Error yang digunakan saat input keranjang tidak valid."""
@@ -23,10 +23,8 @@ def format_rupiah(amount):
 # =======================================================
 def parse_product_id(raw):
     try:
-        pid = int(str(raw).strip())
-    except (TypeError, ValueError):
-        raise CartError("Invalid product.")
-    if pid < 1:
+        pid = uuid.UUID(str(raw).strip())
+    except (TypeError, ValueError, AttributeError):
         raise CartError("Invalid product.")
     return pid
 
@@ -52,25 +50,6 @@ def parse_bool(raw):
 # =======================================================
 # STATE
 # =======================================================
-def new_state():
-    return {"items": []}
-
-def default_state():
-    """Mengisi keranjang awal dengan produk contoh."""
-    state = new_state()
-    for i, p in enumerate(catalog.default_cart_products(DEFAULT_CART_SIZE)):
-        state["items"].append({"id": p["id"], "days": 2 if i == 1 else 1, "selected": i < 2})
-    return state
-
-def is_valid_state(state):
-    if not isinstance(state, dict) or not isinstance(state.get("items"), list):
-        return False
-    for it in state["items"]:
-        if not (isinstance(it, dict) and isinstance(it.get("id"), int)
-                and isinstance(it.get("days"), int) and isinstance(it.get("selected"), bool)):
-            return False
-    return True
-
 def _find(state, pid):
     for it in state["items"]:
         if it["id"] == pid:
@@ -83,7 +62,8 @@ def _require_in_cart(state, pid):
         raise CartError("Product is not in your cart.")
     return item
 
-def add_item(state, product_id, days=1, selected=True):
+def add_item(state, product_id, days=1, selected=False):
+    """Menambah produk dari katalog"""
     pid = parse_product_id(product_id)
     days = parse_days(days)
     product = catalog.get_product(pid)
@@ -91,11 +71,7 @@ def add_item(state, product_id, days=1, selected=True):
         raise CartError("Product not found.")
     if not product["available"]:
         raise CartError("This product is currently unavailable.")
-    existing = _find(state, pid)
-    if existing:                     
-        existing["days"] = days
-        existing["selected"] = bool(selected)
-    else:
+    if _find(state, pid) is None:
         state["items"].append({"id": pid, "days": days, "selected": bool(selected)})
     return state
 
@@ -153,13 +129,24 @@ def build_cart(state):
             total += subtotal
             selected_count += 1
         group = stores.setdefault(p["store"], {
-            "slug": p["store"], "name": p["store_name"], "items": []})
+            "slug": p["store"], 
+            "name": p["store_name"], 
+            "items": []
+        })
         group["items"].append({
-            "id": p["id"], "name": p["name"], "image": p["image"], "size": p["size"],
-            "available": p["available"], "selected": selected, "days": days,
-            "price": p["price"], "price_display": format_rupiah(p["price"]),
-            "subtotal": subtotal, "subtotal_display": format_rupiah(subtotal),
-            "store_slug": p["store"], "store_name": p["store_name"],
+            "id": p["id"], 
+            "name": p["name"], 
+            "image": p["image"], 
+            "size": p["size"],
+            "available": p["available"], 
+            "selected": selected, 
+            "days": days,
+            "price": p["price"], 
+            "price_display": format_rupiah(p["price"]),
+            "subtotal": subtotal, 
+            "subtotal_display": format_rupiah(subtotal),
+            "store_slug": p["store"], 
+            "store_name": p["store_name"],
         })
     store_list = list(stores.values())
     for g in store_list:
@@ -184,8 +171,13 @@ def checkout_summary(state):
         items = [i for i in g["items"] if i["selected"]]
         if items:
             stores.append({"slug": g["slug"], "name": g["name"], "items": items})
-    return {"stores": stores, "total": cart["total"], "total_display": cart["total_display"],
-            "selected_count": cart["selected_count"], "is_empty": cart["selected_count"] == 0}
+    return {
+        "stores": stores, 
+        "total": cart["total"], 
+        "total_display": cart["total_display"],
+        "selected_count": cart["selected_count"], 
+        "is_empty": cart["selected_count"] == 0
+    }
 
 # =======================================================
 # CHECKOUT

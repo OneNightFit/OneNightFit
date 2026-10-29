@@ -30,7 +30,8 @@ app_name = 'catalog'
 urlpatterns = [
     # Catalog view / list all products
     path('', views.catalog_list, name='catalog_list'),
-    
+    path('add-to-cart/<uuid:id>/', views.add_to_cart, name='add_to_cart'),
+
     # Detail view for a specific product
     path('<uuid:id>/', views.product_detail, name='product_detail'),
     

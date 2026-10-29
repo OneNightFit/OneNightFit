@@ -121,7 +121,7 @@
         const EDIT_URL = "{% url 'catalog:edit_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
         const DELETE_URL = "{% url 'catalog:delete_product_ajax' '00000000-0000-0000-0000-000000000000' %}";
         const WISHLIST_URL = "{% url 'catalog:toggle_wishlist' '00000000-0000-0000-0000-000000000000' %}";
-        const CART_URL = "{% url 'catalog:add_to_cart' '00000000-0000-0000-0000-000000000000' %}";
+        const CART_URL = "{% url 'cart:add' %}";
 
         const selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
         const searchInput = document.getElementById('catalog-search-input');
@@ -429,9 +429,15 @@
 
         async function addToCart(id) {
             try {
-                const response = await fetch(CART_URL.replace(DUMMY_ID, id), {
-                    method: 'POST', // Ubah dari GET menjadi POST
-                    headers: { 'X-CSRFToken': CSRF_TOKEN } // Tambahkan CSRF token
+                const response = await fetch(CART_URL, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': CSRF_TOKEN,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: new URLSearchParams({ product_id: id }),
                 });
                 
                 if (response.status === 401) {
@@ -439,12 +445,12 @@
                     return;
                 }
                 
-                const result = await response.json();
+                const result = await response.json().catch(() => ({}));
                 
                 if (response.ok) {
-                    notify('Berhasil', result.message, 'success');
+                    notify('Berhasil', 'Produk berhasil ditambahkan ke keranjang.', 'success');
                 } else {
-                    notify('Gagal', result.message || 'Gagal menambahkan produk.', 'error');
+                    notify('Gagal', result.error || 'Gagal menambahkan produk.', 'error');
                 }
             } catch (error) {
                 console.error(error);

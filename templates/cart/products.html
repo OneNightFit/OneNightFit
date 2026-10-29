@@ -1,18 +1,9 @@
 {% if cart.item_count == 0 %}
 <section class="cart-panel cart-empty">
     <h4 class="cart-empty__title">Your cart is empty</h4>
-    {% if catalog_empty %}
-    <p class="body-2">No product data available. Run <code>python manage.py import_products</code> first.</p>
-    {% else %}
-    <p class="body-2">Find an outfit you love and rent it for a night.</p>
-    {% endif %}
+    <p class="body-2">Add an outfit from the catalog to rent it for a night.</p>
     <div class="cart-empty__actions">
-        <a class="button button-primary" href="{% url 'inspo:feeds' %}">Browse Inspo</a>
-        {% if not catalog_empty %}
-        <form method="post" action="{% url 'cart:reset' %}">{% csrf_token %}
-            <button class="button button-tertiary" type="submit">Load demo items</button>
-        </form>
-        {% endif %}
+        <a class="button button-primary" href="{% url 'catalog:catalog_list' %}">Browse Catalog</a>
     </div>
 </section>
 {% endif %}
