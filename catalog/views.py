@@ -9,6 +9,7 @@ import requests
 import random
 from django.db.models import Q
 from django.http import JsonResponse
+from cart.models import CartItem
 
 def landing_page(request):
     return render(request, "index.html")
@@ -80,6 +81,15 @@ def get_products_json(request):
     if search_query:
         products = products.filter(name__icontains=search_query)
 
+    cart_product_ids = set()
+    if request.user.is_authenticated:
+        cart_product_ids = set(
+            CartItem.objects.filter(
+                cart__user=request.user,
+                product__isnull=False,
+            ).values_list('product_id', flat=True)
+        )
+
     data = []
     for product in products:
         wishlisted_users = product.wishlisted_by.all()
@@ -102,6 +112,7 @@ def get_products_json(request):
                 "average_rating": product.average_rating,
                 "rating_count": product.rating_count,
                 "is_wishlisted": is_wishlisted,
+                "is_in_cart": product.id in cart_product_ids,
                 "is_owner": request.user.is_authenticated and product.seller_id == request.user.id,
             }
         })

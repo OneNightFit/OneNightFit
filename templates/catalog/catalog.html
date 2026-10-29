@@ -201,7 +201,7 @@
 
             // Ubah link Add to cart menjadi button dengan data-action="cart"
             const actionsHtml = !IS_SELLER
-                ? `<button type="button" class="button button-primary" data-action="cart" data-id="${escapeHtml(id)}">Add to cart</button>`
+                ? `<button type="button" class="button ${product.is_in_cart ? 'button-secondary' : 'button-primary'}" data-action="cart" data-id="${escapeHtml(id)}">${product.is_in_cart ? 'Added to cart' : 'Add to cart'}</button>`
                 : product.is_owner
                     ? `<button type="button" class="button button-secondary" data-action="edit" data-id="${escapeHtml(id)}">Edit</button>
                        <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}">Delete</button>`
@@ -427,7 +427,7 @@
             }
         }
 
-        async function addToCart(id) {
+        async function addToCart(id, button) {
             try {
                 const response = await fetch(CART_URL, {
                     method: 'POST',
@@ -448,6 +448,13 @@
                 const result = await response.json().catch(() => ({}));
                 
                 if (response.ok) {
+                    if (button) {
+                        button.classList.remove('button-primary');
+                        button.classList.add('button-secondary');
+                        button.textContent = 'Added to cart';
+                    }
+                    const product = productsById.get(id);
+                    if (product) product.is_in_cart = true;
                     notify('Berhasil', 'Produk berhasil ditambahkan ke keranjang.', 'success');
                 } else {
                     notify('Gagal', result.error || 'Gagal menambahkan produk.', 'error');
@@ -469,7 +476,7 @@
                 if (action === 'edit') openUpdateProductModal(id);
                 if (action === 'delete') deleteProduct(id);
                 if (action === 'wishlist') toggleWishlist(id);
-                if (action === 'cart') addToCart(id);
+                if (action === 'cart') addToCart(id, button);
                 
                 return; // HENTIKAN EKSEKUSI DI SINI agar klik tidak diteruskan ke card
             }
