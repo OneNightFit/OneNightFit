@@ -3,27 +3,27 @@
      popover="auto"
      role="dialog"
      aria-modal="true"
-     aria-labelledby="update-product-modal-title">
+     aria-labelledby="update-product-modal-title-{{ product.id }}">
     <button type="button"
         class="product-form-modal__backdrop"
-        popovertarget="update-product-modal"
+        popovertarget="update-product-modal-{{ product.id }}"
         popovertargetaction="hide"
         aria-label="Tutup form update product"></button>
 
     <div class="product-form-modal__content">
     <button type="button"
         class="product-form-modal__close"
-        popovertarget="update-product-modal"
+        popovertarget="update-product-modal-{{ product.id }}"
         popovertargetaction="hide"
         aria-label="Tutup form update product">×</button>
 
     <h2 id="update-product-modal-title-{{ product.id }}">Edit Produk</h2>
-    <form id="update-product-form-{{ product.id }}"
-          method="post"
-          action=""
-          class="product-form">
+        <form id="update-product-form-{{ product.id }}"
+            method="post"
+            action="{% url 'catalog:edit_product' product.id %}"
+            class="product-form">
         {% csrf_token %}
-        {% for field in form %}
+        {% for field in product.edit_form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
@@ -35,7 +35,7 @@
             <div class="product-form-modal__actions">
                 <button type="button"
                         class="button button-secondary"
-                        popovertarget="update-product-modal"
+                        popovertarget="update-product-modal-{{ product.id }}"
                         popovertargetaction="hide">Batal</button>
                 <button type="submit" class="button">Simpan Perubahan</button>
             </div>

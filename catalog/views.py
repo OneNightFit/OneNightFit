@@ -32,7 +32,9 @@ def catalog_list(request):
 
     # Jika user adalah seller, filter produk hanya yang dimiliki oleh seller tersebut
     if is_seller(request.user):
-        products = products.filter(seller=request.user)
+        products = list(products)
+        for p in products:
+            p.edit_form = ProductForm(instance=p, auto_id=f"id_%s_{p.id}")
 
     # Filter produk berdasarkan kategori yang dicentang
     if selected_categories:
@@ -41,9 +43,9 @@ def catalog_list(request):
     context = {
         'products': products,
         'categories': categories_data,
-        'category_choices': Product.PRODUCT_CATEGORY, 
+        'category_choices': Product.PRODUCT_CATEGORY,
         'selected_categories': selected_categories,
-        'form': ProductForm(), 
+        'form': ProductForm(),
     }
     return render(request, 'catalog/catalog.html', context)
 
@@ -73,18 +75,17 @@ def create_product(request):
 @login_required(login_url='/login/')
 def edit_product(request, id):
     catalog = get_object_or_404(Product, pk=id)
-    
+
     if not is_seller(request.user) or catalog.seller != request.user:
         raise PermissionDenied
-        
-    form = ProductForm(request.POST or None, instance=catalog)
-    if request.method == "POST" and form.is_valid():
+
+    form = ProductForm(request.POST, instance=catalog)
+    if form.is_valid():
         form.save()
         messages.success(request, "Produk berhasil diperbarui!")
-        return redirect("catalog:catalog_list")
-        
-    context = {"form": form, "catalog": catalog}
-    return render(request, "components/catalog_form_update.html", context)
+    else:
+        messages.error(request, "Gagal memperbarui produk, periksa kembali isian form.")
+    return redirect("catalog:catalog_list")
 
 
 @require_POST
