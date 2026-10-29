@@ -220,6 +220,17 @@ h6 {
     text-decoration: none;
 }
 
+.site-header nav a { position: relative; }
+.site-header nav a.nav-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.5rem;            
+    border-radius: 2px;
+    background: var(--secondary_300);
+}
+
 .site-header .brand {
     width: 9rem;
     height: 3rem;
