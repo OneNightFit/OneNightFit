@@ -442,6 +442,49 @@
     color: var(--neutral_100);
 }
 
+.image-source-group {
+    border: 0;
+    padding: 0;
+}
+
+.image-source-group legend {
+    margin-bottom: 0.5rem;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--neutral_100);
+}
+
+.image-source-group ul {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.image-source-group li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.image-source-group input {
+    accent-color: var(--primary_300);
+}
+
+.image-source-group input[type="radio"] {
+    width: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.image-input-panel[hidden] {
+    display: none;
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {

@@ -29,7 +29,7 @@ def product_detail(request, id):
         "fields": {
             "name": product.name,
             "description": product.description,
-            "image": product.image or "",
+            "image": product.image_src,
             "price": str(product.price),
             "category": product.category,
             "category_display": product.get_category_display(),
@@ -90,8 +90,9 @@ def get_products_json(request):
             "fields": {
                 "name": product.name,
                 "description": product.description,
-                # Updated from product.image or "" to retrieve the URL
-                "image": product.image or "",
+                "image": product.image_src,
+                "image_url": product.image or "",
+                "image_is_upload": bool(product.image_file),
                 "price": str(product.price),
                 "category": product.category,
                 "category_display": product.get_category_display(),
