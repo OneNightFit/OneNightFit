@@ -25,6 +25,24 @@
               class="product-form">
             {% csrf_token %}
             {% for field in form %}
+                {% if field.name == 'image_source' %}
+                    <fieldset class="form-group image-source-group">
+                        <legend>Gambar produk</legend>
+                        {{ field }}
+                    </fieldset>
+                {% elif field.name == 'image' %}
+                    <div class="form-group image-input-panel" data-image-input="url">
+                        <label for="{{ field.id_for_label }}">Gunakan URL gambar</label>
+                        {{ field }}
+                        {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% elif field.name == 'image_upload' %}
+                    <div class="form-group image-input-panel" data-image-input="upload" hidden>
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% else %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
@@ -32,6 +50,7 @@
                         <p class="form-error">{{ error }}</p>
                     {% endfor %}
                 </div>
+                {% endif %}
             {% endfor %}
             <div class="product-form-modal__actions">
                 <button type="button"

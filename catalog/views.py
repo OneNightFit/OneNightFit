@@ -29,7 +29,7 @@ def product_detail(request, id):
         "fields": {
             "name": product.name,
             "description": product.description,
-            "image": product.image or "",
+            "image": product.image_src,
             "price": str(product.price),
             "category": product.category,
             "category_display": product.get_category_display(),
@@ -60,6 +60,7 @@ def catalog_list(request):
         'categories': categories_data,
         'category_choices': Product.PRODUCT_CATEGORY,
         'selected_categories': selected_categories,
+        'search_query': request.GET.get('q', '').strip(),
         'form': ProductForm(),
         'update_form': ProductForm(auto_id='update_%s'),
     }
@@ -69,12 +70,15 @@ def catalog_list(request):
 
 def get_products_json(request):
     selected_categories = request.GET.getlist('category')
+    search_query = request.GET.get('q', '').strip()
     products = Product.objects.select_related('seller').prefetch_related('wishlisted_by', 'ratings')
 
     if is_seller(request.user):
         products = products.filter(seller=request.user)
     if selected_categories:
         products = products.filter(category__in=selected_categories)
+    if search_query:
+        products = products.filter(name__icontains=search_query)
 
     data = []
     for product in products:
@@ -86,8 +90,9 @@ def get_products_json(request):
             "fields": {
                 "name": product.name,
                 "description": product.description,
-                # Updated from product.image or "" to retrieve the URL
-                "image": product.image or "",
+                "image": product.image_src,
+                "image_url": product.image or "",
+                "image_is_upload": bool(product.image_file),
                 "price": str(product.price),
                 "category": product.category,
                 "category_display": product.get_category_display(),
@@ -149,7 +154,11 @@ def delete_product_ajax(request, id):
 @require_POST
 def toggle_wishlist(request, id):
     if not request.user.is_authenticated:
-        return JsonResponse({"message": "Harap login terlebih dahulu."}, status=401)
+        message = "Please login to continue."
+        messages.info(request, message)
+        if "application/json" in request.headers.get("Accept", ""):
+            return JsonResponse({"message": message}, status=401)
+        return redirect("authentication:login")
         
     product = get_object_or_404(Product, id=id)
     if request.user in product.wishlisted_by.all():

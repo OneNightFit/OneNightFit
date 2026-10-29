@@ -79,8 +79,15 @@
         try {
             const res = await fetch(modal.dataset.wishlistUrl.replace('00000000-0000-0000-0000-000000000000', id), {
                 method: 'POST',
-                headers: { 'X-CSRFToken': modal.dataset.csrf },
+                headers: {
+                    'X-CSRFToken': modal.dataset.csrf,
+                    'Accept': 'application/json',
+                },
             });
+            if (res.redirected && res.url.includes('/login')) {
+                window.location.href = res.url;
+                return;
+            }
             if (res.status === 401) { window.location.href = '/login/'; return; }
             const result = await res.json().catch(() => ({}));
             if (!res.ok) return notify('Gagal', result.message || 'Gagal memperbarui wishlist.', 'error');
