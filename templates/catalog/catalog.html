@@ -155,26 +155,25 @@
         function buildProductCardElement(item) {
             const product = item.fields;
             const id = item.pk;
-
             const card = document.createElement('div');
             card.className = 'card';
-
+            
+            // Ubah menjadi button dengan data-action="wishlist"
             const wishlistHtml = !IS_SELLER
-                ? `<form method="post" action="${WISHLIST_URL.replace(DUMMY_ID, id)}" class="wishlist-form">
-                    {% csrf_token %}
-                    <button type="submit"
+                ? `<button type="button"
                             class="button-wishlist${product.is_wishlisted ? ' is-wishlisted' : ''}"
+                            data-action="wishlist" data-id="${escapeHtml(id)}"
                             title="Toggle Wishlist">
                         ${product.is_wishlisted ? ICON_WISHLISTED : ICON_NOT_WISHLISTED}
-                    </button>
-                </form>`
+                    </button>`
                 : '';
 
+            // Ubah link Add to cart menjadi button dengan data-action="cart"
             const actionsHtml = !IS_SELLER
-                ? `<a href="${CART_URL.replace(DUMMY_ID, id)}" class="button button-primary">Add to cart</a>`
+                ? `<button type="button" class="button button-primary" data-action="cart" data-id="${escapeHtml(id)}">Add to cart</button>`
                 : product.is_owner
                     ? `<button type="button" class="button button-secondary" data-action="edit" data-id="${escapeHtml(id)}">Edit</button>
-                    <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}">Delete</button>`
+                       <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}">Delete</button>`
                     : '';
 
             card.innerHTML = `
@@ -194,7 +193,7 @@
                             <p class="product-description">${escapeHtml(truncateWords(product.description, 15))}</p>
                             <p class="product-size">Ukuran: ${escapeHtml(product.size_display)}</p>
                             <div class="rating">
-                                <span class="rate-count">⭐ ${product.average_rating}</span>
+                                <span class="rate-count">  ${product.average_rating}</span>
                                 <span class="rate-count">(${product.rating_count} reviews)</span>
                             </div>
                         </div>
@@ -340,12 +339,67 @@
             }
         }
 
-        // Event delegation tombol Edit / Delete
+        async function toggleWishlist(id) {
+            try {
+                const response = await fetch(WISHLIST_URL.replace(DUMMY_ID, id), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN }
+                });
+                
+                if (response.ok) {
+                    // Cek jika Django redirect ke halaman login
+                    if (response.redirected && response.url.includes('/login')) {
+                         window.location.href = response.url; 
+                         return;
+                    }
+                    notify('Berhasil', 'Status wishlist berhasil diperbarui!', 'success');
+                    fetchProducts(); // Refresh products grid secara seamless
+                } else {
+                    notify('Gagal', 'Gagal memperbarui wishlist.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+            }
+        }
+
+        async function addToCart(id) {
+            try {
+                const response = await fetch(CART_URL.replace(DUMMY_ID, id), {
+                    method: 'POST', // Ubah dari GET menjadi POST
+                    headers: { 'X-CSRFToken': CSRF_TOKEN } // Tambahkan CSRF token
+                });
+                
+                if (response.status === 401) {
+                    window.location.href = '/login/'; // Redirect jika tidak terautentikasi
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    notify('Berhasil', result.message, 'success');
+                } else {
+                    notify('Gagal', result.message || 'Gagal menambahkan produk.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+            }
+        }
+
+        // Event delegation untuk semua action buttons di grid (Edit, Delete, Cart, Wishlist)
         gridContainer.addEventListener('click', event => {
             const button = event.target.closest('button[data-action]');
             if (!button) return;
-            if (button.dataset.action === 'edit') openUpdateProductModal(button.dataset.id);
-            if (button.dataset.action === 'delete') deleteProduct(button.dataset.id);
+            
+            const action = button.dataset.action;
+            const id = button.dataset.id;
+            
+            if (action === 'edit') openUpdateProductModal(id);
+            if (action === 'delete') deleteProduct(id);
+            if (action === 'wishlist') toggleWishlist(id);
+            if (action === 'cart') addToCart(id);
         });
 
         if (addProductForm) addProductForm.addEventListener('submit', addProduct);

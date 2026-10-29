@@ -66,7 +66,7 @@ def get_products_json(request):
                 "name": product.name,
                 "description": product.description,
                 # Updated from product.image or "" to retrieve the URL
-                "image": product.image.url if product.image else "", 
+                "image": product.image or "",
                 "price": str(product.price),
                 "category": product.category,
                 "category_display": product.get_category_display(),
@@ -126,27 +126,32 @@ def delete_product_ajax(request, id):
     return JsonResponse({"message": "Produk berhasil dihapus."})
 
 @require_POST
-@login_required(login_url='/login/')
 def toggle_wishlist(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "Harap login terlebih dahulu."}, status=401)
+        
     product = get_object_or_404(Product, id=id)
     if request.user in product.wishlisted_by.all():
         product.wishlisted_by.remove(request.user)
+        is_wishlisted = False
     else:
         product.wishlisted_by.add(request.user)
-    return redirect('catalog:catalog_list')
+        is_wishlisted = True
+        
+    return JsonResponse({
+        "message": "Wishlist berhasil diperbarui.",
+        "is_wishlisted": is_wishlisted
+    })
 
-@login_required(login_url='/login/')
+@require_POST
 def add_to_cart(request, id):
-    # 1. Dapatkan objek produk, kembalikan 404 jika tidak ditemukan
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "Harap login terlebih dahulu."}, status=401)
+        
     product = get_object_or_404(Product, id=id)
-    
-    # 2. Ambil dictionary keranjang dari session, atau buat baru jika belum ada
     cart = request.session.get('cart', {})
-    
-    # 3. Ubah UUID menjadi string
     product_id = str(product.id)
     
-    # 4. Implementasi logika penambahan barang (tambah kuantitas jika sudah ada)
     if product_id in cart:
         cart[product_id]['quantity'] += 1
     else:
@@ -156,11 +161,7 @@ def add_to_cart(request, id):
             'quantity': 1
         }
         
-    # 5. Simpan kembali data keranjang yang sudah diperbarui ke session
     request.session['cart'] = cart
+    request.session.modified = True # Pastikan session tersimpan
     
-    # 6. Berikan notifikasi sukses kepada user
-    messages.success(request, f'"{product.name}" berhasil ditambahkan ke keranjang!')
-    
-    # 7. Redirect kembali ke halaman katalog
-    return redirect('catalog:catalog_list')
+    return JsonResponse({"message": f'"{product.name}" berhasil ditambahkan ke keranjang!'})
