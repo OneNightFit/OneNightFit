@@ -1,0 +1,24 @@
+<div id="delete-product-modal"
+     class="product-delete-modal"
+     popover="auto"
+     role="dialog"
+     aria-labelledby="delete-product-title">
+    <div class="product-delete-modal__content">
+        <button type="button"
+                class="product-delete-modal__close"
+                popovertarget="delete-product-modal"
+                popovertargetaction="hide"
+                aria-label="Tutup konfirmasi hapus">×</button>
+        <h2 id="delete-product-title">Hapus produk?</h2>
+        <p>Apakah Anda yakin ingin menghapus <strong data-delete-product-name></strong>?</p>
+        <div class="product-delete-modal__actions">
+            <button type="button" class="button button-secondary"
+                    popovertarget="delete-product-modal"
+                    popovertargetaction="hide">Batal</button>
+            <form id="delete-product-form" method="post" action="{% url 'catalog:delete_product_ajax' '00000000-0000-0000-0000-000000000000' %}">
+                {% csrf_token %}
+                <button type="submit" class="button button-danger">Ya, Hapus</button>
+            </form>
+        </div>
+    </div>
+</div>
