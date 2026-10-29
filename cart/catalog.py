@@ -55,12 +55,8 @@ def to_product(post):
     }
 
 def api_posts():
-    
     from inspo.models import Post # Import di dalam fungsi modul aman diimpor tanpa Django
     return Post.objects.filter(external_id__isnull=False, price__isnull=False)
-
-def has_products():
-    return api_posts().exists()
 
 def get_product(product_id):
     """Mengambil satu produk berdasarkan ID"""
@@ -73,10 +69,6 @@ def get_products(ids):
     if not ids:
         return {}
     return {p.pk: to_product(p)for p in api_posts().filter(pk__in=ids)}
-
-def default_cart_products(limit=4):
-    """Mengambil beberapa produk awal agar keranjang tidak kosong; memastikan feature bekerja"""
-    return [to_product(p) for p in api_posts().order_by("external_id")[:limit]]
 
 def recommended_products(exclude_ids=(), limit=5):
     """Mengambil produk rekomendasi yang belum ada di keranjang"""

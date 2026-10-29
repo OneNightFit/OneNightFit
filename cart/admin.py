@@ -9,5 +9,5 @@ class CartItemInline(admin.TabularInline):
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ("user", "seeded", "created_at")
+    list_display = ("user", "created_at")
     inlines = [CartItemInline]
