@@ -34,7 +34,7 @@ def recommendations(state):
 
 def mutate(request, fn):
     """Mengubah isi keranjang dan mengirim respons sesuai request."""
-    state = storage.load_state(request)
+    state = storage.load_state(request.user)
     try:
         fn(state)
     except services.CartError as exc:
@@ -42,7 +42,7 @@ def mutate(request, fn):
             return JsonResponse({"ok": False, "error": str(exc)}, status=400)
         messages.error(request, str(exc))
         return redirect("cart:cart")
-    storage.save_state(request, state)
+    storage.save_state(request.user, state)
 
     if _wants_json(request):
         return JsonResponse({"ok": True, "cart": services.build_cart(state)})
@@ -53,7 +53,7 @@ def mutate(request, fn):
 # =======================================================
 @cart_login_required
 def cart_page(request):
-    state = storage.load_state(request)
+    state = storage.load_state(request.user)
     return render(request, "cart/cart.html", {
         "cart": services.build_cart(state),
         "min_days": services.MIN_DAYS,
@@ -125,7 +125,7 @@ def cart_add(request):
 # =======================================================
 @cart_login_required
 def checkout_page(request):
-    state = storage.load_state(request)
+    state = storage.load_state(request.user)
     summary = services.checkout_summary(state)
     ctx = {
         "summary": summary,
@@ -148,7 +148,8 @@ def checkout_page(request):
             with transaction.atomic():
                 # Item yang dibayar dihapus dari keranjang.
                 services.complete_checkout(state, summary)
-                storage.save_state(request, state)
+                storage.save_state(request.user, state)
+                storage.record_rentals(request.user, summary)
             messages.success(request, "Your rental is confirmed!")
             return redirect("OneNightFit:landing_page")
         ctx.update(shipping=shipping, payment=payment, errors=errors)

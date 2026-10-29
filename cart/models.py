@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
+from datetime import timedelta
 
 # One User one cart, cart unique to each User (OnetoOne).
 class Cart(models.Model):
@@ -11,12 +13,13 @@ class Cart(models.Model):
     def __str__(self):
         return f"Cart {self.user}"
 
+# Imported Fake Store API products
 class CartItem(models.Model):
     """Produk yang dimasukkan ke Cart dari Catalog dengan default tidak ada yang terpilih untuk Checkout"""
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
     post = models.ForeignKey("inspo.Post", on_delete=models.CASCADE, related_name="cart_items")
     days = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(30)])
-    selected = models.BooleanField(default=False)
+    selected = models.BooleanField(default=True)
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -27,3 +30,29 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.post_id} x {self.days} hari"
+
+class Rental(models.Model):
+    """Riwayat sewa yang sudah dibayar"""
+    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rentals")
+    product_id = models.PositiveIntegerField()
+    product_name = models.CharField(max_length=255)
+    image = models.URLField(max_length=1000, blank=True)
+    store_slug = models.CharField(max_length=50)
+    store_name = models.CharField(max_length=50)
+    price_per_day = models.PositiveIntegerField()
+    days = models.PositiveSmallIntegerField()
+    total = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    @property
+    def total_display(self):
+        return "Rp" + f"{self.total:,}".replace(",", ".")
+
+    @property
+    def end_date(self):
+        """Tanggal berakhirnya sewa (tanggal mulai + jumlah hari)."""
+        start = timezone.localtime(self.created_at).date()
+        return start + timedelta(days=self.days)
