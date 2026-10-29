@@ -76,7 +76,12 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     report = get_seller_report(request.user) if request.user.profile.is_seller else None
-    return render(request, "authentication/profile.html", {"report": report})
+    user_rentals = request.user.rentals.all().order_by("-created_at")
+    context = {
+        "report":report,
+        "rentals":user_rentals,
+    }
+    return render(request, "authentication/profile.html", context)
 
 @login_required
 def activity_view(request):
@@ -134,7 +139,7 @@ def activity_view(request):
 
 @buyer_required
 def rentals_view(request):
-    return render(request, "cart/rentals.html", {"rentals": request.user.rentals.all()})
+    return render(request, "cart/rentals.html", {"rentals": request.user.rentals.all().order_by("-created_at")})
 
 @seller_required
 def shop_report_view(request):
