@@ -1,7 +1,7 @@
 /* ==========================================================================
    CATALOG PAGE LAYOUT
    ========================================================================== */
-.container {
+.catalog-container {
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 2rem;
@@ -12,7 +12,7 @@
 }
 
 @media (max-width: 992px) {
-    .container {
+    .catalog-container {
         grid-template-columns: 1fr;
         padding: 2rem 1.5rem;
     }

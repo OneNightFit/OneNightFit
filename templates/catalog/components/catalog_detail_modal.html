@@ -5,7 +5,7 @@
      aria-modal="true"
      aria-labelledby="product-detail-title"
      data-detail-url="{% url 'catalog:product_detail' '00000000-0000-0000-0000-000000000000' %}"
-     data-cart-url="{% url 'catalog:add_to_cart' '00000000-0000-0000-0000-000000000000' %}"
+     data-cart-url="{% url 'cart:add' %}"
      data-wishlist-url="{% url 'catalog:toggle_wishlist' '00000000-0000-0000-0000-000000000000' %}"
      data-csrf="{{ csrf_token }}"
      data-is-seller="{% if user.is_authenticated and user.profile.is_seller %}true{% else %}false{% endif %}">

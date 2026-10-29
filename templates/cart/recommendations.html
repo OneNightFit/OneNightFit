@@ -1,23 +1,25 @@
 <section class="cart-reco" aria-labelledby="cart-reco-title">
-  <div class="cart-wrap">
-    <p class="cart-reco__kicker body-1" id="cart-reco-title">RECOMMENDATION</p>
-    <h6 class="cart-reco__lead">From User to User, Elevate your look with inspiration from others!</h6>
-    <ul class="cart-reco__list">
-      {% for p in recommendations %}
-      <li class="cart-reco__card">
-        <div class="cart-reco__img">{% if p.image %}<img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy" onerror="this.remove()">{% endif %}</div>
-        <p class="cart-reco__store body-4">{{ p.store_name }}</p>
-        <h6 class="cart-reco__name">{{ p.name }}</h6>
-        <p class="cart-reco__price body-3">{{ p.price_display }} /Day</p>
-        <p class="cart-reco__meta body-4">
-          <svg class="cart-reco__star" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>
-          <b>{{ p.rating }}</b> <span>({{ p.reviews }} reviews)</span>
-          <span class="cart-reco__sep" aria-hidden="true"></span>
-          <svg class="cart-reco__pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
-          <span>{{ p.location }}</span>
-        </p>
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
+    <div class="cart-wrap">
+        <p class="cart-reco__kicker body-1" id="cart-reco-title">RECOMMENDATION</p>
+        <h6 class="cart-reco__lead">From User to User, Elevate your look with inspiration from others!</h6>
+        <ul class="cart-reco__list">
+            {% for p in recommendations %}
+            <li class="cart-reco__card">
+                <div class="cart-reco__link">
+                    <div class="cart-reco__img">{% if p.image %}<img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy" onerror="this.remove()">{% endif %}</div>
+                    <p class="cart-reco__store body-4">{{ p.store_name }}</p>
+                    <h6 class="cart-reco__name">{{ p.name }}</h6>
+                    <p class="cart-reco__price body-3">{{ p.price_display }} /Day</p>
+                </div>
+                <p class="cart-reco__meta body-4">
+                    <svg class="cart-reco__star" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>
+                    <b>{{ p.rating }}</b> <span>({{ p.reviews }} reviews)</span>
+                    <span class="cart-reco__sep" aria-hidden="true"></span>
+                    <svg class="cart-reco__pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
+                    <span>{{ p.location }}</span>
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </section>

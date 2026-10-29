@@ -3,6 +3,7 @@ from functools import wraps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
@@ -17,11 +18,10 @@ def _wants_json(request):
             or "application/json" in request.headers.get("Accept", ""))
 
 def cart_login_required(view):
-    """Meminta login jika CART_REQUIRE_LOGIN aktif.
-    Default (sementara) Guest bisa mengakses Cart dengan isi ter reset tiap reload."""
+    """Cart hanya untuk authenticated user"""
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        if getattr(settings, "CART_REQUIRE_LOGIN", False) and not request.user.is_authenticated:
+        if not request.user.is_authenticated:
             if _wants_json(request):
                 return JsonResponse({"ok": False, "error": "Please log in first."}, status=401)
             return redirect_to_login(request.get_full_path())
@@ -29,12 +29,18 @@ def cart_login_required(view):
     return wrapper
 
 def recommendations(state):
-    recs = catalog.recommended_products(exclude_ids=[it["id"] for it in state["items"]], limit=5)
-    return [{**p, "price_display": services.format_rupiah(p["price"])} for p in recs]
+    recs = catalog.recommended_products(
+        exclude_ids=[item["id"] for item in state["items"]],
+        limit=5,
+    )
+    return [
+        {**product, "price_display": services.format_rupiah(product["price"])}
+        for product in recs
+    ]
 
 def mutate(request, fn):
     """Mengubah isi keranjang dan mengirim respons sesuai request."""
-    state = storage.load_state(request)
+    state = storage.load_state(request.user)
     try:
         fn(state)
     except services.CartError as exc:
@@ -42,7 +48,7 @@ def mutate(request, fn):
             return JsonResponse({"ok": False, "error": str(exc)}, status=400)
         messages.error(request, str(exc))
         return redirect("cart:cart")
-    storage.save_state(request, state)
+    storage.save_state(request.user, state)
 
     if _wants_json(request):
         return JsonResponse({"ok": True, "cart": services.build_cart(state)})
@@ -53,12 +59,9 @@ def mutate(request, fn):
 # =======================================================
 @cart_login_required
 def cart_page(request):
-    if not request.user.is_authenticated:
-        storage.reset_guest_cart(request)   # untuk Guest barang kembali muncul setelah reload
-    state = storage.load_state(request)
+    state = storage.load_state(request.user)
     return render(request, "cart/cart.html", {
         "cart": services.build_cart(state),
-        "catalog_empty": not catalog.has_products(),
         "min_days": services.MIN_DAYS,
         "max_days": services.MAX_DAYS,
         "recommendations": recommendations(state),
@@ -67,11 +70,16 @@ def cart_page(request):
 @cart_login_required
 @require_POST
 def cart_select(request):
-    """Memilih produk atau toko."""
+    """Memilih produk atau satu toko sekaligus."""
     selected = request.POST.get("selected", "")
     if "store" in request.POST:
-        return mutate(request, lambda s: services.set_store_selected(s, request.POST["store"], selected))
-    
+        def update_store_selection(state):
+            return services.set_store_selected(
+                state,
+                request.POST["store"],
+                selected
+            )
+        return mutate(request, update_store_selection)
     return mutate(request, lambda s: services.set_selected(s, request.POST.get("product_id"), selected))
 
 
@@ -89,8 +97,9 @@ def cart_duration(request):
             delta = int(request.POST.get("delta", ""))
         except ValueError:
             raise services.CartError("The selected duration is invalid.")
-        current = next((i["days"] for i in state["items"] if i["id"] == pid), None)
         
+        current = next((i["days"] for i in state["items"] if i["id"] == pid), None)
+
         if current is None:
             raise services.CartError("Your cart is empty.")
         services.set_days(state, pid, current + delta)
@@ -101,35 +110,33 @@ def cart_duration(request):
 @require_POST
 def cart_remove(request):
     """Menghapus produk dari keranjang."""
-    return mutate(request, lambda s: services.remove_item(s, request.POST.get("product_id")))
+    product_id = request.POST.get("product_id")
+    def remove(state):
+        return services.remove_item(state, product_id)
+    return mutate(request, remove)
 
 
 @cart_login_required
 @require_POST
 def cart_add(request):
-    """Menambahkan produk ke keranjang dari catalog (belum diimplementasikan)."""
-    return mutate(request, lambda s: services.add_item(s, request.POST.get("product_id"), request.POST.get("days", 1), True))
-
-
-@cart_login_required
-@require_POST
-def cart_reset(request):
-    """Mengembalikan isi keranjang ke kondisi awal."""
-    storage.save_state(request, services.default_state())
-    return redirect("cart:cart")
+    """Menambahkan produk ke keranjang dari catalog lewat 'Add to Cart'."""
+    def add(state):
+        product_id = request.POST.get("product_id")
+        days = request.POST.get("days", 1)
+        return services.add_item(state, product_id, days, False)
+    return mutate(request, add)
 
 # =======================================================
 # CHECKOUT PAGE
 # =======================================================
 @cart_login_required
 def checkout_page(request):
-    state = storage.load_state(request)
+    state = storage.load_state(request.user)
     summary = services.checkout_summary(state)
     ctx = {
         "summary": summary,
         "user_info": {
-            "name": (request.user.get_full_name() or request.user.get_username())
-                    if request.user.is_authenticated else "John Doe",
+            "name": (request.user.get_full_name() or request.user.get_username()),
             "phone": "+62 812-3443-7700",   # DUMMY (Ganti ketika profil sudah diimplementasi)
             "address": ("Jl. Prof. Dr. Sudjono D. Pusponegoro, Kampus UI, Pondok Cina, "
                         "Kecamatan Beji, Kota Depok, Jawa Barat, 16424"),
@@ -144,12 +151,12 @@ def checkout_page(request):
         payment = request.POST.get("payment", "")
         errors = services.validate_checkout(summary, shipping, payment)
         if not errors:
-            # Item yang dibayar dihapus dari keranjang.
-            services.complete_checkout(state, summary)
-            storage.save_state(request, state)
-            if not request.user.is_authenticated:
-                storage.keep_guest_cart_once(request)     # Guest barang balik setelah reload
+            with transaction.atomic():
+                # Item yang dibayar dihapus dari keranjang.
+                services.complete_checkout(state, summary)
+                storage.save_state(request.user, state)
+                storage.record_rentals(request.user, summary)
             messages.success(request, "Your rental is confirmed!")
-            return redirect("cart:cart")
+            return redirect("OneNightFit:landing_page")
         ctx.update(shipping=shipping, payment=payment, errors=errors)
     return render(request, "cart/checkout.html", ctx)
