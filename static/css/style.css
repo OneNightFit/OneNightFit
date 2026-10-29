@@ -317,7 +317,7 @@ html {
     position: absolute;
     z-index: 3;
     left: 50%;
-    bottom: clamp(4rem, 6vw, 6rem);
+    bottom: clamp(7rem, 12vw, 10rem);
     transform: translateX(-50%);
     display: inline-flex;
     align-items: center;
@@ -355,6 +355,8 @@ html {
     .hero-title::after {
         -webkit-text-stroke-width: 1px;
     }
+
+    .hero-scroll { bottom: 6.5rem; }
 }
 
 /* HALAMAN ABOUT ME (NOT FIXED) */
