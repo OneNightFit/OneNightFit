@@ -66,12 +66,19 @@
                 },
                 body: new URLSearchParams({ product_id: id }),
             });
-            if (res.status === 401) { window.location.href = '/login/'; return; }
             const result = await res.json().catch(() => ({}));
-            notify(res.ok ? 'Berhasil' : 'Gagal', result.error || 'Produk berhasil ditambahkan ke keranjang.', res.ok ? 'success' : 'error');
+            if (res.status === 401) {
+                notify('Gagal menambahkan produk', result.error || result.message || 'Harap login terlebih dahulu.', 'error');
+                window.setTimeout(() => { window.location.href = '/login/'; }, 3200);
+                return;
+            }
+            const message = res.ok
+                ? (result.message || 'Produk berhasil ditambahkan ke keranjang.')
+                : (result.error || result.message || `Terjadi kesalahan saat menambahkan produk (status ${res.status}).`);
+            notify(res.ok ? 'Berhasil' : 'Gagal menambahkan produk', message, res.ok ? 'success' : 'error');
         } catch (err) {
             console.error(err);
-            notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+            notify('Gagal menambahkan produk', `Tidak dapat terhubung ke server: ${err.message}`, 'error');
         }
     }
 
