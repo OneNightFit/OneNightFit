@@ -20,8 +20,8 @@
         $('#detail-price').textContent = `Price: Rp ${p.price}`;
         $('#detail-rating').textContent = `Rating: ${p.average_rating}`;
         $('#detail-reviews').textContent = `Rated by ${p.rating_count} people`;
-        $('#detail-seller').textContent = `Store: ${p.seller}`;
-        $('#detail-meta').textContent = `Ukuran: ${p.size_display}`;
+        $('#detail-seller').textContent = `Store: ${p.seller_display}`;
+        $('#detail-meta').textContent = `Ukuran: ${p.size}`;
 
         const img = $('#detail-image');
         if (p.image) { img.src = p.image; img.alt = p.name; img.hidden = false; }

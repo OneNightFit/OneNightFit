@@ -223,7 +223,7 @@
 .card .image {
     width: 100%;
     aspect-ratio: 1 / 1;
-    background: var(--neutral_g0);
+    background: var(--neutral_0);
     position: relative;
     overflow: hidden;
 }
@@ -266,10 +266,15 @@
     justify-content: flex-start;
     gap: 0.5rem;
 }
+.product-card-contents .product-details .product-seller .store-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .product-card-contents .product-details .product-seller .store-icon svg {
     width: 24px;
     height: 24px;
-    padding: 4px;
+    padding: 2px;
 }
 
 
@@ -303,12 +308,34 @@
 
 .rating {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.25rem;
     align-items: center;
     font-family: 'Manrope', sans-serif;
     font-size: 14px;
     color: var(--neutral_0);
     font-weight: 700;
+}
+
+.rating .average-rating {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating .star-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+}
+
+.rating .rate-count {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .product-actions {
