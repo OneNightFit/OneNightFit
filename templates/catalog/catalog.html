@@ -3,6 +3,7 @@
 
 {% block meta %}
     <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/catalog_toast.css' %}">
 {% endblock meta %}
 
 {% block title %}Katalog Produk{% endblock title %}
@@ -87,6 +88,7 @@
         {% include 'catalog/components/catalog_form_update_modal.html' %}
         {% include 'catalog/components/catalog_delete_modal.html' %}
     {% endif %}
+    {% include 'catalog/components/catalog_toast.html' %}
     {{ selected_categories|json_script:"selected-categories" }}
     <script>
         // Button di expand/close filter
@@ -230,7 +232,7 @@
                             <div class="product-seller-size-rating"> 
                                 <div class="product-seller">
                                     <span class="store-icon"><svg></svg></span>
-                                    <span class="body_1">${escapeHtml(product.seller)}</span>
+                                    <span class="body_1">${escapeHtml(product.seller_display)}</span>
                                 </div>
                                 <p class="product-size body_1">Size: ${escapeHtml(product.size_display)}</p>
                                 <div class="rating">
@@ -299,9 +301,13 @@
         });
 
         function extractErrors(result, status) {
-            return result.errors
-                ? Object.values(result.errors).flat().map(e => e.message).join(' ')
-                : (result.message || `Terjadi kesalahan (status ${status}).`);
+            if (result.errors) {
+                const messages = Object.values(result.errors).flat()
+                    .map(error => typeof error === 'string' ? error : error.message)
+                    .filter(Boolean);
+                if (messages.length) return messages.join(' ');
+            }
+            return result.error || result.message || `Terjadi kesalahan (status ${status}).`;
         }
 
         async function postForm(form, url) {
@@ -331,7 +337,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                notify('Gagal menambahkan produk', 'Tidak dapat terhubung ke server.', 'error');
+                notify('Gagal menambahkan produk', `Tidak dapat terhubung ke server: ${error.message}`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
@@ -376,7 +382,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                notify('Gagal memperbarui produk', 'Tidak dapat terhubung ke server.', 'error');
+                notify('Gagal memperbarui produk', `Tidak dapat terhubung ke server: ${error.message}`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
@@ -406,7 +412,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                notify('Gagal menghapus produk', 'Tidak dapat terhubung ke server.', 'error');
+                notify('Gagal menghapus produk', `Tidak dapat terhubung ke server: ${error.message}`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
@@ -418,6 +424,7 @@
                     method: 'POST',
                     headers: { 'X-CSRFToken': CSRF_TOKEN, 'Accept': 'application/json' }
                 });
+                const result = await response.json().catch(() => ({}));
 
                 if (response.status === 401) {
                     window.location.href = LOGIN_URL;
@@ -433,11 +440,11 @@
                     notify('Berhasil', 'Status wishlist berhasil diperbarui!', 'success');
                     fetchProducts(); // Refresh products grid secara seamless
                 } else {
-                    notify('Gagal', 'Gagal memperbarui wishlist.', 'error');
+                    notify('Gagal memperbarui wishlist', result.error || result.message || `Terjadi kesalahan (status ${response.status}).`, 'error');
                 }
             } catch (error) {
                 console.error(error);
-                notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+                notify('Gagal memperbarui wishlist', `Tidak dapat terhubung ke server: ${error.message}`, 'error');
             }
         }
 
@@ -454,28 +461,29 @@
                     body: new URLSearchParams({ product_id: id }),
                 });
                 
+                const result = await response.json().catch(() => ({}));
+
                 if (response.status === 401) {
-                    window.location.href = '/login/'; // Redirect jika tidak terautentikasi
+                    notify('Gagal menambahkan produk', result.error || result.message || 'Harap login terlebih dahulu.', 'error');
+                    window.setTimeout(() => { window.location.href = LOGIN_URL; }, 3200);
                     return;
                 }
-                
-                const result = await response.json().catch(() => ({}));
                 
                 if (response.ok) {
                     if (button) {
                         button.classList.remove('button-primary');
-                        button.classList.add('button-secondary');
+                        button.classList.add('button-tertiary');
                         button.textContent = 'Added to cart';
                     }
                     const product = productsById.get(id);
                     if (product) product.is_in_cart = true;
                     notify('Berhasil', 'Produk berhasil ditambahkan ke keranjang.', 'success');
                 } else {
-                    notify('Gagal', result.error || 'Gagal menambahkan produk.', 'error');
+                    notify('Gagal menambahkan produk', result.error || result.message || `Terjadi kesalahan (status ${response.status}).`, 'error');
                 }
             } catch (error) {
                 console.error(error);
-                notify('Error', 'Tidak dapat terhubung ke server.', 'error');
+                notify('Gagal menambahkan produk', `Tidak dapat terhubung ke server: ${error.message}`, 'error');
             }
         }
 

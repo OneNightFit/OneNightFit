@@ -8,6 +8,7 @@
     var hint = document.getElementById("checkout-hint");
 
     function sync() {
+        var profileOk = form.dataset.profileComplete === "true";
         var paymentOk = !!form.querySelector('input[name="payment"]:checked');
 
         var stores = form.querySelectorAll(".checkout-store");
@@ -18,7 +19,7 @@
                 break;
             }
         }
-        var ok = paymentOk && shippingOk;
+        var ok = profileOk && paymentOk && shippingOk;
         btn.disabled = !ok;
         if (hint) hint.hidden = ok;
     }

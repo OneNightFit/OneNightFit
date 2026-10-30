@@ -11,7 +11,7 @@
 
 .product-modal::backdrop {
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px); /* Slightly stronger blur for depth */
 }
 
 .product-modal__backdrop {
@@ -35,9 +35,9 @@
     max-height: 90vh;
     padding: 24px;
     box-sizing: border-box;
-    border-radius: 8px;
+    border-radius: 16px; /* Softer modern corners */
     color: var(--neutral_0);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: row;
     gap: 32px;
@@ -48,37 +48,39 @@
     position: absolute;
     top: -12px;
     right: -12px;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     background-color: var(--neutral_0);
     color: var(--primary_900);
     border: none;
     border-radius: 50%;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .product-modal__close:hover {
     transform: scale(1.1);
+    background-color: var(--primary_50);
 }
 
-/* --- KOLOM KIRI (GAMBAR) --- */
+/* --- LEFT COLUMN (IMAGE) --- */
 .product-modal .image-container {
     width: 420px;
     flex-shrink: 0;
     height: 100%;
     min-height: 0;
-    overflow: hidden;
     position: relative;
     box-sizing: border-box;
-    background-color: var(--neutral_150);
-    border: 4px solid var(--primary_300);
+    background-color: var(--neutral_0); /* Clean background for product blending */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); /* Subtle inner depth */
 }
 
 .product-modal .image-container img {
@@ -86,57 +88,115 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* ganti ke "contain" jika gambar harus tampil utuh */
+    object-fit: contain; /* Prevents image cropping */
+    padding: 32px; /* Gives the product breathing room */
     display: block;
 }
 
-/* --- KOLOM KANAN (KONTEN) --- */
+/* --- RIGHT COLUMN (CONTENT) --- */
 .product-modal .card-content {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
     overflow-y: auto;
     justify-content: center;
+    padding: 12px 0;
+}
+
+/* Typography Enhancements */
+.product-modal #detail-category {
+    color: var(--secondary_300);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    margin-bottom: -0.75rem; /* Pull title closer to category */
+}
+
+.product-modal .product-title {
+    color: var(--neutral_0);
+    line-height: 1.2;
+}
+
+.product-modal .product-desc {
+    color: var(--neutral_200);
+    line-height: 1.6;
+}
+
+/* Grouped Meta Information Well */
+.product-modal .product-info {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid var(--primary_800);
 }
 
 .product-modal .product-info p {
-    margin: 0 0 0.5rem;
+    margin: 0;
+    color: var(--neutral_150);
 }
 
+.product-modal #detail-price {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary_100);
+    margin-bottom: 4px;
+}
+
+/* Action Buttons */
 .product-modal .detail-actions {
     display: flex;
-    gap: 1rem;
+    gap: 16px;
     margin-top: auto;
+    padding-top: 16px;
 }
 
-.product-modal .detail-actions .button {
-    width: auto;
+.product-modal #detail-cart {
+    flex: 2; /* Primary action is visually dominant */
+}
+
+.product-modal #detail-wishlist {
+    flex: 1; /* Secondary action */
 }
 
 .hide {
     display: none !important;
 }
 
+/* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
     .product-modal .product-modal__content {
         flex-direction: column;
-        width: 360px;
+        width: 90vw; /* Fluid width instead of fixed 360px */
+        max-width: 420px;
         height: auto;
         max-height: 90vh;
         overflow-y: auto;
-        padding: 16px;
-        gap: 16px;
+        padding: 20px;
+        gap: 20px;
     }
 
     .product-modal .image-container {
         width: 100%;
-        height: 320px;
+        height: 300px;
+    }
+
+    .product-modal .image-container img {
+        padding: 20px;
     }
 
     .product-modal .detail-actions {
         flex-direction: column;
         margin-top: 8px;
+    }
+    
+    .product-modal #detail-cart,
+    .product-modal #detail-wishlist {
+        width: 100%;
+        flex: none;
     }
 }

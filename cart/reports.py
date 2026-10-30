@@ -160,7 +160,7 @@ def get_seller_report(user):
             SellerProduct(
                 id=product.pk,
                 name=product.name,
-                image=product.image or "",
+                image=product.image_src,
                 daily_price=daily_rent(product.price),
                 is_rented=product.pk in active_product_ids,
                 is_pending=product.pk in pending_product_ids,

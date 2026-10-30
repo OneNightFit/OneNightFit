@@ -11,6 +11,7 @@
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/product_detail_modal.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-navigation.css' %}">
     
     <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
     {% block meta %} {% endblock meta %}
@@ -25,23 +26,54 @@
         <a href="{% url 'inspo:feeds' %}" class="body_1 desktop-only">Inspo</a>
         {% if user.is_authenticated %}
             {% if not user.profile.is_seller %}<a href="{% url 'cart:cart' %}" class="body_1 desktop-only">Cart</a>{% endif %}
-            <a href="{% url 'authentication:profile' %}" class="button button_text">{{ user.first_name }}</a>
-            <form method="POST" action="{% url 'authentication:logout' %}">
+            <a href="{% url 'authentication:profile' %}" class="button button_text desktop-only">{{ user.first_name }}</a>
+            <form class="desktop-only" method="POST" action="{% url 'authentication:logout' %}">
                 {% csrf_token %}
                 <button class= "button button-primary" type="submit">Logout</button>
             </form>
         {% else %}
-            <a href="{% url 'authentication:login' %}" class="button button-primary">Login/Sign Up</a>
+            <a href="{% url 'authentication:login' %}" class="button button-primary desktop-only">Login/Sign Up</a>
         {% endif %}
-        <a href="{% url 'authentication:profile' %}" class="icon nav-hamburg-menu mobile-only"><img src="{% static 'img/nav_menu.svg' %}" alt="menu"></a>
+        <a href="#mobile-navigation" class="icon nav-hamburg-menu mobile-only" role="button" aria-label="Open navigation menu" aria-controls="mobile-navigation" aria-haspopup="dialog" aria-expanded="false"><img src="{% static 'img/nav_menu.svg' %}" alt="" aria-hidden="true"></a>
     </nav>
 </header>
+
+<div class="mobile-nav" id="mobile-navigation" aria-hidden="true" inert>
+    <button class="mobile-nav__backdrop" type="button" data-mobile-nav-close aria-label="Close navigation menu"></button>
+    <aside class="mobile-nav__panel" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-title" tabindex="-1">
+        <div class="mobile-nav__header">
+            <a href="{% url 'landing_page' %}" class="mobile-nav__brand" aria-label="OneNightFit home">
+                <img src="{% static 'img/logo.png' %}" alt="OneNightFit">
+            </a>
+            <button class="mobile-nav__close" type="button" data-mobile-nav-close aria-label="Close navigation menu">&times;</button>
+        </div>
+        <nav class="mobile-nav__links" aria-label="Mobile navigation">
+            {% if user.is_authenticated %}
+                <a id="mobile-nav-title" href="{% url 'authentication:profile' %}" class="subheading-6">{{ user.first_name|default:user.username }}</a>
+            {% else %}
+                <a id="mobile-nav-title" href="{% url 'authentication:login' %}" class="subheading-6 button button-primary">Login / Sign Up</a>
+            {% endif %}
+            <a href="{% url 'catalog:catalog_list' %}" class="subheading-6">Products</a>
+            <a href="{% url 'inspo:feeds' %}" class="subheading-6">Inspo</a>
+            {% if user.is_authenticated and not user.profile.is_seller %}
+                <a href="{% url 'cart:cart' %}" class="subheading-6">Cart</a>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <form class="mobile-nav__logout button button-secondary" method="POST" action="{% url 'authentication:logout' %}">
+                    {% csrf_token %}
+                    <button class="subheading-6" type="submit">Logout</button>
+                </form>
+            {% endif %}
+        </nav>
+    </aside>
+</div>
 
     <main class="container main-content">
         {% block content %} {% endblock content %}
     </main>
     {% include 'catalog/components/catalog_detail_modal.html' %}
     <script src="{% static 'js/product_detail.js' %}"></script>
+    <script src="{% static 'js/mobile-navigation.js' %}"></script>
 
     <footer class="site-footer">
         <div class="container footer-inner">
