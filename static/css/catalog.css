@@ -28,7 +28,7 @@
 .catalog-search {
     display: block;
     width: 100%;
-    padding-top: 0 1rem;
+    padding: 0 1rem;
 }
 /* 
 .catalog-search__label {
@@ -45,7 +45,7 @@
     border: 1px solid var(--primary_500);
     border-radius: 0.5rem;
     background: var(--primary_800);
-    color: var(--secondary_950);
+    color: var(--neutral_100);
     font: inherit;
 }
 
