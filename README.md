@@ -58,7 +58,6 @@ https://www.figma.com/design/K646xfiXLzAk07bq81ZwJx/OneNightFit?node-id=0-1&t=YF
     python manage.py migrate
     ```
 5. Impor data awal ke dalam basis data
-    ## TODO: Masukin impor modul kalian disini
     ```
     python manage.py import_products
     python manage.py import_catalog
@@ -87,7 +86,7 @@ Konten pada modul Authentication & User meliputi:
 - **Autentikasi dan Hak Akses:** Halaman Profile, Activity, Rentals, Shop Report, dan Edit Profile hanya dapat diakses pengguna yang login. Aksi Seller (approve, reject, returned) memeriksa kepemilikan di sisi server, sehingga Seller lain mendapat respons 404 meskipun mengetahui alamatnya. Pembatasan dilakukan di sisi server, bukan hanya dengan menyembunyikan tombol.
 - **Keamanan Input:** Seluruh aksi yang mengubah data memakai request POST dengan token CSRF. Teks yang disisipkan lewat JavaScript memakai `textContent` untuk mencegah XSS, dan alamat tujuan `next` pada form divalidasi agar tidak mengarah ke situs lain.
 
-### **AI Disclosure Modul Inspo**
+### **AI Disclosure Modul Authentication and User**
 ### **1. Alat AI yang digunakan**
 
 Claude (Model Bahasa / AI Assistant)
@@ -121,6 +120,115 @@ AI digunakan sebagai pendukung pemahaman dan pembuatan draf kode untuk modul Aut
 
 
 ## Modul Product Catalog
+Modul `catalog` menyediakan katalog produk sewaan untuk pengunjung dan Buyer, serta fitur bagi Seller untuk mengelola produk miliknya. Produk menampilkan informasi nama, deskripsi, kategori, ukuran, harga, gambar, toko, dan rating. Katalog mendukung pencarian nama atau deskripsi, filter kategori, serta detail produk dalam format JSON.
+
+### Fitur
+- **Jelajah katalog:** Pengunjung dan Buyer dapat melihat daftar produk, mencari berdasarkan nama atau deskripsi, memilih satu atau beberapa kategori, dan membuka detail produk. Daftar JSON menyertakan rating rata-rata dan jumlah rating.
+- **Wishlist:** Pengguna yang login dapat menambah atau menghapus produk dari wishlist. Status wishlist tersedia pada data produk dan aksi perubahan menggunakan `POST`.
+- **Keranjang:** Produk dapat ditambahkan ke keranjang melalui endpoint modul Catalog. Pengelolaan isi dan proses checkout selanjutnya ditangani oleh modul Cart.
+- **Pengelolaan produk Seller:** Seller dapat menambah, mengedit, dan menghapus produk melalui form dan endpoint AJAX. Seller hanya dapat mengubah atau menghapus produk yang dimilikinya; daftar Seller juga dibatasi pada produk miliknya.
+- **Gambar produk:** Seller dapat memilih URL gambar atau mengunggah berkas melalui form. Model menyimpan URL dan berkas unggahan secara terpisah.
+- **Rating:** Model `ProductRating` menyimpan rating 1–5 per pengguna dan produk; satu pengguna hanya dapat memberi satu rating pada produk yang sama. Katalog saat ini menampilkan rata-rata dan jumlah rating.
+- **Impor data awal:** Perintah `python manage.py import_catalog` mengambil produk dari Fake Store API, memetakan kategori, dan mengaitkannya dengan akun Seller contoh. Produk yang sudah diimpor diperbarui, sehingga perintah dapat dijalankan kembali tanpa menggandakan produk yang sama.
+
+
+### Struktur Berkas
+
+```text
+OneNightFit/                              # Root Folder Proyek
+├── catalog/                              # Django App Modul Catalog (Backend Logic)
+│   ├── migrations/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── models.py                         # Model data Produk dan ProductRating.
+│   ├── tests.py
+│   ├── urls.py                           # Routing URL internal modul catalog
+│   └── views.py                          # Logic endpoint JSON & penanganan AJAX
+├── static/                               # Static Assets (CSS & JS)
+│   ├── css/
+│   │   ├── catalog.css                   # Layout katalog, sidebar filter, grid kartu
+│   │   ├── catalog_toast.css             # Style komponen toast notifikasi
+│   │   └── product_detail_modal.css      # Style modal detail produk
+│   └── js/
+│       ├── catalog_toast.js              # Helper animasi & penyajian toast
+│       └── product_detail.js             # Event listener & controller modal detail
+└── templates/                            # Template HTML
+    └── catalog/
+        ├── catalog.html                  # Halaman utama katalog
+        └── components/
+            ├── catalog_delete_modal.html # Modal konfirmasi hapus produk
+            ├── catalog_detail_modal.html # Modal detail produk
+            ├── catalog_form_create_modal.html # Modal form tambah produk
+            ├── catalog_form_update_modal.html # Modal form edit produk
+            ├── catalog_toast.html        # Komponen toast notifikasi
+            └── catalog_wishlist.html     # Snippet form/tombol wishlist
+```
+
+### Model dan berkas utama
+
+- `Product` memakai UUID sebagai primary key, berelasi opsional dengan Seller, dan mencatat kategori, ukuran, harga, deskripsi, URL atau berkas gambar, serta wishlist.
+- `ProductRating` mencatat rating produk oleh pengguna.
+- `forms.py` mendefinisikan form tambah dan edit produk, termasuk pilihan sumber gambar.
+- `views.py` menangani halaman katalog, endpoint JSON, CRUD Seller, wishlist, dan penambahan ke keranjang.
+- `urls.py` mendaftarkan rute halaman dan endpoint API modul.
+- `management/commands/import_catalog.py` menyediakan perintah impor produk awal.
+
+### Endpoint
+Rute katalog berada di bawah namespace `catalog`:
+
+| Nama rute | Metode | Kegunaan |
+| --- | --- | --- |
+| `catalog:catalog_list` | `GET` | Menampilkan halaman katalog dan data filter kategori. |
+| `catalog:get_products_json` | `GET` | Mengembalikan produk sebagai JSON; menerima `q` dan satu atau lebih parameter `category`. |
+| `catalog:product_detail` | `GET` | Mengembalikan detail satu produk berdasarkan UUID. |
+| `catalog:create_product_ajax` | `POST` | Membuat produk untuk Seller. |
+| `catalog:edit_product_ajax` | `POST` | Mengedit produk milik Seller yang sedang login. |
+| `catalog:delete_product_ajax` | `POST` | Menghapus produk milik Seller yang sedang login. |
+| `catalog:toggle_wishlist` | `POST` | Menambah atau menghapus produk dari wishlist pengguna login. |
+| `catalog:add_to_cart` | `POST` | Menambahkan produk ke keranjang melalui integrasi Cart. |
+
+Semua operasi yang mengubah data hanya menerima `POST`. Endpoint tambah, edit, dan hapus produk memeriksa peran Seller dan kepemilikan produk di sisi server. Endpoint wishlist dan keranjang memerlukan pengguna login.
+
+### Integrasi dengan Modul Lain
+- **Authentication:** Modul membaca status login dan peran Seller dari profil pengguna.
+- **Cart:** Modul memakai data Cart untuk menandai produk dalam keranjang dan meneruskan permintaan tambah produk ke integrasi keranjang.
+- **Inspo:** Produk katalog dapat dirujuk oleh fitur Inspo, misalnya sebagai produk yang ditautkan pada postingan.
+
+### AI Disclosure Modul Product Cart
+#### 1. Alat AI yang Digunakan
+Claude, Gemini, ChatGPT (Codex)
+#### 2. Ruang Lingkup Bantuan AI
+- **Struktur Django dan model:** Membantu memahami pemisahan tanggung jawab app Django serta merancang dan menjelaskan model `Product` dan `ProductRating`, termasuk relasi Seller, wishlist, UUID produk, dan validasi rating.
+- **Katalog dan endpoint:** Memberi masukan untuk halaman katalog, pencarian dan filter kategori, serialisasi data produk ke JSON, serta endpoint detail produk.
+- **CRUD dan hak akses:** Membantu merancang alur tambah, edit, dan hapus produk secara AJAX, termasuk validasi form dan pemeriksaan peran Seller serta kepemilikan produk di sisi server.
+- **Integrasi antarmodul:** Membantu menelusuri hubungan Catalog dengan Authentication untuk peran pengguna, Cart untuk penambahan produk, dan Inspo untuk rujukan produk.
+- **Form dan gambar:** Memberi saran untuk pilihan sumber gambar berupa URL atau unggahan berkas serta penanganan input gambar pada form.
+- **Impor data:** Membantu memahami proses pengambilan produk Fake Store API, pemetaan kategori, dan pembaruan data melalui perintah `import_catalog`.
+- **Debugging dan dokumentasi:** Membantu menganalisis masalah implementasi dan merapikan dokumentasi fitur, model, endpoint, serta integrasi berdasarkan kode modul.
+
+#### 3. Strategi Prompting
+- **Contextual Prompting:** Menyertakan struktur app, potongan kode model, form, view, URL, dan templat agar saran sesuai dengan implementasi proyek.
+- **Iterative and Conversational Prompting:** Mengembangkan pembahasan secara bertahap dari model dan endpoint hingga integrasi antarmodul dan dokumentasi.
+- **Problem-Based Questioning:** Menyampaikan kebutuhan fitur atau masalah implementasi secara spesifik untuk mendapatkan saran yang terarah.
+- **Verification Prompting:** Mencocokkan saran dengan kode yang tersedia, termasuk nama rute, field, validasi, dan batas akses di sisi server.
+
+#### 4. Log Chat AI
+- https://share.gemini.google/z24XADu0Ylak
+- https://share.gemini.google/z24XADu0Ylak
+- https://share.gemini.google/MX2o6pwCCNBp
+- https://claude.ai/share/9fb17595-c9a7-4d0c-9b4f-5a6ab504179b
+- https://claude.ai/share/b3dba105-510a-4b88-8e4b-8af243d9a11d
+- https://claude.ai/share/b3dba105-510a-4b88-8e4b-8af243d9a11d
+- https://chatgpt.com/s/cx_6ae4ca4155508191835ada01be35b9a5
+- https://chatgpt.com/s/cx_6ae4ca5237fc8191ad5b82ad5a3fea8d
+- https://chatgpt.com/s/cx_6ae4ca5b2adc81918e9378b7f8bb44da
+
+#### 5. Evaluasi Kritis terhadap Penggunaan AI
+AI digunakan sebagai alat bantu untuk memahami Django, mengeksplorasi pendekatan implementasi, menelusuri masalah, dan menyusun dokumentasi. Saran AI dapat mengasumsikan nama berkas, endpoint, atau perilaku yang belum tentu sama dengan proyek, sehingga setiap saran perlu dicocokkan dengan kode Catalog dan modul terkait. Implementasi akhir dan keputusan teknis tetap ditinjau berdasarkan kebutuhan proyek dan kode yang benar-benar tersedia.
+
+
 
 
 
