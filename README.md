@@ -126,6 +126,38 @@ AI digunakan sebagai pendukung pemahaman dan pembuatan draf kode untuk modul Aut
 
 ## Modul Product Cart
 
+Konten pada modul Product Cart meliputi:
+- **Keranjang Produk**: Buyer dapat menambahkan produk dari Catalog ke keranjang tanpa meninggalkan halaman Catalog. Produk diidentifikasi menggunakan UUID dari Catalog, dan detail serta harga selalu dibaca kembali dari data produk.
+- **Pengelolaan Keranjang**: Buyer dapat memilih atau membatalkan pilihan produk, memilih seluruh produk dari satu toko, mengubah durasi sewa (1–30 hari), dan menghapus produk. Total dihitung ulang berdasarkan harga harian dan durasi sewa.
+- **Checkout**: Buyer dapat memilih metode pembayaran QRIS atau tunai, serta opsi pengambilan langsung atau pengiriman untuk tiap toko. Nama, nomor HP, dan kota pada alamat checkout diambil dari profil pengguna. Checkout tidak dapat dilakukan sebelum ketiga data tersebut diisi.
+- **Pemesanan dan Ketersediaan Produk**: Checkout yang berhasil membuat pesanan berstatus *pending*, mengosongkan produk yang dipesan dari keranjang, lalu mengarahkan Buyer kembali ke halaman landing dengan notifikasi berhasil. Produk berstatus *pending* atau *approved* tidak tersedia untuk dipesan pengguna lain sampai dikembalikan.
+- **Persetujuan Seller**: Seller menyetujui pesanan dari Shop Report. Setelah disetujui, status pesanan menjadi *approved* dan ditampilkan sebagai rental aktif.
+- **Pengembalian Produk**: Buyer dapat mengembalikan rental miliknya yang berstatus *active* dari halaman Rentals. Seller juga dapat menandai rental miliknya sebagai telah dikembalikan dari Shop Report. Setelah berstatus *returned*, produk tersedia kembali dan Buyer yang sama dapat menyewanya lagi.
+- **Riwayat Rentals**: Buyer dapat melihat kartu riwayat sewa yang berisi toko, nama dan foto produk, durasi, tanggal peminjaman, harga, serta status rental.
+- **Shop Report**: Seller dapat melihat daftar produknya beserta harga harian dan status ketersediaan, serta ringkasan jumlah produk, rental aktif, total rental, total pendapatan, grafik pendapatan enam bulan terakhir, produk paling sering disewa, dan rental terbaru. Data pendapatan dan rental dihitung dari pesanan yang sudah disetujui atau dikembalikan.
+- **Akses dan Validasi**: Keranjang dan checkout hanya tersedia untuk Buyer yang sudah login. Data harga, durasi, pilihan pengiriman, pembayaran, ketersediaan produk, dan kepemilikan aksi rental divalidasi di sisi server.
+
+### **AI Disclosure Modul Product Cart**
+### **1. Alat AI yang digunakan**
+ChatGPT (Model Bahasa / AI Assistant)
+
+### **2. Ruang Lingkup Bantuan AI**
+- **Alur Git untuk branch Cart**: Membantu memahami perbedaan branch lokal dan remote, hubungan branch `cart/cart-and-checkout` dengan `dev`, serta alur commit, push, dan Pull Request agar commit dapat ditinjau sebelum masuk ke `dev`.
+- **Pemeriksaan riwayat perubahan Cart**: Membantu membaca keluaran `git diff` dari stash untuk `cart/views.py` dan `cart/services.py`. Pembahasan mencakup penerusan pengguna yang login ke fungsi `add_item` dan pemeriksaan riwayat rental pada proses tambah produk dan checkout.
+- **Penanganan perubahan yang belum dipastikan**: Menyarankan agar stash tidak dihapus sebelum perubahan terkait model dan penyimpanan Cart diperiksa, serta agar perubahan dari branch lain ditinjau melalui daftar commit dan file pada Pull Request.
+- **Pemecahan masalah Git**: Membantu menjelaskan penolakan push *non-fast-forward*, kesalahan sintaks saat memeriksa stash, serta cara memeriksa status branch dan integrasi `origin/dev`.
+
+### **3. Strategi Prompting**
+- **Contextual Prompting**: Menyertakan keluaran terminal seperti `git status`, `git branch -vv`, `git log`, dan diff stash, serta tangkapan layar Pull Request agar konteks branch dan perubahan dapat dipahami.
+- **Iterative and Conversational Prompting**: Memberikan keluaran dari satu langkah pemeriksaan terlebih dahulu, lalu meminta arahan lanjutan berdasarkan hasil tersebut.
+- **Problem-Based Questioning**: Menyampaikan masalah spesifik seperti push yang ditolak, commit dari branch lain yang ikut terlihat, dan perintah stash yang menghasilkan error.
+- **Verification Prompting**: Memeriksa riwayat dan perubahan menggunakan perintah Git sebelum mengubah branch atau menghapus stash, serta meninjau tab Commits dan Files changed pada Pull Request.
+
+### **4. Log Chat AI**
+Link = https://chatgpt.com/share/6ae4b98f-fb60-83ec-91c5-86bc158dabcb
+
+### **5. Evaluasi Kritis terhadap Penggunaan AI**
+ChatGPT membantu menjelaskan Git, tetapi beberapa arahannya perlu diperiksa lebih cermat terhadap branch yang sedang aktif. Perbedaan antara branch Cart dan `dev` sempat membuat proses pull, merge, dan isi Pull Request membingungkan. Dampaknya, commit dari branch lain ikut terlihat pada Pull Request Cart. Sebelum memberi perintah yang mengubah riwayat branch, ChatGPT seharusnya memastikan branch aktif dan tujuan integrasi dengan lebih tegas. Selain itu, contoh pengecekan rental memakai `user.rentals.filter(product_uuid=pid).exists()` tanpa membatasi status rental. Pemeriksaan seperti itu berisiko menolak pemesanan ulang meskipun rental sebelumnya sudah berstatus *returned*. Karena itu, saran kode ChatGPT perlu dicocokkan lagi dengan aturan status rental dan diuji sebelum digunakan. Terakhir, ChatGPT mudah sekali terdistraksi dan mengulangi perintah yang sebelumnya sudah dijalankan (redundan). Saya harus memastikan kembali apakah perintah tersebut sudah pernah diberikan dan mengarahkan ChatGPT untuk melanjutkan ke tahap berikutnya.
 
 
 ## Modul Inspo
