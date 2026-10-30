@@ -20,8 +20,8 @@
         $('#detail-price').textContent = `Price: Rp ${p.price}`;
         $('#detail-rating').textContent = `Rating: ${p.average_rating}`;
         $('#detail-reviews').textContent = `Rated by ${p.rating_count} people`;
-        $('#detail-seller').textContent = `Store: ${p.seller}`;
-        $('#detail-meta').textContent = `Ukuran: ${p.size_display}`;
+        $('#detail-seller').textContent = `Store: ${p.seller_display}`;
+        $('#detail-meta').textContent = `Ukuran: ${p.size}`;
 
         const img = $('#detail-image');
         if (p.image) { img.src = p.image; img.alt = p.name; img.hidden = false; }
@@ -31,7 +31,12 @@
         wl.classList.toggle('is-wishlisted', !!p.is_wishlisted);
         wl.textContent = p.is_wishlisted ? 'Remove from wishlist' : 'Add to wishlist';
         wl.hidden = IS_SELLER;
-        $('#detail-cart').hidden = IS_SELLER;
+        const cartButton = $('#detail-cart');
+        cartButton.hidden = IS_SELLER;
+        cartButton.classList.toggle('button-primary', !p.is_in_cart);
+        cartButton.classList.toggle('button-tertiary', !!p.is_in_cart);
+        cartButton.textContent = p.is_in_cart ? 'Remove from cart' : cartButton.dataset.defaultLabel;
+        $('#detail-cart-status').hidden = !p.is_in_cart;
     }
 
     async function openProductDetail(id) {
@@ -69,12 +74,23 @@
             const result = await res.json().catch(() => ({}));
             if (res.status === 401) {
                 notify('Gagal menambahkan produk', result.error || result.message || 'Harap login terlebih dahulu.', 'error');
-                window.setTimeout(() => { window.location.href = '/login/'; }, 3200);
+                const loginUrl = modal.dataset.loginUrl || '/login/';
+                window.setTimeout(() => { window.location.href = loginUrl; }, 3200);
                 return;
             }
             const message = res.ok
                 ? (result.message || 'Produk berhasil ditambahkan ke keranjang.')
                 : (result.error || result.message || `Terjadi kesalahan saat menambahkan produk (status ${res.status}).`);
+            if (res.ok) {
+                const button = $('#detail-cart');
+                button.classList.remove('button-primary');
+                button.classList.add('button-tertiary');
+                button.textContent = 'Remove from cart';
+                $('#detail-cart-status').hidden = false;
+                const product = cache.get(id);
+                if (product) product.is_in_cart = true;
+                document.dispatchEvent(new CustomEvent('product:changed', { detail: { id } }));
+            }
             notify(res.ok ? 'Berhasil' : 'Gagal menambahkan produk', message, res.ok ? 'success' : 'error');
         } catch (err) {
             console.error(err);
@@ -95,7 +111,10 @@
                 window.location.href = res.url;
                 return;
             }
-            if (res.status === 401) { window.location.href = '/login/'; return; }
+            if (res.status === 401) {
+                window.location.href = modal.dataset.loginUrl || '/login/';
+                return;
+            }
             const result = await res.json().catch(() => ({}));
             if (!res.ok) return notify('Gagal', result.message || 'Gagal memperbarui wishlist.', 'error');
 
@@ -116,7 +135,14 @@
         const button = event.target.closest('button[data-action]');
         if (!button) return;
         const id = modal.dataset.id;
-        if (button.dataset.action === 'cart') addToCart(id);
+        if (button.dataset.action === 'cart') {
+            if (button.textContent === 'Remove from cart') {
+                notify('Hapus produk dari halaman Cart', "Klik tombol 'remove' di halaman cart untuk menghapus produk dari cart", 'info');
+                window.setTimeout(() => { window.location.href = modal.dataset.cartPageUrl; }, 3200);
+            } else {
+                addToCart(id);
+            }
+        }
         if (button.dataset.action === 'wishlist') toggleWishlist(id, button);
     });
 

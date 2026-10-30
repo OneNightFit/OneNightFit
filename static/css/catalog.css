@@ -28,7 +28,7 @@
 .catalog-search {
     display: block;
     width: 100%;
-    padding-top: 0 1rem;
+    padding: 0 1rem;
 }
 /* 
 .catalog-search__label {
@@ -45,7 +45,7 @@
     border: 1px solid var(--primary_500);
     border-radius: 0.5rem;
     background: var(--primary_800);
-    color: var(--secondary_950);
+    color: var(--neutral_100);
     font: inherit;
 }
 
@@ -109,7 +109,7 @@
     padding: 1rem 1rem 1.5rem 1rem;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 1.5rem;
     align-self: stretch;
 }
 
@@ -118,7 +118,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
     cursor: pointer;
     user-select: none;
     width: 100%;
@@ -194,6 +193,33 @@
     color: #331a33;
 }
 
+/* expand/close filter card animation */
+.filter-categories {
+    overflow: hidden;
+    opacity: 1;
+    transition: height 240ms ease, opacity 180ms ease;
+}
+
+.filter-categories.is-collapsed {
+    display: flex;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-categories {
+        transition: none;
+    }
+}
+
+/* clear filter button */
+.clear-filter-btn {
+    margin-top: 0.5rem;
+    color: var(--primary_800);
+    text-decoration: none;
+}
+
 /* ==========================================================================
    PRODUCT CARDS GRID
    ========================================================================== */
@@ -223,7 +249,7 @@
 .card .image {
     width: 100%;
     aspect-ratio: 1 / 1;
-    background: var(--neutral_g0);
+    background: var(--neutral_0);
     position: relative;
     overflow: hidden;
 }
@@ -266,10 +292,24 @@
     justify-content: flex-start;
     gap: 0.5rem;
 }
+.product-card-contents .product-details .product-seller .store-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .product-card-contents .product-details .product-seller .store-icon svg {
     width: 24px;
     height: 24px;
-    padding: 4px;
+    padding: 2px;
+}
+
+.product-card-contents .button.body-4 {
+    background: none;
+    padding: 0;
+    border: none;
+    color: var(--neutral_300);
+    font-weight: 500;
+    font-size: 14px;
 }
 
 
@@ -303,12 +343,34 @@
 
 .rating {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.25rem;
     align-items: center;
     font-family: 'Manrope', sans-serif;
     font-size: 14px;
     color: var(--neutral_0);
     font-weight: 700;
+}
+
+.rating .average-rating {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating .star-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+}
+
+.rating .rate-count {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .product-actions {
