@@ -194,6 +194,32 @@
     color: #331a33;
 }
 
+/* expand/close filter card animation */
+.filter-categories {
+    overflow: hidden;
+    opacity: 1;
+    transition: height 240ms ease, opacity 180ms ease;
+}
+
+.filter-categories.is-collapsed {
+    display: flex;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-categories {
+        transition: none;
+    }
+}
+
+/* clear filter button */
+.clear-filter-btn {
+    color: var(--primary_800);
+    text-decoration: none;
+}
+
 /* ==========================================================================
    PRODUCT CARDS GRID
    ========================================================================== */
