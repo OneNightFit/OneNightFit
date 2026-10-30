@@ -277,6 +277,15 @@
     padding: 2px;
 }
 
+.product-card-contents .button.body-4 {
+    background: none;
+    padding: 0;
+    border: none;
+    color: var(--neutral_300);
+    font-weight: 500;
+    font-size: 14px;
+}
+
 
 /* ==========================================================================
    CARD TYPOGRAPHY & DETAILS

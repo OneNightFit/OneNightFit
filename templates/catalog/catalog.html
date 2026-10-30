@@ -207,7 +207,7 @@
 
             // Ubah link Add to cart menjadi button dengan data-action="cart"
             const actionsHtml = !IS_SELLER
-                ? `<button type="button" class="button ${product.is_in_cart ? 'button-secondary' : 'button-primary'}" data-action="cart" data-id="${escapeHtml(id)}">${product.is_in_cart ? 'Added to cart' : 'Add to cart'}</button>`
+                ? `<button type="button" class="button ${product.is_in_cart ? 'body-4' : 'button-primary'}" data-action="cart" data-id="${escapeHtml(id)}">${product.is_in_cart ? 'Added to cart' : 'Add to cart'}</button>`
                 : product.is_owner
                     ? `<button type="button" class="button button-secondary" data-action="edit" data-id="${escapeHtml(id)}">Edit</button>
                        <button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(id)}" popovertarget="delete-product-modal">Delete</button>`
@@ -479,8 +479,7 @@
                 
                 if (response.ok) {
                     if (button) {
-                        button.classList.remove('button-primary');
-                        button.classList.add('button-tertiary');
+                        button.className = 'button body-4';
                         button.textContent = 'Added to cart';
                     }
                     const product = productsById.get(id);
