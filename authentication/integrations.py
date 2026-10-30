@@ -205,13 +205,19 @@ def item_card(item, detail_names=(), remove_name=None):
         except NoReverseMatch:
             remove_url = ""
 
-    return {"title": str(title), "image": image, "url": url, "remove_url": remove_url}
+    return {"id": str(item.pk),"title": str(title), "image": image, "url": url, "remove_url": remove_url}
+
+
+PRODUCT_DETAIL_URL_NAMES = ("catalog:product_detail", "catalog:detail")
 
 
 def product_card(product):
     # Tombol "Remove" memakai toggle_wishlist milik Products (menghapus kalau sudah ada)
-    return item_card(product, remove_name="catalog:toggle_wishlist")
-
+    return item_card(
+        product,
+        detail_names=PRODUCT_DETAIL_URL_NAMES,
+        remove_name="catalog:toggle_wishlist",
+    )
 
 def inspo_card(post):
     return item_card(post, detail_names=("inspo:detail",))
