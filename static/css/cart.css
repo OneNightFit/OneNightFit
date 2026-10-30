@@ -701,8 +701,8 @@
 .onf-auth .a-toast-success::before { background: var(--a-line); }
 .profile-product-card-grid { align-items: stretch; }
 .profile-product-card { min-height: 19rem; }
-.profile-product-card .inspo-card-img { background: #fff; }
-.profile-product-card .inspo-card-img img { object-fit: contain; background: var(--neutral_0); }
+.profile-product-card .inspo-card-img { background: var(--neutral_0); }
+.profile-product-card .inspo-card-img img { object-fit: cover; }
 .profile-product-card-info { width: 100%; gap: .85rem; }
 .profile-product-card-name { overflow-wrap: anywhere; }
 .profile-product-card-name a { color: inherit; text-decoration: none; }
