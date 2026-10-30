@@ -230,7 +230,7 @@
                             <div class="product-seller-size-rating"> 
                                 <div class="product-seller">
                                     <span class="store-icon"><svg></svg></span>
-                                    <span class="body_1">${escapeHtml(product.seller)}</span>
+                                    <span class="body_1">${escapeHtml(product.seller_display)}</span>
                                 </div>
                                 <p class="product-size body_1">Size: ${escapeHtml(product.size_display)}</p>
                                 <div class="rating">
@@ -464,7 +464,7 @@
                 if (response.ok) {
                     if (button) {
                         button.classList.remove('button-primary');
-                        button.classList.add('button-secondary');
+                        button.classList.add('button-tertiary');
                         button.textContent = 'Added to cart';
                     }
                     const product = productsById.get(id);
