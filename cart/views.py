@@ -183,15 +183,22 @@ def seller_return_rental(request, rental_id):
 def checkout_page(request):
     state = storage.load_state(request.user)
     summary = services.checkout_summary(state)
+    profile = request.user.profile
+    name = request.user.get_full_name().strip()
+    phone = profile.phone_number.strip()
+    city = profile.city.strip()
+    profile_complete = bool(name and phone and city)
     ctx = {
         "summary": summary,
         "user_info": {
-            "name": (request.user.get_full_name() or request.user.get_username()),
-            "phone": "+62 812-3443-7700",   # DUMMY (Ganti ketika profil sudah diimplementasi)
-            "address": ("Jl. Prof. Dr. Sudjono D. Pusponegoro, Kampus UI, Pondok Cina, "
-                        "Kecamatan Beji, Kota Depok, Jawa Barat, 16424"),
+            "name": name,
+            "phone": phone,
+            "address": city,
         },
-        "errors": [],
+        "profile_complete": profile_complete,
+        "errors": [] if profile_complete else [
+            "Please complete your profile with your name, phone number, and city before checkout."
+        ],
         "shipping": {g["slug"]: "" for g in summary["stores"]},
         "payment": "",
     }
@@ -199,7 +206,11 @@ def checkout_page(request):
         shipping = {g["slug"]: request.POST.get(f"shipping_{g['slug']}", "")
                     for g in summary["stores"]}
         payment = request.POST.get("payment", "")
-        errors = services.validate_checkout(summary, shipping, payment)
+        errors = [] if profile_complete else [
+            "Please complete your profile with your name, phone number, and city before checkout."
+        ]
+        if profile_complete:
+            errors = services.validate_checkout(summary, shipping, payment)
         if not errors:
             try:
                 with transaction.atomic():
