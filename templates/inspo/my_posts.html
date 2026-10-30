@@ -1,0 +1,14 @@
+{% extends 'authentication/profile_base.html' %}
+{% load static %}
+
+{% block meta %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/inspo-myposts.css' %}">
+<script src="{% static 'js/inspo-myposts.js' %}" defer></script>
+{% endblock meta %}
+
+{% block title %}My Post{% endblock title %}
+
+{% block profile_content %}
+  {% include 'inspo/_my_posts_content.html' %}
+{% endblock profile_content %}

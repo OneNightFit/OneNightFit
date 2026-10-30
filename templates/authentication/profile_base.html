@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "authentication/_assets.html" %}
+<div class="onf-auth">
+  {% include "authentication/_messages.html" %}
+  <div class="a-dash">
+    <header class="a-head">
+      <span class="a-avatar" aria-hidden="true">{{ user.profile.initials }}</span>
+      <div class="a-head-info">
+        <span class="a-pill">{{ user.profile.get_role_display }}</span>
+        <h1 class="a-name">{{ user.profile.display_name }}</h1>
+        <a class="a-email" href="mailto:{{ user.email }}">{{ user.email }}</a>
+        {% if user.profile.is_seller and user.profile.shop_name %}
+          <p class="a-shop">{{ user.profile.shop_name }}</p>
+        {% endif %}
+      </div>
+    </header>
+
+    {% with current=request.resolver_match.url_name %}
+    <nav class="a-tabs" aria-label="Profile sections">
+      <a href="{% url 'authentication:profile' %}" {% if current == "profile" %}class="active" aria-current="page"{% endif %}>Profile</a>
+      {% if user.profile.is_seller %}
+      <a href="{% url 'authentication:shop_report' %}" {% if current == "shop_report" %}class="active" aria-current="page"{% endif %}>Shop Report</a>
+      {% else %}
+      <a href="{% url 'inspo:my_posts' %}" {% if current == "my_posts" %}class="active" aria-current="page"{% endif %}>My Post</a>
+      <a href="{% url 'authentication:activity' %}" {% if current == "activity" %}class="active" aria-current="page"{% endif %}>Activity</a>
+      <a href="{% url 'authentication:rentals' %}" {% if current == "rentals" %}class="active" aria-current="page"{% endif %}>Rentals</a>
+      {% endif %}
+      <a href="{% url 'authentication:edit_profile' %}" {% if current == "edit_profile" or current == "change_password" or current == "delete_account" %}class="active" aria-current="page"{% endif %}>Edit Profile</a>
+    </nav>
+    {% endwith %}
+
+    <section class="a-body">
+      {% block profile_content %}{% endblock %}
+    </section>
+  </div>
+</div>
+{% endblock %}

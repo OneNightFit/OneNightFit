@@ -296,6 +296,7 @@
 .icon-btn.is-active svg { fill: currentColor; }
 #more-trigger { font-size: 1.5rem; line-height: 1; padding: 0 0.25rem; }
 .detail-save { cursor: pointer; border: 0; }
+.detail-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .detail-author {
     display: flex;
@@ -402,6 +403,74 @@
 }
 .detail-visit:hover { background: var(--secondary_200); }
 
+/* Produk ONF yang di-tag pada postingan */
+.detail-products { display: flex; flex-direction: column; gap: 0.75rem; }
+.product-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; }
+
+.product-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.625rem 0.875rem 0.625rem 0.625rem;
+    background: var(--primary_850);
+    border: 1px solid var(--primary_700);
+    border-radius: 1rem;
+    color: var(--secondary_50);
+    transition: border-color .15s, background-color .15s;
+}
+.product-card:hover,
+.product-card:focus-visible {
+    border-color: var(--primary_0);
+    background: var(--primary_800);
+}
+.product-card:focus-visible { outline: 2px solid var(--primary_300); outline-offset: 2px; }
+
+.product-card-img {
+    flex: 0 0 auto;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #fff;               /* foto produk biasanya berlatar putih */
+}
+.product-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.product-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.product-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--neutral_0);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+.product-card-desc {
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--secondary_200);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+.product-card-price { font-size: 13px; font-weight: 700; color: var(--secondary_300); }
+.product-card-arrow { flex: 0 0 auto; color: var(--primary_300); }
+.product-card:hover .product-card-arrow { color: var(--primary_0); }
+
 .detail-desc p { margin: 0; }
 .detail-desc .body-6 {
     color: var(--secondary_200);
@@ -439,6 +508,301 @@
 
 .inspo-card-img { background: #fff; }
 .inspo-card-img img { object-fit: contain; }
+
+/* BOOKMARKS ========================================================================== */
+
+.bm-heading { font-size: 3.5rem; font-weight: 400; }
+.bm-meta { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0 1.5rem; color: var(--secondary_50); }
+.bm-dot { opacity: .6; }
+
+.bm-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.bm-toolbar .feed-pill-row { margin-top: 0; }
+
+/* Dropdown urutan: chevron buatan sendiri supaya ada jarak dari tepi kanan */
+.bm-sort select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.5rem 2.75rem 0.5rem 1rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background-color: var(--secondary_200);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23331300' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px;
+    color: var(--secondary_900);
+    font: 600 14px 'Manrope', sans-serif;
+    cursor: pointer;
+}
+.bm-sort select:focus-visible { outline: 2px solid var(--primary_300); outline-offset: 2px; }
+
+/* Grid: 2 kolom (mobile), 3 (tablet), 4 (desktop) */
+.bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem 1rem; margin-top: 2rem; }
+@media (min-width: 768px)  { .bm-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; } }
+@media (min-width: 1100px) { .bm-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.bm-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--primary_850);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin: 0;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition: opacity .25s ease, transform .25s ease, outline-color .15s;
+}
+.bm-card:hover, .bm-card:focus-within { outline-color: var(--secondary_300); }
+.bm-card.is-removing { opacity: 0; transform: scale(.96); pointer-events: none; }
+
+/* Timpa aturan global kartu feed: foto memenuhi kotak 4:5, tanpa bar putih */
+.bm-card .inspo-card-img {
+    flex: 0 0 auto;
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: 0;
+    background: var(--primary_850);
+}
+.bm-card .inspo-card-img > a { display: block; width: 100%; height: 100%; }
+.bm-card .inspo-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Info kartu: judul setinggi 2 baris, nama akun dan chip sejajar antar kartu */
+.bm-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+}
+.bm-info .inspo-card-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    min-height: 3em;          /* selalu setinggi 2 baris, jadi ONF sejajar */
+}
+.bm-info .bm-chip { margin-top: auto; }   /* chip menempel di dasar kartu */
+.bm-by { display: flex; align-items: center; gap: 0.5rem; color: var(--neutral_0); }
+.bm-chip {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: var(--primary_700);
+    color: var(--primary_0);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Ikon bookmark: muncul saat hover di desktop, selalu tampak di layar sentuh */
+.bm-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--primary_0);
+    border-radius: 50%;
+    background: var(--primary_800);
+    color: var(--primary_0);
+    cursor: pointer;
+}
+@media (hover: hover) {
+    .bm-btn { opacity: 0; transition: opacity .15s; }
+    .bm-card:hover .bm-btn, .bm-card:focus-within .bm-btn { opacity: 1; }
+}
+
+/* Keadaan kosong */
+.bm-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.75rem; padding: 5rem 1rem; }
+.bm-empty[hidden] { display: none; }
+.bm-empty-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary_850);
+    color: var(--primary_0);
+}
+
+/* Toast */
+.bm-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-width: min(22rem, calc(100% - 2rem));
+    padding: 0.25rem 0.5rem 0.25rem 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--neutral_150);
+    color: var(--neutral_900);
+    font: 600 14px 'Manrope', sans-serif;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+}
+.bm-toast[hidden] { display: none; }
+.bm-toast button {
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 0;
+    background: transparent;
+    color: var(--primary_500);
+    font: 700 14px 'Manrope', sans-serif;
+    cursor: pointer;
+}
+.bm-toast button[hidden] { display: none; }
+
+.likes-embed { margin-top: 2.5rem; color: var(--secondary_50); }
+.likes-embed a { text-decoration: none; }
+.likes-embed .bm-grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));   /* menyesuaikan lebar kolom profil */
+    margin-top: 1.25rem;
+}
+
+
+/* PILIHAN KATEGORI BOOKMARK (pop up simpan ke kategori) ============================== */
+
+.bmp {
+    width: 26rem;
+    max-width: calc(100% - 2rem);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--secondary_50);
+}
+.bmp::backdrop {
+    background: rgba(13, 0, 14, 0.75);
+    backdrop-filter: blur(2px);
+}
+.bmp-box {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 85vh;
+    padding: 1.5rem;
+    overflow-y: auto;
+    background: var(--primary_850);
+    border: 1px solid var(--primary_300);
+    border-radius: 1.25rem;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    font-family: 'Manrope', system-ui, sans-serif;
+}
+.bmp-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.bmp-title {
+    font-size: 1.75rem;
+    font-weight: 400;
+    background: linear-gradient(90deg, var(--primary_0) 0%, var(--secondary_300) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.bmp-close {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    background: none;
+    border: 1px solid var(--primary_300);
+    border-radius: 50%;
+    color: var(--secondary_50);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.bmp-close:hover { border-color: var(--primary_0); color: var(--primary_0); }
+
+/* Daftar kategori yang sudah ada */
+.bmp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 40vh;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+.bmp-empty {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border: 1px dashed var(--primary_300);
+    border-radius: 0.75rem;
+    color: var(--secondary_200);
+    font-size: 14px;
+    text-align: center;
+}
+.bmp-item {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    background: var(--secondary_100);
+    color: var(--secondary_900);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font: 600 14px 'Manrope', sans-serif;
+    text-align: left;
+    cursor: pointer;
+}
+.bmp-item:hover { background: var(--secondary_150); }
+.bmp-item:active { background: var(--secondary_300); }
+.bmp-item:focus-visible { outline: 2px solid var(--primary_300); outline-offset: 2px; }
+
+/* Buat kategori baru */
+.bmp-label {
+    margin: 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--primary_700);
+    color: var(--secondary_200);
+    font: 700 13px 'Manrope', sans-serif;
+}
+.bmp-new { display: flex; gap: 0.5rem; }
+.bmp-new input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.625rem 1rem;
+    background: var(--primary_900);
+    border: 1px solid var(--primary_300);
+    border-radius: 0.75rem;
+    color: var(--secondary_50);
+    font: inherit;
+    font-size: 14px;
+}
+.bmp-new input::placeholder { color: var(--secondary_200); opacity: 0.6; }
+.bmp-new input:focus { outline: 2px solid var(--primary_300); outline-offset: 2px; }
+.bmp-new button {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 1rem;
+    background: var(--gradient_primary);
+    border: 0;
+    border-radius: 0.75rem;
+    color: var(--neutral_0);
+    font: 700 14px 'Manrope', sans-serif;
+    cursor: pointer;
+}
+.bmp-new button:hover { background: var(--button_primary__hovered); }
+.bmp-error { margin: 0; min-height: 1.25rem; font-size: 13px; color: #ff9a9a; }
+.bmp-error:empty { min-height: 0; }
+
+@media (max-width: 480px) {
+    .bmp-new { flex-direction: column; }
+    .bmp-new button { width: 100%; }
+}
 
 /* RESPONSIVE ======================================================================== */
 

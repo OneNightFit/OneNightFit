@@ -32,11 +32,16 @@
       </div>
 
       <div class="detail-panel">
+        {% csrf_token %}
 
         <!-- Aksi: like, komentar, share, titik tiga, save -->
         <div class="detail-actions">
           <div class="detail-icons">
-            <button type="button" class="icon-btn" id="post-like" aria-pressed="false">
+            <button type="button" class="icon-btn{% if is_liked %} is-active{% endif %}" id="post-like"
+                aria-pressed="{% if is_liked %}true{% else %}false{% endif %}"
+                data-url="{% url 'inspo:like_toggle' %}"
+                data-kind="{% if post.is_user_post %}user{% else %}api{% endif %}"
+                data-ref="{{ post.id }}">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
               <span id="post-like-count">{{ likes }}</span>
             </button>
@@ -46,18 +51,31 @@
             <button type="button" class="icon-btn" id="post-share" aria-label="Share">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg>
             </button>
+            {% if is_owner %}
+              <a href="{% url 'inspo:edit' post.id %}" class="icon-btn" aria-label="Edit postingan" title="Edit postingan">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              </a>
+            {% endif %}
 
             <div class="card-menu-wrap">
               <button type="button" class="icon-btn" id="more-trigger" aria-label="Menu lainnya" aria-expanded="false">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
               </button>
               <div class="card-menu" id="more-menu" hidden>
-                <button type="button" class="card-menu-item" id="menu-save">Save to bookmarks</button>
+                {% if bookmark_post_id %}
+                  <button type="button" class="card-menu-item" id="menu-save">{% if is_saved %}Remove from bookmarks{% else %}Save to bookmarks{% endif %}</button>
+                {% endif %}
               </div>
             </div>
           </div>
 
-          <button type="button" class="button button-primary detail-save" id="save-btn" aria-pressed="false">Save</button>
+          <button type="button" class="button button-primary detail-save" id="save-btn"
+                  aria-pressed="{% if is_saved %}true{% else %}false{% endif %}"
+                  {% if bookmark_post_id %}
+                    data-url="{% url 'inspo:bookmark_toggle' bookmark_post_id %}"
+                  {% else %}
+                    disabled title="Produk ini belum bisa disimpan"
+                  {% endif %}>{% if is_saved %}Saved{% else %}Save{% endif %}</button>
         </div>
 
         <p class="detail-author"><span class="comment-avatar">{{ author|slice:":1"|upper }}</span> {{ author }}</p>
@@ -74,7 +92,7 @@
               <li class="comment" data-likes="{{ c.likes }}">
                 <span class="comment-avatar">{{ c.user|slice:":1" }}</span>
                 <div class="comment-body">
-                 <p class="comment-meta"><strong>{{ c.user }}</strong> <span>{{ c.posted_at|timesince }} ago</span></p>
+                  <p class="comment-meta"><strong>{{ c.user }}</strong> <span>{{ c.posted_at|timesince }} ago</span></p>
                   <p class="comment-text">{{ c.text }}</p>
                   <div class="comment-actions">
                     <button type="button" class="comment-like" aria-pressed="false">Suka</button>
@@ -102,7 +120,30 @@
           </ul>
         </div>
 
-        <a href="#" class="detail-visit">Visit Item in ONF</a>
+                {% if products %}
+          <section class="detail-products" aria-label="Produk ONF di outfit ini">
+            <p class="subheading-6">Produk di outfit ini</p>
+            <ul class="product-cards">
+              {% for p in products %}
+                <li>
+                  <a href="{% url 'catalog:product_detail' p.id %}" class="product-card" data-product-detail="{{ p.id }}">
+                    <span class="product-card-img">
+                      {% if p.image %}<img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">{% endif %}
+                    </span>
+                    <span class="product-card-body">
+                      <span class="product-card-name">{{ p.name }}</span>
+                      {% if p.description %}
+                        <span class="product-card-desc">{{ p.description|truncatechars:90 }}</span>
+                      {% endif %}
+                      <span class="product-card-price">{{ p.price|floatformat:2 }}</span>
+                    </span>
+                    <svg class="product-card-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </section>
+        {% endif %}
 
         <div class="detail-desc">
           <p class="subheading-6">Description</p>
@@ -124,7 +165,7 @@
         {% for p in more_posts %}
           <article class="inspo-card">
             <div class="inspo-card-img">
-              <a href="{% url 'inspo:detail' p.id %}">
+              <a href="{{ p.url }}">
                 {% if p.image %}
                   <img src="{{ p.image }}" alt="{{ p.title }}">
                 {% endif %}
@@ -148,6 +189,9 @@
   </div>
 </div>
 
+{% include 'inspo/bookmark_picker.html' %}
+<script src="{% static 'js/bookmark-picker.js' %}"></script>
+
 <script>
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
@@ -165,24 +209,28 @@
     wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 
-  /* ---- like postingan ---- */
+    /* ---- like postingan (tersimpan di server, tampil di profil) ---- */
   const likeBtn = $('#post-like'), likeCount = $('#post-like-count');
-  likeBtn.addEventListener('click', () => {
-    const on = likeBtn.getAttribute('aria-pressed') !== 'true';
+  function applyLike(on) {
     likeBtn.setAttribute('aria-pressed', String(on));
     likeBtn.classList.toggle('is-active', on);
     likeCount.textContent = parseInt(likeCount.textContent, 10) + (on ? 1 : -1);
-  });
-
-  /* ---- save / bookmark (tombol Save & menu titik tiga sinkron) ---- */
-  const saveBtn = $('#save-btn'), menuSave = $('#menu-save');
-  function setSaved(on) {
-    saveBtn.setAttribute('aria-pressed', String(on));
-    saveBtn.textContent = on ? 'Saved' : 'Save';
-    menuSave.textContent = on ? 'Remove from bookmarks' : 'Save to bookmarks';
   }
-  saveBtn.addEventListener('click', () => setSaved(saveBtn.getAttribute('aria-pressed') !== 'true'));
-  menuSave.addEventListener('click', () => { setSaved(saveBtn.getAttribute('aria-pressed') !== 'true'); closeMenu(); });
+  likeBtn.addEventListener('click', async () => {
+    const on = likeBtn.getAttribute('aria-pressed') !== 'true';
+    applyLike(on);                                    // langsung berubah (optimistic)
+    try {
+      const res = await fetch(likeBtn.dataset.url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').value },
+        body: new URLSearchParams({ kind: likeBtn.dataset.kind, ref: likeBtn.dataset.ref }),
+      });
+      if (res.redirected) { location.href = res.url; return; }   // belum login
+      if (!res.ok) throw new Error('failed');
+    } catch (_) {
+      applyLike(!on);                                 // gagal: kembalikan
+    }
+  });
 
   /* ---- menu titik tiga ---- */
   const trigger = $('#more-trigger'), menu = $('#more-menu');
@@ -194,6 +242,40 @@
   });
   document.addEventListener('click', closeMenu);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+  /* ---- save / bookmark: pilih kategori dulu, klik lagi untuk menghapus ---- */
+  const saveBtn = $('#save-btn'), menuSave = $('#menu-save');
+  const csrf = $('[name=csrfmiddlewaretoken]').value;
+
+  function setSaved(on) {
+    saveBtn.setAttribute('aria-pressed', String(on));
+    saveBtn.textContent = on ? 'Saved' : 'Save';
+    if (menuSave) menuSave.textContent = on ? 'Remove from bookmarks' : 'Save to bookmarks';
+  }
+
+  async function removeSaved() {
+    setSaved(false);                                  // langsung berubah (optimistic)
+    try {
+      const res = await fetch(saveBtn.dataset.url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf },
+        body: new URLSearchParams({ action: 'remove' }),
+      });
+      if (res.redirected) { location.href = res.url; return; }
+      if (!res.ok) throw new Error('failed');
+    } catch (_) {
+      setSaved(true);                                 // gagal: kembalikan
+    }
+  }
+
+  function handleSave() {
+    if (!saveBtn.dataset.url) return;                 // produk belum bisa disimpan
+    if (saveBtn.getAttribute('aria-pressed') === 'true') removeSaved();
+    else openBookmarkPicker(saveBtn.dataset.url, () => setSaved(true));
+  }
+
+  saveBtn.addEventListener('click', handleSave);
+  if (menuSave) menuSave.addEventListener('click', () => { handleSave(); closeMenu(); });
 
   /* ---- share ---- */
   const shareBtn = $('#post-share');

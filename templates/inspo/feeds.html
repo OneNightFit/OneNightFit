@@ -9,6 +9,7 @@
 
 {% block content %}
 <div class="inspo-page">
+  <div id="like-config" data-url="{% url 'inspo:like_toggle' %}" hidden>{% csrf_token %}</div>
   <div class="inspo-container">
 
     <header class="feed-header">
@@ -26,9 +27,10 @@
           </button>
         </form>
 
-        <a href="#" class="feed-upload" aria-label="Upload postingan" title="Upload postingan">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+         <a href="{% url 'inspo:bookmarks' %}" class="feed-upload" aria-label="Bookmarks" title="Bookmarks">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 011 1v17l-7-4-7 4V4a1 1 0 011-1z"/></svg>
         </a>
+
       </div>
     </header>
 
@@ -37,7 +39,7 @@
         <p class="subheading-6 feed-banner-label">NEW ARRIVAL</p>
         <h3 class="feed-banner-title">Graphite Tren Coast</h3>
         <p class="body-2">Tampil standout semalam tanpa perlu beli. Sewa outfit pilihan ONF untuk pesta, acara spesial, atau sekadar hangout. Semua sudah dicuci bersih, siap pakai, dan tinggal dikembalikan besok.</p>
-        <a href="#" class="button button-primary">Sewa sekarang</a>
+        <a href="{% url 'catalog:catalog_list' %}" class="button button-primary">Shell it now</a>
       </div>
       <div class="feed-banner-img">
         <img src="{% static 'img/banner-ONF.jpg' %}" alt="Graphite Tren Coast">
@@ -61,14 +63,15 @@
         <a href="#" class="subheading-6">See all</a>
       </div>
 
-    {% if api_error %}
-      <p class="body-2">Data produk sedang tidak bisa dimuat. Coba refresh sebentar lagi.</p>
-    {% endif %}
+      {% if api_error %}
+        <p class="body-2">Data produk sedang tidak bisa dimuat. Coba refresh sebentar lagi.</p>
+      {% endif %}
+
       <div class="feed-grid">
         {% for post in posts %}
-          <article class="inspo-card">
+          <article class="inspo-card" data-kind="{% if post.is_user_post %}user{% else %}api{% endif %}" data-ref="{{ post.id }}">
             <div class="inspo-card-img">
-              <a href="{% url 'inspo:detail' post.id %}">
+              <a href="{{ post.url }}">
                 {% if post.image %}
                   <img src="{{ post.image }}" alt="{{ post.title }}">
                 {% endif %}
@@ -85,7 +88,7 @@
               <div class="card-menu-wrap">
                 <button type="button" class="inspo-card-menu" aria-label="Menu" aria-expanded="false">&hellip;</button>
                 <div class="card-menu" hidden>
-                  <button type="button" class="card-menu-item" data-action="like">Like</button>
+                  <button type="button" class="card-menu-item{% if post.liked %} is-active{% endif %}" data-action="like">Like</button>
                   <button type="button" class="card-menu-item" data-action="save">Bookmark</button>
                   <button type="button" class="card-menu-item" data-action="share">Share</button>
                   {% if post.image %}
@@ -106,6 +109,8 @@
 
 <script>
   const menus = document.querySelectorAll('.card-menu-wrap');
+  const likeCfg = document.getElementById('like-config');
+  const csrf = likeCfg.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function closeAll() {
     menus.forEach(w => {
@@ -131,9 +136,23 @@
       if (!btn) return;
       const action = btn.dataset.action;
 
-      if (action === 'like' || action === 'save') {
+      if (action === 'like') {
+        const card = btn.closest('.inspo-card');
+        const on = !btn.classList.contains('is-active');
+        btn.classList.toggle('is-active', on);          // langsung berubah (optimistic)
+        fetch(likeCfg.dataset.url, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf },
+          body: new URLSearchParams({ kind: card.dataset.kind, ref: card.dataset.ref }),
+        }).then(res => {
+          if (res.redirected) { location.href = res.url; return; }   // belum login
+          if (!res.ok) throw new Error('failed');
+        }).catch(() => btn.classList.toggle('is-active', !on));       // gagal: kembalikan
+      }
+      if (action === 'save') {
         btn.classList.toggle('is-active');
       }
+
       if (action === 'share') {
         const url = window.location.href;
         if (navigator.share) {

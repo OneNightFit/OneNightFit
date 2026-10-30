@@ -1,0 +1,32 @@
+<article class="inspo-card bm-card profile-product-card">
+  <a class="inspo-card-img" href="{% url 'catalog:catalog_list' %}?{% if kind == 'seller' %}edit{% else %}product{% endif %}={{ card_id }}" aria-label="{% if kind == 'seller' %}Edit{% else %}View{% endif %} {{ card_name }}">
+    {% if card_image %}<img src="{{ card_image }}" alt="{{ card_name }}" loading="lazy">{% endif %}
+  </a>
+  <div class="bm-info profile-product-card-info">
+    {% if kind == "rental" %}
+    <p class="rental-card-store">{{ rental.store_name }}</p>
+    <h3 class="inspo-card-title profile-product-card-name rental-card-name" data-fit-title><a href="{% url 'catalog:catalog_list' %}?product={{ card_id }}">{{ card_name }}</a></h3>
+    <dl class="rental-card-details">
+      <div><dt>Total hari</dt><dd>{{ rental.days }} hari</dd></div>
+      <div><dt>Tanggal peminjaman</dt><dd>{{ rental.rental_date|date:"d M Y" }}</dd></div>
+      <div><dt>Harga</dt><dd>{{ rental.total_display }}</dd></div>
+    </dl>
+    {% if rental.status == "pending" %}
+    <p class="seller-product-status is-pending">Menunggu persetujuan seller</p>
+    {% elif rental.status == "returned" %}
+    <p class="seller-product-status">Telah dikembalikan</p>
+    {% else %}
+    <form method="post" action="{% url 'cart:return_rental' rental.pk %}">
+      {% csrf_token %}
+      <button class="button button-secondary rental-return-button" type="submit">Kembalikan produk</button>
+    </form>
+    {% endif %}
+    {% else %}
+    <h3 class="inspo-card-title profile-product-card-name"><a href="{% url 'catalog:catalog_list' %}?edit={{ card_id }}">{{ card_name }}</a></h3>
+    <p class="seller-product-price">{{ product.daily_price_display }} / hari</p>
+    <p class="seller-product-status{% if product.is_rented %} is-rented{% elif product.is_pending %} is-pending{% endif %}">
+      {% if product.is_rented %}Dipinjam{% elif product.is_pending %}Menunggu persetujuan{% else %}Tidak dipinjam{% endif %}
+    </p>
+    {% endif %}
+  </div>
+</article>

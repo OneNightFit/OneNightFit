@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+{% endblock meta %}
+
+{% block title %}Likes{% endblock title %}
+
+{% block content %}
+<div class="inspo-page">
+  <div class="inspo-container">
+
+    <h1 class="bm-heading">Likes</h1>
+    <p class="bm-meta body-3">
+      <span id="lk-count">{{ liked_items|length }}</span> Postingan yang kamu sukai
+    </p>
+
+    {% include 'inspo/_likes_grid.html' %}
+
+  </div>
+</div>
+{% endblock content %}

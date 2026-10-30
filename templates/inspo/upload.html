@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+<link rel="stylesheet" href="{% static 'css/inspo-upload.css' %}">
+{% endblock meta %}
+
+{% block title %}{% if mode == "edit" %}Edit Your Outfit{% else %}Share Your Outfit{% endif %}{% endblock title %}
+
+{% block content %}
+<div class="inspo-page">
+  <div class="inspo-container">
+
+    <header class="upload-header">
+      {% if mode == "edit" %}
+        <h1 class="upload-heading">Edit <span class="inspo-accent">Your Outfit</span></h1>
+        <p class="body-2">Perbarui judul, caption, hashtag, atau foto postinganmu, lalu simpan perubahannya.</p>
+      {% else %}
+        <h1 class="upload-heading">Share <span class="inspo-accent">Your Outfit</span></h1>
+        <p class="body-2">Bagikan outfit favoritmu ke komunitas ONF. Tambahkan judul, caption, hashtag, dan tag produk supaya orang lain bisa ikut terinspirasi.</p>
+      {% endif %}
+    </header>
+
+    {% if errors %}
+      <ul class="upload-errors" role="alert">
+        {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <form class="upload-form" method="post" enctype="multipart/form-data" id="upload-form" novalidate>
+      {% csrf_token %}
+
+      <!-- KIRI: foto -->
+      <div class="upload-photo-col">
+        <label class="upload-photo" id="photo-drop" for="photo-input">
+          <img id="photo-preview" alt="Preview foto" {% if current_image %}src="{{ current_image }}"{% else %}hidden{% endif %}>
+          <span class="upload-photo-placeholder" id="photo-placeholder" {% if current_image %}hidden{% endif %}>Preview Photo<br>Rasio 4:5</span>
+          <div class="upload-photo-actions" id="photo-actions" {% if not current_image %}hidden{% endif %}>
+            <span class="upload-photo-change">Ganti Foto</span>
+            {% if mode != "edit" %}
+              <button type="button" class="upload-photo-remove" id="photo-remove" aria-label="Hapus foto">&times;</button>
+            {% endif %}
+          </div>
+        </label>
+        <input type="file" id="photo-input" name="image" accept="image/jpeg,image/png" hidden>
+        <p class="upload-note body-6">JPG atau PNG, maks. 5 MB{% if mode == "edit" %}. Kosongkan jika tidak ingin mengganti foto.{% endif %}</p>
+      </div>
+
+      <!-- KANAN: field -->
+      <div class="upload-fields">
+
+        <div class="upload-field">
+          <div class="upload-label-row">
+            <label class="upload-label" for="title">Judul</label>
+            <span class="upload-counter body-6"><span id="title-count">0</span>/100</span>
+          </div>
+          <input type="text" id="title" name="title" class="upload-input" maxlength="100" placeholder="Contoh: Oversized Blazer Office Chic" value="{{ title }}" required>
+        </div>
+
+        <div class="upload-field">
+          <div class="upload-label-row">
+            <label class="upload-label" for="caption">Caption</label>
+            <span class="upload-counter body-6"><span id="caption-count">0</span>/300</span>
+          </div>
+          <textarea id="caption" name="caption" class="upload-input" rows="3" maxlength="300" placeholder="Ceritakan outfit-mu...">{{ caption }}</textarea>
+        </div>
+
+        <div class="upload-field">
+          <label class="upload-label" for="hashtag-input">Hashtag <small>(maks. 5)</small></label>
+          <div class="upload-input upload-tags" id="hashtag-box">
+            <input type="text" id="hashtag-input" placeholder="Ketik lalu tekan Enter" maxlength="30" autocomplete="off">
+          </div>
+          <input type="hidden" name="hashtags" id="hashtags-value" value="{{ hashtags }}">
+        </div>
+
+        <div class="upload-field">
+          <span class="upload-label">Tag Produk ONF <small>(Optional, maks. 10)</small></span>
+          <ul class="upload-product-list" id="product-list">
+            {% for p in selected_products %}
+              <li class="upload-product" data-id="{{ p.id }}">
+                {% if p.image %}<img src="{{ p.image }}" alt="">{% endif %}
+                <div>
+                  <p class="body-4">{{ p.name }}</p>
+                  <p class="body-6">{{ p.price|floatformat:2 }}</p>
+                </div>
+                <button type="button" class="upload-product-remove" aria-label="Hapus {{ p.name }}">&times;</button>
+                <input type="hidden" name="product_ids" value="{{ p.id }}">
+              </li>
+            {% endfor %}
+          </ul>
+          <button type="button" class="upload-catalog-btn" id="catalog-open">+ Pilih dari katalog</button>
+        </div>
+
+        <div class="upload-field">
+          <span class="upload-label">Categories <small>(Optional)</small></span>
+          <button type="button" class="upload-input upload-select" id="cat-toggle" aria-expanded="{% if selected_categories %}true{% else %}false{% endif %}" aria-controls="cat-panel">
+            <span>Choose the categories...</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>
+          </button>
+          <div class="upload-input upload-cat-panel{% if selected_categories %} is-open{% endif %}" id="cat-panel">
+            {% for c in categories %}
+              <label class="upload-chip">
+                <input type="checkbox" name="kategori" value="{{ c }}"{% if c in selected_categories %} checked{% endif %}>
+                <span>{{ c }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="upload-buttons">
+          {% if mode == "edit" %}
+            <a href="{% url 'inspo:my_posts' %}" class="upload-cancel">Batal</a>
+            <button type="submit" class="upload-submit">Save the changes</button>
+          {% else %}
+            <a href="{% url 'inspo:feeds' %}" class="upload-cancel">Batal</a>
+            <button type="submit" class="upload-submit">Posting</button>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Dialog katalog produk -->
+<dialog class="upload-dialog" id="catalog-dialog">
+  <div class="upload-dialog-head">
+    <h2 class="body-2">Pilih produk ONF</h2>
+    <button type="button" id="catalog-close" aria-label="Tutup">&times;</button>
+  </div>
+
+  <ul class="upload-catalog-list">
+    {% for p in products %}
+      <li>
+        <label class="upload-catalog-item"
+               data-id="{{ p.id }}" data-name="{{ p.name }}"
+               data-price="{{ p.price|floatformat:2 }}" data-img="{{ p.image }}">
+          <input type="checkbox">
+          {% if p.image %}<img src="{{ p.image }}" alt="">{% endif %}
+          <span>
+            <strong class="body-4">{{ p.name }}</strong>
+            <small class="body-6">{{ p.price|floatformat:2 }}</small>
+          </span>
+        </label>
+      </li>
+    {% empty %}
+      <li class="body-2">Katalog belum bisa dimuat.</li>
+    {% endfor %}
+  </ul>
+
+  <div class="upload-dialog-foot">
+    <button type="button" class="upload-cancel" id="catalog-cancel">Batal</button>
+    <button type="button" class="upload-submit" id="catalog-confirm">Pilih produk</button>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  /* ---------- Foto ---------- */
+  const input = document.getElementById('photo-input');
+  const preview = document.getElementById('photo-preview');
+  const placeholder = document.getElementById('photo-placeholder');
+  const actions = document.getElementById('photo-actions');
+  const original = preview.getAttribute('src') || '';   // foto lama (mode edit)
+  const MAX = 5 * 1024 * 1024;
+
+  function resetPhoto() {
+    input.value = '';
+    if (original) {
+      preview.src = original;
+      preview.hidden = false; placeholder.hidden = true; actions.hidden = false;
+    } else {
+      preview.hidden = true; preview.removeAttribute('src');
+      actions.hidden = true; placeholder.hidden = false;
+    }
+  }
+  input.addEventListener('change', () => {
+    const f = input.files[0];
+    if (!f) return resetPhoto();
+    if (!/^image\/(jpeg|png)$/.test(f.type) || f.size > MAX) {
+      alert('Foto harus JPG/PNG dan maksimal 5 MB.');
+      return resetPhoto();
+    }
+    preview.src = URL.createObjectURL(f);
+    preview.hidden = false; placeholder.hidden = true; actions.hidden = false;
+  });
+  const removeBtn = document.getElementById('photo-remove');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation(); resetPhoto();
+    });
+  }
+
+  /* ---------- Judul counter ---------- */
+  const titleInput = document.getElementById('title');
+  const titleCount = document.getElementById('title-count');
+  const updateTitleCount = () => (titleCount.textContent = titleInput.value.length);
+  titleInput.addEventListener('input', updateTitleCount); updateTitleCount();
+
+  /* ---------- Caption counter ---------- */
+  const caption = document.getElementById('caption');
+  const count = document.getElementById('caption-count');
+  const updateCount = () => (count.textContent = caption.value.length);
+  caption.addEventListener('input', updateCount); updateCount();
+
+  /* ---------- Hashtag ---------- */
+  const box = document.getElementById('hashtag-box');
+  const tagInput = document.getElementById('hashtag-input');
+  const tagValue = document.getElementById('hashtags-value');
+  let tags = (tagValue.value || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  function renderTags() {
+    box.querySelectorAll('.upload-tag').forEach(n => n.remove());
+    tags.forEach((t, i) => {
+      const el = document.createElement('span');
+      el.className = 'upload-tag';
+      el.textContent = '#' + t + ' ';
+      const x = document.createElement('button');
+      x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Hapus ' + t);
+      x.addEventListener('click', () => { tags.splice(i, 1); renderTags(); });
+      el.appendChild(x);
+      box.insertBefore(el, tagInput);
+    });
+    tagValue.value = tags.join(',');
+    tagInput.disabled = tags.length >= 5;
+  }
+  function addTag() {
+    const v = tagInput.value.replace(/[^\p{L}\p{N}_]/gu, '').slice(0, 30);
+    tagInput.value = '';
+    if (v && tags.length < 5 && !tags.includes(v)) { tags.push(v); renderTags(); }
+  }
+  tagInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') { e.preventDefault(); addTag(); }
+    if (e.key === 'Backspace' && !tagInput.value && tags.length) { tags.pop(); renderTags(); }
+  });
+  tagInput.addEventListener('blur', addTag);
+  box.addEventListener('click', () => tagInput.focus());
+  renderTags();
+
+  /* ---------- Katalog produk (pilih lebih dari satu) ---------- */
+  const MAX_PRODUCTS = 10;
+  const dialog = document.getElementById('catalog-dialog');
+  const list = document.getElementById('product-list');
+  const confirmBtn = document.getElementById('catalog-confirm');
+  const items = [...dialog.querySelectorAll('.upload-catalog-item')];
+
+  const checkedItems = () => items.filter(it => it.querySelector('input').checked);
+
+  function updateConfirm() {
+    const n = checkedItems().length;
+    confirmBtn.textContent = n ? `Pilih produk (${n})` : 'Pilih produk';
+  }
+
+  function openCatalog() {
+    const chosen = new Set([...list.querySelectorAll('li[data-id]')].map(li => li.dataset.id));
+    items.forEach(it => { it.querySelector('input').checked = chosen.has(it.dataset.id); });
+    updateConfirm();
+    dialog.showModal();
+  }
+
+  function buildRow(it) {
+    const li = document.createElement('li');
+    li.className = 'upload-product';
+    li.dataset.id = it.dataset.id;
+
+    if (it.dataset.img) {
+      const img = document.createElement('img');
+      img.src = it.dataset.img; img.alt = '';
+      li.appendChild(img);
+    }
+    const info = document.createElement('div');
+    const name = document.createElement('p'); name.className = 'body-4'; name.textContent = it.dataset.name;
+    const price = document.createElement('p'); price.className = 'body-6'; price.textContent = it.dataset.price;
+    info.append(name, price);
+
+    const rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'upload-product-remove';
+    rm.setAttribute('aria-label', 'Hapus ' + it.dataset.name); rm.textContent = '×';
+
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden'; hidden.name = 'product_ids'; hidden.value = it.dataset.id;
+
+    li.append(info, rm, hidden);
+    return li;
+  }
+
+  document.getElementById('catalog-open').addEventListener('click', openCatalog);
+  document.getElementById('catalog-close').addEventListener('click', () => dialog.close());
+  document.getElementById('catalog-cancel').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+
+  dialog.addEventListener('change', e => {
+    if (!e.target.matches('.upload-catalog-item input')) return;
+    if (checkedItems().length > MAX_PRODUCTS) {
+      e.target.checked = false;
+      alert('Maksimal ' + MAX_PRODUCTS + ' produk per postingan.');
+    }
+    updateConfirm();
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    list.replaceChildren(...checkedItems().map(buildRow));
+    dialog.close();
+  });
+
+  list.addEventListener('click', e => {
+    const rm = e.target.closest('.upload-product-remove');
+    if (rm) rm.closest('li').remove();
+  });
+
+  /* ---------- Dropdown kategori ---------- */
+  const toggle = document.getElementById('cat-toggle');
+  const panel = document.getElementById('cat-panel');
+  toggle.addEventListener('click', () => {
+    const open = panel.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+})();
+</script>
+{% endblock content %}

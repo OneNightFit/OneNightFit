@@ -40,12 +40,20 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         related_name="posts",
     )
+    
+    hashtags = models.ManyToManyField(Tag, blank=True, related_name="hashtag_posts")
+    # Kategori (bisa lebih dari satu), dipakai untuk sorting di tab feed.
+    categories = models.ManyToManyField(Tag, blank=True, related_name="category_posts")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     # TODO: tag produk ONF (ForeignKey/ManyToMany ke model produk)
-    # setelah model Product dari modul Product Catalog tersedia.
+    products = models.ManyToManyField(
+        "catalog.Product",
+        blank=True,
+        related_name="inspo_posts",
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -57,7 +65,52 @@ class Post(models.Model):
     def image_src(self):
         """Foto unggahan user kalau ada, kalau tidak pakai URL dari API."""
         return self.image.url if self.image else self.image_url
+    
+    @property
+    def detail_url(self):
+        """URL halaman detail yang benar untuk post ini."""
+        from django.urls import reverse
+        if self.external_id:      # produk dari API
+            return reverse("inspo:detail", args=[self.external_id])
+        return reverse("inspo:user_detail", args=[self.pk])   # postingan user
 
+class Like(models.Model):
+    """Postingan atau produk yang disukai user. Tampil di bagian Likes pada profil."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="inspo_likes",
+    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "post"], name="unique_like_per_user_post"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} menyukai post {self.post_id}"
+
+class BookmarkCategory(models.Model):
+    """Kategori bookmark buatan user, dibuat saat menyimpan postingan."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="inspo_bookmark_categories",
+    )
+    name = models.CharField(max_length=30)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "name"], name="unique_bookmark_category_per_user"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.user})"
 
 class Bookmark(models.Model):
     """Simpanan pribadi user. Selalu privat, hanya pemilik yang boleh melihat."""
@@ -71,6 +124,13 @@ class Bookmark(models.Model):
         on_delete=models.CASCADE,
         related_name="bookmarks",
     )
+    category = models.ForeignKey(
+    BookmarkCategory,
+    null=True,
+    blank=True,
+    on_delete=models.SET_NULL,
+    related_name="bookmarks",
+)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

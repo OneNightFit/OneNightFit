@@ -1,0 +1,34 @@
+{% extends "authentication/profile_base.html" %}
+{% load static %}
+{% block title %}Activity | OneNightFit{% endblock %}
+
+{% block profile_content %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+<link rel="stylesheet" href="{% static 'css/authentication.css' %}">
+
+<nav class="a-pilltabs" aria-label="Activity sections">
+  {% for t in tabs %}
+  <a href="?tab={{ t.key }}"
+     class="a-pilltab{% if t.key == current %} active{% endif %}"
+     {% if t.key == current %}aria-current="page"{% endif %}>{{ t.label }} (<span data-tab-count="{{ t.key }}">{{ t.cards|length }}</span>)</a>
+  {% endfor %}
+</nav>
+
+<h2 class="a-h2">{{ active.heading.0 }} <span class="a-grad">{{ active.heading.1 }}</span></h2>
+
+
+{% if current == 'bookmark' %}
+  {% include 'inspo/_bookmark_list.html' with tab_key='bookmark' %}
+
+{% elif current == 'like' %}
+  {% include 'inspo/_likes_grid.html' %}
+
+
+{% elif current == 'wishlist' %}
+  {% include 'authentication/_wishlist_grid.html' %}
+
+{% else %}
+  <div class="a-empty">{{ active.empty }}</div>
+{% endif %}
+
+{% endblock %}

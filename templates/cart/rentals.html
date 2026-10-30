@@ -1,0 +1,65 @@
+{% extends "authentication/profile_base.html" %}
+{% load static %}
+{% block title %}Rentals | OneNightFit{% endblock %}
+
+{% block profile_content %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+<h2 class="a-h2">Rentals</h2>
+{% if rentals %}
+  <div class="likes-embed rental-embed">
+    <div class="bm-grid profile-product-card-grid">
+      {% for rental in rentals %}
+      {% include "cart/profile_product_card.html" with kind="rental" card_name=rental.product_name card_image=rental.image card_id=rental.product_uuid rental=rental %}
+      {% endfor %}
+    </div>
+  </div>
+{% else %}
+  <div class="a-empty">No rentals yet.</div>
+{% endif %}
+{% if rentals %}
+
+<script>
+(() => {
+  const titles = [...document.querySelectorAll('[data-fit-title]')];
+  const ctx = document.createElement('canvas').getContext('2d');
+
+  function fitTitles() {
+    titles.forEach(title => {
+      title.style.fontSize = '';
+      const style = getComputedStyle(title);
+      const baseSize = parseFloat(style.fontSize);
+      const width = title.clientWidth;
+      if (!width) return;
+      for (let size = baseSize; size >= 11; size -= 0.5) {
+        ctx.font = `${style.fontWeight} ${size}px ${style.fontFamily}`;
+        let lines = 1;
+        let lineWidth = 0;
+        title.textContent.trim().split(/\s+/).forEach(word => {
+          const wordWidth = ctx.measureText(`${word} `).width;
+          if (lineWidth && lineWidth + wordWidth > width) {
+            lines += 1;
+            lineWidth = wordWidth;
+          } else {
+            lineWidth += wordWidth;
+          }
+        });
+        if (lines <= 2) {
+          title.style.fontSize = `${size}px`;
+          break;
+        }
+      }
+    });
+  }
+
+  document.fonts.ready.then(fitTitles);
+  window.addEventListener('resize', fitTitles);
+})();
+</script>
+{% endif %}
+<script>
+  document.querySelectorAll(".onf-auth .a-toast").forEach((toast) => {
+    window.setTimeout(() => toast.remove(), 1000);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<link rel="stylesheet" href="{% static 'css/inspo.css' %}">
+{% endblock meta %}
+
+{% block title %}Bookmarks{% endblock title %}
+
+{% block content %}
+  <div class="inspo-page">
+    <div class="inspo-container">
+
+      <h1 class="bm-heading">Bookmarks</h1>
+      <p class="bm-meta body-3">
+        <span id="bm-count">{{ total }}</span> Postingan
+        <span class="bm-dot" aria-hidden="true">&bull;</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+        Hanya kamu yang dapat melihatnya
+      </p>
+
+      {% include 'inspo/_bookmark_list.html' %}
+
+    </div>
+  </div>
+{% endblock content %}

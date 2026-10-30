@@ -1,0 +1,145 @@
+{% include 'catalog/components/catalog_detail_modal.html' %}
+
+<ul class="a-wish" id="a-wish-list" {% if not wishlist %}hidden{% endif %}>
+  {% for item in wishlist %}
+  <!-- Setiap card diberi id dan data-product-id agar bisa diklik untuk buka modal detail -->
+  <li class="a-wish-card" id="wishlist-card-{{ item.id }}" data-product-id="{{ item.id }}" style="cursor: pointer;">
+    <span class="a-wish-img">{% if item.image %}<img src="{{ item.image }}" alt="{{ item.title }}" loading="lazy">{% endif %}</span>
+    <span class="a-wish-title">{{ item.title }}</span>
+  </li>
+  {% endfor %}
+</ul>
+
+<div class="a-empty" id="a-wish-empty" {% if wishlist %}hidden{% endif %}>{{ active.empty }}</div>
+
+<script>
+(() => {
+  const modal = document.getElementById('product-detail-modal');
+  const wishlistList = document.getElementById('a-wish-list');
+  const tabCount = document.querySelector('[data-tab-count="wishlist"]');
+  const detailWishlistBtn = document.getElementById('detail-wishlist');
+
+  let currentProductId = null;
+
+  // Fungsi untuk memperbarui jumlah hitungan dan state kosong pada grid wishlist
+  function refreshWishlistUI() {
+    if (!wishlistList) return;
+    const cards = wishlistList.querySelectorAll('.a-wish-card');
+    const n = cards.length;
+    
+    wishlistList.hidden = n === 0;
+    const emptyDiv = document.getElementById('a-wish-empty');
+    if (emptyDiv) emptyDiv.hidden = n > 0;
+    if (tabCount) tabCount.textContent = n;
+  }
+
+  // 1. Saat card produk di grid wishlist diklik -> Fetch data detail & buka modal
+  if (wishlistList) {
+    wishlistList.addEventListener('click', async e => {
+      const card = e.target.closest('.a-wish-card');
+      if (!card) return;
+
+      currentProductId = card.getAttribute('data-product-id');
+      const baseDetailUrl = modal.getAttribute('data-detail-url');
+      const detailUrl = baseDetailUrl.replace('00000000-0000-0000-0000-000000000000', currentProductId);
+
+      try {
+        const res = await fetch(detailUrl);
+        if (!res.ok) throw new Error('Gagal memuat detail produk');
+        const productJson = await res.json();
+
+        // Karena view Django mengembalikan format {"pk": "...", "fields": {...}}
+        const fields = productJson.fields;
+
+        // Helper untuk mengisi teks dengan aman
+        const setTxt = (id, text) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = text;
+        };
+
+        setTxt('product-detail-title', fields.name || '');
+        setTxt('detail-desc', fields.description || '');
+        setTxt('detail-price', fields.price ? `Price: Rp ${fields.price}` : '');
+        setTxt('detail-category', fields.category_display || fields.category || '');
+        setTxt('detail-rating', fields.average_rating !== undefined ? `Rating: ${fields.average_rating}` : '');
+        setTxt('detail-reviews', fields.rating_count !== undefined ? `Rated by ${fields.rating_count} people` : '');
+        setTxt('detail-seller', fields.seller ? `Store: ${fields.seller}` : 'Store: -');
+        setTxt('detail-meta', fields.size_display ? `Ukuran: ${fields.size_display}` : (fields.size ? `Ukuran: ${fields.size}` : ''));
+
+        // Handle Gambar
+        const imgEl = document.getElementById('detail-image');
+        if (imgEl) {
+          if (fields.image) {
+            imgEl.src = fields.image;
+            imgEl.hidden = false;
+          } else {
+            imgEl.hidden = true;
+          }
+        }
+
+        // Karena dibuka dari halaman wishlist, tombol di modal otomatis bertuliskan "Remove from wishlist"
+        if (detailWishlistBtn) {
+          detailWishlistBtn.textContent = "Remove from wishlist";
+        }
+
+        // Buka modal popover HTML
+        if (modal && typeof modal.showPopover === 'function') {
+          modal.showPopover();
+        } else if (modal) {
+          modal.style.display = 'block';
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Gagal memuat detail produk.');
+      }
+    });
+  }
+
+  // 2. Saat tombol Wishlist di dalam modal diklik (Menghapus item secara instan tanpa refresh)
+  if (detailWishlistBtn) {
+    detailWishlistBtn.addEventListener('click', async () => {
+      if (!currentProductId) return;
+
+      const baseToggleUrl = modal.getAttribute('data-wishlist-url');
+      const toggleUrl = baseToggleUrl.replace('00000000-0000-0000-0000-000000000000', currentProductId);
+      const csrfToken = modal.getAttribute('data-csrf');
+
+      try {
+        const res = await fetch(toggleUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!res.ok) throw new Error('Gagal memperbarui wishlist');
+        const data = await res.json();
+
+        // Jika berhasil dihapus dari wishlist (is_wishlisted == false)
+        if (!data.is_wishlisted) {
+          // Hapus card dari grid wishlist di bawah seketika
+          const cardToRemove = document.getElementById(`wishlist-card-${currentProductId}`);
+          if (cardToRemove) {
+            cardToRemove.remove();
+          }
+          
+          // Update hitungan counter angka dan state kosong
+          refreshWishlistUI();
+
+          // Tutup modal otomatis
+          if (modal && typeof modal.hidePopover === 'function') {
+            modal.hidePopover();
+          } else if (modal) {
+            modal.style.display = 'none';
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Gagal memperbarui wishlist.');
+      }
+    });
+  }
+})();
+</script>

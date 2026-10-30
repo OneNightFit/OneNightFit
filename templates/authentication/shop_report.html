@@ -1,0 +1,84 @@
+{% extends "authentication/profile_base.html" %}
+{% block title %}Shop Report | OneNightFit{% endblock %}
+
+{% block profile_content %}
+<h2 class="a-h2">Shop <span class="a-grad">Report</span></h2>
+<p class="a-muted a-lead">A summary of how {{ user.profile.shop_name|default:"your shop" }} is doing.</p>
+
+{% include "authentication/_report_stats.html" %}
+{% include "cart/seller_products.html" %}
+
+{% if not report.has_data %}
+  <div class="a-empty a-empty-report">
+    No shop activity yet. Once you list outfits and get rentals, your report shows up here.
+  </div>
+{% endif %}
+
+<section class="a-panel a-chart-panel">
+  <h3>Earnings, last 6 months</h3>
+  <ol class="a-chart">
+    {% for bar in report.monthly_bars %}
+    <li title="{{ bar.label }}: {{ bar.amount_display }}">
+      <span class="a-bar-value">{{ bar.amount_display }}</span>
+      <span class="a-bar"><span class="a-bar-fill" data-percent="{{ bar.percent }}"></span></span>
+      <span class="a-bar-label">{{ bar.label }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+
+<script>
+  document.querySelectorAll(".a-bar-fill").forEach((bar) => {
+    const percent = Number(bar.dataset.percent);
+    bar.style.height = `${Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : 0}%`;
+  });
+</script>
+
+<div class="a-cols a-cols-even">
+  <section class="a-panel">
+    <h3>Most rented items</h3>
+    {% if report.top_items %}
+    <ol class="a-rank">
+      {% for item in report.top_items %}
+      <li><span>{{ item.name }}</span><strong>{{ item.rentals }}x</strong></li>
+      {% endfor %}
+    </ol>
+    {% else %}
+      <p class="a-muted">No rentals yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="a-panel">
+    <h3>Recent rentals</h3>
+    {% if report.recent_rentals %}
+    <ul class="a-recent">
+      {% for r in report.recent_rentals %}
+      <li>
+        <div>
+          <strong>{{ r.item }}</strong>
+          <small>{{ r.renter }} &middot; {{ r.date|date:"d M Y" }}</small>
+        </div>
+        <div class="a-recent-end">
+          <span class="a-status a-status-{{ r.status_slug }}">{{ r.status }}</span>
+          <small>{{ r.amount_display }}</small>
+          {% if r.status_slug == "pending" %}
+          <form method="post" action="{% url 'cart:approve_rental' r.id %}">
+            {% csrf_token %}
+            <button type="submit" class="button button-primary">Approve</button>
+          </form>
+          {% elif r.status_slug == "active" %}
+          <form method="post" action="{% url 'cart:seller_return_rental' r.id %}">
+            {% csrf_token %}
+            <button type="submit" class="button button-secondary">Mark returned</button>
+          </form>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      <p class="a-muted">No rentals yet.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

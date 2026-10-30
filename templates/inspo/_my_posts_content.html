@@ -1,0 +1,72 @@
+<div class="myposts-page">
+  <header class="myposts-header">
+    <div>
+      <h2 class="myposts-title">Your <span>Post</span></h2>
+      <p class="myposts-count"><span id="total">{{ total }}</span> Postingan</p>
+    </div>
+    <a href="{% url 'inspo:upload' %}" class="mp-btn mp-btn--light mp-btn--pill" id="upload-top" {% if not total %}hidden{% endif %}>+ Upload</a>
+  </header>
+
+  <div class="myposts-grid" id="grid" {% if not total %}hidden{% endif %}>
+    {% for post in posts %}
+      <article class="myposts-card" data-id="{{ post.pk }}">
+        <a href="{{ post.detail_url }}" class="myposts-img">
+          <img src="{{ post.image_src }}" alt="{{ post.title }}" loading="lazy">
+        </a>
+
+        <div class="myposts-actions">
+          <a href="{% url 'inspo:edit' post.pk %}" class="myposts-icon" aria-label="Edit postingan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </a>
+          <button type="button" class="myposts-icon" data-delete
+                  data-action="{% url 'inspo:delete' post.pk %}"
+                  data-img="{{ post.image_src }}" aria-label="Hapus postingan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+
+        <div class="myposts-body">
+          <p class="myposts-caption" data-caption>{{ post.caption|default:post.title }}</p>
+          <div class="myposts-tags" data-tags>
+            {% for h in post.hashtags.all %}<span class="myposts-tag">{{ h.name }}</span>{% endfor %}
+          </div>
+          <div class="myposts-meta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg>
+            {{ post.like_count }}
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  <div class="myposts-empty" id="empty" {% if total %}hidden{% endif %}>
+    <div class="myposts-empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    </div>
+    <h2>Belum ada postingan</h2>
+    <p>Bagikan outfit pertamamu ke komunitas OneNightFit</p>
+    <a href="{% url 'inspo:upload' %}" class="mp-btn mp-btn--light mp-btn--pill">Upload Outfit pertama kamu</a>
+  </div>
+</div>
+
+<!-- Modal Hapus -->
+<dialog class="myposts-modal myposts-modal--sm" id="delete-modal">
+  <form method="post" id="delete-form">
+    {% csrf_token %}
+    <div class="mp-row">
+      <img id="delete-img" class="mp-thumb" alt="">
+      <div>
+        <h2>Hapus postingan ini?</h2>
+        <p class="mp-note">Postingan ini juga akan hilang dari Bookmarks. Tindakan ini tidak bisa dibatalkan.</p>
+      </div>
+    </div>
+    <p class="mp-error" id="delete-error" role="alert"></p>
+    <div class="mp-actions">
+      <button type="button" class="mp-btn mp-btn--tertiary" data-close>Batal</button>
+      <button type="submit" class="mp-btn mp-btn--primary" id="delete-submit">Hapus</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="mp-toast" id="toast" role="status"
+     data-flash="{% for m in messages %}{{ m }}{% endfor %}"></div>

@@ -1,7 +1,41 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block meta %}
+    {% if messages %}
+        {% include "authentication/_assets.html" %}
+        <style>
+            .landing-toast-scope { display: contents; }
+            .landing-toast-scope .a-toasts {
+                top: 1.25rem;
+                right: auto;
+                left: 50%;
+                width: min(32rem, calc(100vw - 2rem));
+                transform: translateX(-50%);
+            }
+            .landing-toast-scope .a-toast {
+                padding: 1.1rem 1.25rem;
+                font-size: 1.05rem;
+            }
+            .landing-toast-scope .a-toast-success {
+                border: 1px solid var(--a-line);
+                border-left: 1px solid var(--a-line);
+            }
+        </style>
+    {% endif %}
+{% endblock meta %}
 {% block title %}Home{% endblock title %}
 {% block content %}
+    <div class="onf-auth landing-toast-scope">
+        {% include "authentication/_messages.html" %}
+    </div>
+    <script>
+        document.querySelectorAll('.landing-toast-scope .a-toast').forEach(toast => {
+            window.setTimeout(() => {
+                toast.classList.add('is-leaving');
+                window.setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        });
+    </script>
     <main>
         <section class="hero">
            <img class="hero-bg" src="{% static 'img/hero-bg.png' %}" alt="" fetchpriority="high">
@@ -10,16 +44,6 @@
             <h1 class="hero-title" data-text="OneNightFit">
                 <span class="hero-fill">OneNightFit</span>
             </h1>
- 
-            <div class="hero-content">
-                <div class="hero-tagline">
-                    <p>Last-minute dress code?</p>
-                    
-                    <p>Tired of the clothes in your closet?</p>
-                    <p>Need to wear formal attire for a presentation?</p><br>
-                    <p>Whatever your fashion dilemma, OneNightFit has the solution!</p>
-                </div>
-            </div>
  
             <a class="hero-scroll" href="#about">
                 Scroll to Explore <span class="hero-scroll-arrow" aria-hidden="true">↓</span>
@@ -50,7 +74,7 @@
                             Need an outfit for a special occasion? Rent it instead of buying it.
                             Get high-quality looks for a fraction of the cost.
                         </p>
-                        <a href="#" class="whatsin-card-link body-3">
+                        <a href="{% url 'catalog:catalog_list' %}" class="whatsin-card-link body-3">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle></svg>
                             Explore Product
                         </a>
@@ -66,7 +90,7 @@
                             Discover new styles, share your own looks, and connect with a community
                             that loves fashion as much as you do.
                         </p>
-                        <a href="#" class="whatsin-card-link body-3">
+                        <a href="{% url 'inspo:feeds' %}" class="whatsin-card-link body-3">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle></svg>
                             Explore Inspo
                         </a>
@@ -82,7 +106,7 @@
                     By giving clothes more than one life, OneNightFit helps you enjoy fashion without
                     unnecessary consumption. Better for your style, better for the planet.
                 </p>
-                <a href="#" class="button button-primary">Explore Now</a>
+                <a href="{% url 'catalog:catalog_list' %}" class="button button-primary">Explore Now</a>
             </div>
 
         </div>

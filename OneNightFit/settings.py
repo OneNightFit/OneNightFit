@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'inspo',
+    'catalog',
+    'cart',
+    'authentication',
 ]
 
 MIDDLEWARE = [
@@ -79,6 +82,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# TODO: set LOGIN_URL to the login page URL once it exists (currently 404)
+# LOGIN_URL = "/login/"
 
 WSGI_APPLICATION = 'OneNightFit.wsgi.application'
 
@@ -149,6 +154,9 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
+LOGIN_URL = "authentication:login"
+LOGIN_REDIRECT_URL = "landing_page"
+LOGOUT_REDIRECT_URL = "authentication:login"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
