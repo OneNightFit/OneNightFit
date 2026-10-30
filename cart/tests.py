@@ -5,7 +5,7 @@ All products and users are created in Django's temporary test database.
 """
 from decimal import Decimal
 from datetime import date, timedelta
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
@@ -569,3 +569,12 @@ class SellerReportTests(TestCase):
         self.assertEqual(recent.status_slug, "active")
         self.assertEqual(recent.amount_display, "Rp 500")
         self.assertEqual(reports.TopItem("Dress", 2).rentals, 2)
+
+    def test_shop_product_card_uses_uploaded_product_image(self):
+        make_product(name="Uploaded image", seller=self.seller)
+        with patch.object(
+            Product, "image_src", new_callable=PropertyMock,
+            return_value="/media/catalog/products/uploaded.jpg",
+        ):
+            report = reports.get_seller_report(self.seller)
+        self.assertEqual(report.products[0].image, "/media/catalog/products/uploaded.jpg")
