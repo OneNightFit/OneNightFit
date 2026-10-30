@@ -51,8 +51,7 @@
                                                 name="category" 
                                                 value="{{ code }}" 
                                                 class="filter-checkbox"
-                                                {% if code in selected_categories %}checked{% endif %}
-                                                onchange="document.getElementById('filter-form').submit();">
+                                                {% if code in selected_categories %}checked{% endif %}>
                                             <label for="cat-{{ code }}" class="category-name">
                                                 {{ name }}
                                             </label>
@@ -65,11 +64,9 @@
                             </div>
     
                             <!-- Clear Filters Button -->
-                            {% if selected_categories %}
-                            <div class="filter-actions">
+                            <div class="filter-actions" id="filter-actions" {% if not selected_categories %}hidden{% endif %}>
                                 <a href="{% url 'catalog:catalog_list' %}" class="clear-filter-btn button button-tertiary">Clear Filters</a>
                             </div>
-                            {% endif %}
                             
                         </div>
                     </form>
@@ -150,8 +147,10 @@
         const WISHLIST_URL = "{% url 'catalog:toggle_wishlist' '00000000-0000-0000-0000-000000000000' %}";
         const CART_URL = "{% url 'cart:add' %}";
 
-        const selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
+        let selectedCategories = JSON.parse(document.getElementById('selected-categories').textContent);
         const searchInput = document.getElementById('catalog-search-input');
+        const filterForm = document.getElementById('filter-form');
+        const filterActions = document.getElementById('filter-actions');
         const productsById = new Map();
         let productsAbortController;
 
@@ -325,11 +324,53 @@
             }
         }
 
+        function syncCatalogUrl() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('category');
+            selectedCategories.forEach(category => url.searchParams.append('category', category));
+            const query = searchInput.value.trim();
+            if (query) url.searchParams.set('q', query);
+            else url.searchParams.delete('q');
+            window.history.replaceState({}, '', url);
+        }
+
+        filterForm.addEventListener('change', event => {
+            if (!event.target.matches('.filter-checkbox')) return;
+            selectedCategories = Array.from(filterForm.querySelectorAll('.filter-checkbox:checked'), checkbox => checkbox.value);
+            filterActions.hidden = selectedCategories.length === 0;
+            syncCatalogUrl();
+            fetchProducts();
+        });
+
+        filterActions.querySelector('.clear-filter-btn').addEventListener('click', event => {
+            event.preventDefault();
+            selectedCategories = [];
+            filterForm.querySelectorAll('.filter-checkbox').forEach(checkbox => { checkbox.checked = false; });
+            filterActions.hidden = true;
+            syncCatalogUrl();
+            fetchProducts();
+        });
+
+        window.addEventListener('popstate', () => {
+            const params = new URLSearchParams(window.location.search);
+            selectedCategories = params.getAll('category');
+            searchInput.value = params.get('q') || '';
+            document.getElementById('filter-search-query').value = searchInput.value;
+            filterForm.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+                checkbox.checked = selectedCategories.includes(checkbox.value);
+            });
+            filterActions.hidden = selectedCategories.length === 0;
+            fetchProducts();
+        });
+
         let searchDebounceTimer;
         searchInput.addEventListener('input', () => {
             document.getElementById('filter-search-query').value = searchInput.value;
             window.clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = window.setTimeout(fetchProducts, 300);
+            searchDebounceTimer = window.setTimeout(() => {
+                syncCatalogUrl();
+                fetchProducts();
+            }, 300);
         });
 
         function extractErrors(result, status) {
