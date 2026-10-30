@@ -71,6 +71,52 @@ https://www.figma.com/design/K646xfiXLzAk07bq81ZwJx/OneNightFit?node-id=0-1&t=YF
 
 
 ## Modul Authentication and User
+Konten pada modul Authentication & User meliputi:
+
+- **Registrasi, Login, dan Logout:** Pengguna membuat akun dan memilih peran sebagai Buyer atau Seller. Peran disimpan di profil pengguna (`profile.is_buyer` dan `profile.is_seller`) dan menentukan menu serta tab yang tampil. Pengunjung yang belum login diarahkan ke halaman login saat membuka halaman yang dilindungi.
+- **Profil Pengguna:** Halaman profil menampilkan avatar inisial, lencana peran (Buyer atau Seller), nama pengguna, dan email. Navigasi tab pada profil menyesuaikan peran: Buyer memiliki tab Profile, Activity, Rentals, dan Edit Profile, sedangkan Seller memiliki tab Profile, Shop Report, dan Edit Profile.
+- **Edit Profil:** Pengguna dapat mengubah data profilnya sendiri. Pembatasan akses dilakukan di sisi server, sehingga pengguna hanya dapat mengubah profil miliknya.
+- **Activity (Buyer):** Mengumpulkan aktivitas pengguna dari modul lain dalam tiga tab dengan jumlah item pada setiap tab.
+  - **Wishlist:** produk katalog yang disimpan pengguna (hanya untuk Buyer). Tombol Remove menghapus produk dari wishlist tanpa memuat ulang halaman, dan mengklik kartu membuka modal detail produk.
+  - **Like:** postingan Inspo yang disukai pengguna, memakai tampilan grid yang sama dengan halaman Likes pada modul Inspo.
+  - **Bookmark:** postingan Inspo yang disimpan, lengkap dengan filter kategori, pengurutan terbaru atau terlama, dan hapus langsung. Tampilannya memakai komponen yang sama dengan halaman Bookmarks pada modul Inspo.
+- **Rentals (Buyer):** Menampilkan riwayat sewa milik Buyer beserta statusnya (menunggu persetujuan, sedang disewa, dan dikembalikan).
+- **Shop Report (Seller):** Ringkasan toko berisi jumlah produk yang disewakan, sewa aktif, total sewa, dan total pendapatan, ditambah grafik pendapatan enam bulan terakhir. Daftar produk Seller dapat disaring menjadi *Available*, *Pending*, dan *Rented*. Status ini dihitung dari data pesanan, bukan disimpan sebagai kolom pada produk, sehingga tidak bisa tidak sinkron.
+- **Alur Pesanan Sewa:** Checkout oleh Buyer membuat pesanan berstatus *pending* dan menahan stok produk. Seller dapat menyetujui (menjadi *renting*) atau menolak pesanan, lalu menandai *returned* ketika barang dikembalikan. Harga dikunci saat checkout supaya pendapatan tidak berubah ketika harga produk diedit.
+- **Penghubung Antar Modul (`integrations.py`):** Hanya file ini yang mengetahui nama model dan field milik modul lain (Catalog, Inspo, dan Cart). Arah ketergantungan satu arah: Authentication membaca modul lain, sedangkan modul lain tidak meng-import Authentication. Jika modul lain belum digabung atau modelnya tidak ditemukan, halaman tampil kosong dan tidak error.
+- **Autentikasi dan Hak Akses:** Halaman Profile, Activity, Rentals, Shop Report, dan Edit Profile hanya dapat diakses pengguna yang login. Aksi Seller (approve, reject, returned) memeriksa kepemilikan di sisi server, sehingga Seller lain mendapat respons 404 meskipun mengetahui alamatnya. Pembatasan dilakukan di sisi server, bukan hanya dengan menyembunyikan tombol.
+- **Keamanan Input:** Seluruh aksi yang mengubah data memakai request POST dengan token CSRF. Teks yang disisipkan lewat JavaScript memakai `textContent` untuk mencegah XSS, dan alamat tujuan `next` pada form divalidasi agar tidak mengarah ke situs lain.
+
+### **AI Disclosure Modul Inspo**
+### **1. Alat AI yang digunakan**
+
+Claude (Model Bahasa / AI Assistant)
+
+
+### **2. Ruang Lingkup Bantuan AI**
+
+- **Struktur Django:** Menjelaskan pemisahan tanggung jawab antar app, penggunaan `views.py`, `urls.py`, template, partial (`{% include %}`), dan static files pada modul authentication.
+- **Integrasi Antar Modul:** Membantu merancang `integrations.py` agar modul Authentication membaca data Catalog dan Inspo tanpa saling bergantung, termasuk fungsi pengambilan data Wishlist, Like, Bookmark, dan data Shop Report.
+- **Model dan Database:** Membantu merancang model pesanan sewa (Order dan OrderItem atau Rental) berikut status, penguncian harga, dan perhitungan stok, serta cara membuat migrasi.
+- **Frontend:** Memberikan saran penyusunan HTML, CSS, dan JavaScript untuk tab Activity, filter Shop Report, penghapusan wishlist tanpa reload, dan pembukaan modal detail produk dari kartu wishlist.
+- **Debugging:** Membantu membaca pesan error (misalnya `TemplateSyntaxError` akibat tag `elif` atau `endblock` yang tertinggal, dan peringatan import pada VS Code) lalu menelusuri penyebabnya.
+
+### **3. Strategi Prompting**
+
+- **Contextual Prompting:** Menyertakan potongan kode, isi file (`views.py`, `integrations.py`, template), serta screenshot tampilan aplikasi agar bantuan sesuai dengan kondisi proyek.
+- **Iterative and Conversational Prompting:** Mengajukan pertanyaan bertahap, misalnya dari memisahkan komponen bookmark, lalu menyambungkannya ke tab Activity, kemudian menyesuaikan dengan aturan `integrations.py`.
+- **Problem-Based Questioning:** Menempelkan pesan error lengkap atau screenshot halaman error untuk memperoleh penyebab yang spesifik.
+- **Verification Prompting:** Meminta cara memeriksa hasil, misalnya daftar skenario uji dengan dua akun (Buyer dan Seller) untuk alur pending, approve, dan returned.
+- **UI Evaluation Prompting:** Mengirim tampilan aktual halaman untuk memperoleh masukan perbedaan antara desain dan implementasi, misalnya tab pill yang belum ter-style.
+- **Conceptual Follow-up:** Menanyakan alasan di balik keputusan teknis, misalnya mengapa status renting tidak disimpan di model Product, dan apakah perlu model khusus untuk pesanan sewa.
+
+### **4. Log Chat AI**
+
+Link = https://claude.ai/share/bd7e1475-315b-42a3-9e1a-b8221bff2673
+
+### **5. Evaluasi Kritis terhadap Penggunaan AI**
+
+AI digunakan sebagai pendukung pemahaman dan pembuatan draf kode untuk modul Authentication dan User. Saran AI tidak langsung dipakai apa adanya. AI tidak sepenuhnya memahami lingkungan proyek ini sehingga banyak yang harus dipertimbangkan untuk disesuaikan kembali. Contohnya, AI sempat menyarankan agar view Activity mengimpor model Inspo secara langsung, lalu saran itu ditinjau ulang dan diubah agar mengikuti aturan `integrations.py` yang menyatakan hanya file tersebut yang boleh mengetahui nama model modul lain. Banyak nama model dan field pada draf AI berupa asumsi (misalnya `OrderItem`, `Rental`, atau nama URL), sehingga semuanya dicocokkan dengan kode proyek yang sebenarnya sebelum dipakai. Implementasi, pengujian, verifikasi hasil, dan pengambilan keputusan akhir tetap dilakukan oleh saya. Dengan demikian, AI dimanfaatkan untuk membantu proses belajar dan mencari solusi atas permasalahan yang dihadapi, sedangkan penyusunan dan hasil akhir modul tetap saya kembangkan dan tentukan sendiri.
 
 
 

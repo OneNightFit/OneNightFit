@@ -6,7 +6,9 @@
      aria-labelledby="product-detail-title"
      data-detail-url="{% url 'catalog:product_detail' '00000000-0000-0000-0000-000000000000' %}"
      data-cart-url="{% url 'cart:add' %}"
+     data-cart-page-url="{% url 'cart:cart' %}"
      data-wishlist-url="{% url 'catalog:toggle_wishlist' '00000000-0000-0000-0000-000000000000' %}"
+     data-login-url="{% url 'authentication:login' %}"
      data-csrf="{{ csrf_token }}"
      data-is-seller="{% if user.is_authenticated and user.profile.is_seller %}true{% else %}false{% endif %}">
 
@@ -30,6 +32,7 @@
         <div class="card-content">
             <span id="detail-category" class="category body-3"></span>
             <h4 id="product-detail-title" class="product-title"></h4>
+            <p id="detail-cart-status" class="body_3" hidden>added to cart</p>
             <p id="detail-desc" class="product-desc body-3"></p>
 
             <div class="product-info body-3">
@@ -41,7 +44,7 @@
             </div>
 
             <div class="detail-actions">
-                <button type="button" id="detail-cart" class="button button-primary" data-action="cart">Add to cart</button>
+                <button type="button" id="detail-cart" class="button button-primary" data-action="cart" data-default-label="Add to cart" data-added-label="Added to cart">Add to cart</button>
                 <button type="button" id="detail-wishlist" class="button button-secondary" data-action="wishlist">Add to wishlist</button>
             </div>
         </div>

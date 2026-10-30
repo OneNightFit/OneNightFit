@@ -39,17 +39,33 @@ class Product(models.Model):
         return self.name
 
     @property
+    def seller_display(self):
+        """Return shop_name or display name if seller has a profile, else username or hyphen."""
+        if not self.seller:
+            return "-"
+        profile = getattr(self.seller, "profile", None)
+        if profile and profile.shop_name:
+            return profile.shop_name
+        return self.seller.get_full_name() or self.seller.username
+
+    @property
     def image_src(self):
         """Return the uploaded image URL, or the legacy external image URL."""
         return self.image_file.url if self.image_file else (self.image or "")
 
     @property
     def average_rating(self):
+        annotated = getattr(self, "avg_score", None)
+        if annotated is not None:
+            return round(annotated, 1) if annotated else 0.0
         avg = self.ratings.aggregate(Avg('score'))['score__avg']
         return round(avg, 1) if avg else 0.0
 
     @property
     def rating_count(self):
+        annotated = getattr(self, "ratings_cnt", None)
+        if annotated is not None:
+            return annotated
         return self.ratings.count()
 
     def is_wishlisted_by(self, user):
