@@ -26,6 +26,10 @@ def product_detail(request, id):
         request.user.is_authenticated
         and product.wishlisted_by.filter(pk=request.user.pk).exists()
     )
+    is_in_cart = (
+        request.user.is_authenticated
+        and CartItem.objects.filter(cart__user=request.user, product=product).exists()
+    )
     return JsonResponse({
         "pk": str(product.id),
         "fields": {
@@ -41,6 +45,7 @@ def product_detail(request, id):
             "average_rating": product.average_rating,
             "rating_count": product.rating_count,
             "is_wishlisted": is_wishlisted,
+            "is_in_cart": is_in_cart,
             "is_owner": request.user.is_authenticated and product.seller_id == request.user.id,
         }
     })
