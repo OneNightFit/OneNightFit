@@ -223,8 +223,7 @@
 .card .image {
     width: 100%;
     aspect-ratio: 1 / 1;
-    background-image: repeating-conic-gradient(var(--neutral_150) 0% 25%, var(--neutral_0) 0% 50%);
-    background-size: 20px 20px;
+    background: var(--neutral_g0);
     position: relative;
     overflow: hidden;
 }
