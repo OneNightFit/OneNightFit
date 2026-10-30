@@ -173,6 +173,7 @@ h6 {
 }
 .button-primary:hover {
     background-color: var(--button_primary__hovered);
+    cursor: pointer;
 }
 .button-secondary {
     background-color: var(--secondary_200);
@@ -180,6 +181,7 @@ h6 {
 }
 .button-secondary:hover {
     background-color: var(--button_secondary__hovered);
+    cursor: pointer;
 }
 .button-tertiary {
     background-color: transparent;
@@ -189,6 +191,7 @@ h6 {
 .button-tertiary:hover {
     border: 2px solid var(--primary_200);
     color: var(--primary_500);
+    cursor: pointer;
 }
 
 .button-danger {
@@ -198,6 +201,7 @@ h6 {
 .button-danger:hover {
     background-color: var(--button_danger__hovered);
     color: var(--neutral_0);
+    cursor: pointer;
 }
 
 @media (min-width: 769px) {
