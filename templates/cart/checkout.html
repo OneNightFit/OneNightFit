@@ -21,6 +21,12 @@
         </ul>
         {% endif %}
 
+        {% if not profile_complete %}
+        <p class="cart-messages body-2">
+            <a href="{% url 'authentication:edit_profile' %}">Perbarui profil</a> untuk melengkapi data checkout.
+        </p>
+        {% endif %}
+
         {% if summary.is_empty %}
         <section class="cart-panel cart-empty">
             <h4 class="cart-empty__title">No products selected</h4>
@@ -28,7 +34,7 @@
             <div class="cart-empty__actions"><a class="button button-primary" href="{% url 'cart:cart' %}">Back to Cart</a></div>
         </section>
         {% else %}
-        <form class="cart-layout checkout-layout" method="post" action="{% url 'cart:checkout' %}" id="checkout-form" novalidate>
+        <form class="cart-layout checkout-layout" method="post" action="{% url 'cart:checkout' %}" id="checkout-form" data-profile-complete="{{ profile_complete|yesno:'true,false' }}" novalidate>
             {% csrf_token %}
 
             <div class="cart-list">
@@ -41,7 +47,7 @@
                 {% include 'cart/checkout_products.html' %}
             </div>
 
-            {% include 'cart/checkout_summary.html' %}
+            {% include 'cart/checkout_summary.html' with profile_complete=profile_complete %}
         </form>
         {% endif %}
     </div>

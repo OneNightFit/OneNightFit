@@ -25,6 +25,6 @@
         </label>
     </fieldset>
 
-    <button class="cart-checkout-btn body-1" type="submit" id="checkout-submit">Checkout</button>
-    <p class="cart-summary__hint body-4" id="checkout-hint" hidden>Select a payment method</p>
+    <button class="cart-checkout-btn body-1" type="submit" id="checkout-submit" {% if not profile_complete %}disabled{% endif %}>Checkout</button>
+    <p class="cart-summary__hint body-4" id="checkout-hint" {% if profile_complete %}hidden{% endif %}>Lengkapi nama, nomor HP, dan kota di profil untuk checkout.</p>
 </aside>
