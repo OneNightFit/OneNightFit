@@ -324,21 +324,10 @@
             }
         }
 
-        function syncCatalogUrl() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('category');
-            selectedCategories.forEach(category => url.searchParams.append('category', category));
-            const query = searchInput.value.trim();
-            if (query) url.searchParams.set('q', query);
-            else url.searchParams.delete('q');
-            window.history.replaceState({}, '', url);
-        }
-
         filterForm.addEventListener('change', event => {
             if (!event.target.matches('.filter-checkbox')) return;
             selectedCategories = Array.from(filterForm.querySelectorAll('.filter-checkbox:checked'), checkbox => checkbox.value);
             filterActions.hidden = selectedCategories.length === 0;
-            syncCatalogUrl();
             fetchProducts();
         });
 
@@ -347,19 +336,6 @@
             selectedCategories = [];
             filterForm.querySelectorAll('.filter-checkbox').forEach(checkbox => { checkbox.checked = false; });
             filterActions.hidden = true;
-            syncCatalogUrl();
-            fetchProducts();
-        });
-
-        window.addEventListener('popstate', () => {
-            const params = new URLSearchParams(window.location.search);
-            selectedCategories = params.getAll('category');
-            searchInput.value = params.get('q') || '';
-            document.getElementById('filter-search-query').value = searchInput.value;
-            filterForm.querySelectorAll('.filter-checkbox').forEach(checkbox => {
-                checkbox.checked = selectedCategories.includes(checkbox.value);
-            });
-            filterActions.hidden = selectedCategories.length === 0;
             fetchProducts();
         });
 
@@ -367,10 +343,7 @@
         searchInput.addEventListener('input', () => {
             document.getElementById('filter-search-query').value = searchInput.value;
             window.clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = window.setTimeout(() => {
-                syncCatalogUrl();
-                fetchProducts();
-            }, 300);
+            searchDebounceTimer = window.setTimeout(fetchProducts, 300);
         });
 
         function extractErrors(result, status) {
