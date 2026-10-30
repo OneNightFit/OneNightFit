@@ -74,7 +74,8 @@
             const result = await res.json().catch(() => ({}));
             if (res.status === 401) {
                 notify('Gagal menambahkan produk', result.error || result.message || 'Harap login terlebih dahulu.', 'error');
-                window.setTimeout(() => { window.location.href = '/login/'; }, 3200);
+                const loginUrl = modal.dataset.loginUrl || '/login/';
+                window.setTimeout(() => { window.location.href = loginUrl; }, 3200);
                 return;
             }
             const message = res.ok
@@ -110,7 +111,10 @@
                 window.location.href = res.url;
                 return;
             }
-            if (res.status === 401) { window.location.href = '/login/'; return; }
+            if (res.status === 401) {
+                window.location.href = modal.dataset.loginUrl || '/login/';
+                return;
+            }
             const result = await res.json().catch(() => ({}));
             if (!res.ok) return notify('Gagal', result.message || 'Gagal memperbarui wishlist.', 'error');
 

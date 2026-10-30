@@ -9,7 +9,7 @@
 {% block title %}Katalog Produk{% endblock title %}
 
 {% block content %}
-    <main>
+    <div class="catalog-page">
         <div class="header">
             <h1>Products for Rent</h1>
             <div class="catalog-search">
@@ -83,7 +83,7 @@
                 <div id="grid" class="cards hide"></div>
             </div>
         </div>
-    </main>
+    </div>
     {% if user.is_authenticated and user.profile.is_seller %}
         {% include 'catalog/components/catalog_form_update_modal.html' %}
         {% include 'catalog/components/catalog_delete_modal.html' %}
@@ -232,7 +232,7 @@
                             <div class="product-seller-size-rating"> 
                                 <div class="product-seller">
                                     <span class="store-icon"><svg></svg></span>
-                                    <span class="body_1">${escapeHtml(product.seller_display)}</span>
+                                    <span class="body_1">${escapeHtml(product.seller_display || product.seller || '-')}</span>
                                 </div>
                                 <p class="product-size body_1">Size: ${escapeHtml(product.size_display)}</p>
                                 <div class="rating">
