@@ -152,7 +152,18 @@ def create_product_ajax(request):
         return JsonResponse({"message": "Hanya seller yang dapat menambahkan produk."}, status=403)
 
     form = ProductForm(request.POST, request.FILES) 
+    products = (
+        Product.objects.select_related('seller', 'seller__profile')
+        .annotate(
+            avg_score=Avg('ratings__score'),
+            ratings_cnt=Count('ratings', distinct=True)
+        )
+    )
+
+    current_products = products.filter(seller=request.user)
     if form.is_valid():
+        if (form.fields['name']) in (current_products.__name__):
+            return JsonResponse({"message": "Nama produk ini sudah dipakai."}, status=403)
         product = form.save(commit=False)
         product.seller = request.user
         product.save()

@@ -284,6 +284,8 @@ class ProductJsonViewTests(CatalogTestDataMixin, TestCase):
 
         self.assertTrue(response.json()[0]["fields"]["is_owner"])
 
+        
+
 
 class ProductCrudViewTests(CatalogTestDataMixin, TestCase):
     def setUp(self):
@@ -431,6 +433,16 @@ class ProductCrudViewTests(CatalogTestDataMixin, TestCase):
         response = self.client.get(reverse("catalog:delete_product_ajax", args=[self.product.pk]))
 
         self.assertEqual(response.status_code, 405)
+
+    def test_given_product_owned_by_authenticated_seller_when_submittin_existing_product_name_then_return_error_message(self):
+        self.client.force_login(self.seller)
+
+        self.client.post(reverse("catalog:create_product_ajax"), {self.valid_data})
+        response = self.client.post(reverse("catalog:create_product_ajax"), {self.valid_data})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("name", response.json()["errors"])
+        self.assertEqual(Product.objects.count(), 1)
 
 
 class WishlistViewTests(CatalogTestDataMixin, TestCase):

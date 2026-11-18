@@ -27,6 +27,8 @@ urlpatterns = [
     path('catalog/', include('catalog.urls')),
     path('', include('cart.urls')),
     path('', include('authentication.urls')),
+    path('api/v1/', include('catalog.api_urls')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
